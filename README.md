@@ -14,8 +14,9 @@ This repository contains explorations in **LangGraph**, **LangChain**, **MCP ser
 ---
 
 ## 📂 Repository Structure
+```text
 ai-playground/
 │
-├── langgraph-experiments/ # Flow-based AI orchestration
-├── notebooks/ # Jupyter notebooks for fast prototyping
-└── docs/ # Documentation, learnings, and notes    
+├── langgraph-experiments/    # Flow-based AI orchestration
+├── notebooks/                # Jupyter notebooks for fast prototyping
+└── docs/                     # Documentation, learnings, and notes
