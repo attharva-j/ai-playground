@@ -1,0 +1,8 @@
+{
+    "dependencies": ["."],
+    "graphs":{
+        "tool_agent": "./langgraph-experiments/3-DebuggingAndMonitoring/agent.py:tool_agent"
+
+    },
+    "env": ".env"
+}
