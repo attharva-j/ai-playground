@@ -1,0 +1,61 @@
+# Sample Natural Language Queries for the Watch Retail System
+
+## Sales & Revenue Analysis
+Show me the top 5 best-selling watch models
+What's the revenue trend over the last 12 months?
+Which watch brand generates the most revenue?
+Show me all orders from the last month
+What's the total revenue for this year?
+Compare sales across different watch categories
+Show me the most profitable watches
+
+## Customer Insights
+List all VIP customers
+Which customers have spent more than $50,000?
+Show me customers from the USA
+Who are the top 10 customers by lifetime value?
+How many VIP customers do we have?
+Show me customers who joined in the last 6 months
+Which countries have the most customers?
+
+## Inventory Management
+Show current inventory levels for all watches
+Which watches are low on stock?
+Show me inventory for Rolex watches
+What watches need to be reordered?
+Show me watches with more than 20 units in stock
+Which watches are out of stock?
+Show inventory status for luxury category watches
+
+## Product Information
+Show me all luxury watches priced above $30,000
+List all diving watches
+Show me watches with automatic movement
+What limited edition watches are available?
+Show me all Rolex watches
+List watches made of gold or platinum
+Show me the most expensive watches
+What watches were released in the last year?
+
+## Comparative Analysis
+What's the average price of watches by brand?
+Compare inventory levels across brands
+Show me the price distribution of all watches
+Which category has the most watches?
+What's the average price by category?
+Compare automatic vs quartz watches
+
+## Order Analysis
+Show me recent orders
+What's the average order value?
+Show me cancelled orders
+Which payment method is most popular?
+Show me orders with discounts applied
+What's the status of all pending orders?
+
+## Complex Queries
+Show me VIP customers who bought Rolex watches
+What's the revenue from luxury category watches?
+Show me low stock items that are best sellers
+Which brands have the highest customer satisfaction?
+Show me watches that are both limited edition and in stock

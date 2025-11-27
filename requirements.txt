@@ -8,3 +8,12 @@ langchain_tavily
 langchain-mcp-adapters
 mcp
 langgraph-cli[inmem]
+
+sqlalchemy
+strawberry-graphql
+langchain-openai
+langchain-anthropic
+plotly
+pandas
+pydantic
+faker
