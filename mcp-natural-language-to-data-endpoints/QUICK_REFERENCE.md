@@ -443,5 +443,6 @@ echo $OPENAI_API_KEY
 
 - [GET_STARTED.md](GET_STARTED.md) - Quick start guide
 - [SETUP_GUIDE.md](SETUP_GUIDE.md) - Detailed setup instructions
+- [WORKFLOW.md](WORKFLOW.md) - Query transformation and routing workflow
 - [IMPLEMENTATION.md](IMPLEMENTATION.md) - Technical architecture
 - [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Project overview

@@ -372,6 +372,7 @@ For remote databases:
 
 ## Next Steps
 
-- Read [Implementation](IMPLEMENTATION.md) to understand the query generation process
-- Check [Quick Reference](QUICK_REFERENCE.md) for common commands
-- Review [Project Summary](PROJECT_SUMMARY.md) for architecture details
+- Read [Workflow](WORKFLOW.md) to understand the query transformation process
+- Check [Implementation](IMPLEMENTATION.md) for technical architecture details
+- Review [Quick Reference](QUICK_REFERENCE.md) for common commands
+- See [Project Summary](PROJECT_SUMMARY.md) for complete overview

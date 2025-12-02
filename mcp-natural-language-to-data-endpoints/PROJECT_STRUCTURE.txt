@@ -71,6 +71,7 @@ mcp-natural-language-to-data-endpoints/
 ├── README.md                     # Main project documentation
 ├── GET_STARTED.md                # Quick start guide
 ├── SETUP_GUIDE.md                # Detailed setup instructions
+├── WORKFLOW.md                   # Query transformation and routing workflow
 ├── IMPLEMENTATION.md             # Implementation details
 ├── PROJECT_STRUCTURE.txt         # This file - project organization
 ├── PROJECT_SUMMARY.md            # High-level project overview

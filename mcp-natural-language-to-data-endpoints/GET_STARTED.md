@@ -123,8 +123,9 @@ The server exposes four main tools:
 
 - Read the [Setup Guide](SETUP_GUIDE.md) for detailed configuration instructions
 - Check the [Quick Reference](QUICK_REFERENCE.md) for common operations
-- Review the [Implementation](IMPLEMENTATION.md) for technical details
-- See [Project Summary](PROJECT_SUMMARY.md) for architecture overview
+- Review the [Workflow](WORKFLOW.md) to understand query transformation
+- See the [Implementation](IMPLEMENTATION.md) for technical details
+- Read [Project Summary](PROJECT_SUMMARY.md) for architecture overview
 
 ## Supported Databases
 

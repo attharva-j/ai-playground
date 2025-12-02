@@ -246,6 +246,7 @@ Add to MCP client configuration (e.g., Claude Desktop):
 
 - **GET_STARTED.md**: Quick start guide with examples
 - **SETUP_GUIDE.md**: Detailed setup for all database types
+- **WORKFLOW.md**: Query transformation and routing workflow
 - **IMPLEMENTATION.md**: Technical implementation details
 - **QUICK_REFERENCE.md**: Common commands and operations
 - **PROJECT_STRUCTURE.txt**: File organization and architecture

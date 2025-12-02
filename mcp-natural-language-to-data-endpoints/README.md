@@ -389,6 +389,7 @@ See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for detailed troubleshooting.
 
 - **[GET_STARTED.md](GET_STARTED.md)** - Quick start guide with examples
 - **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed setup for all databases
+- **[WORKFLOW.md](WORKFLOW.md)** - Query transformation and routing workflow
 - **[IMPLEMENTATION.md](IMPLEMENTATION.md)** - Technical architecture
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Command reference and tips
 - **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Complete project overview
