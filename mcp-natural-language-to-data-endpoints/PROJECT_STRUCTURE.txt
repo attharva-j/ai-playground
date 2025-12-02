@@ -1,0 +1,185 @@
+MCP Natural Language to Data Endpoints - Project Structure
+===========================================================
+
+mcp-natural-language-to-data-endpoints/
+│
+├── server.py                      # Main MCP server entry point
+│   ├── MCP Server initialization
+│   ├── Tool registration (nl_to_sql, nl_to_nosql, nl_to_cypher, nl_to_graphql)
+│   ├── Tool handlers for each query type
+│   └── Schema cache refresh handler
+│
+├── connectors/                    # Database connector modules
+│   ├── __init__.py
+│   ├── sql_connector.py          # SQL database connector
+│   │   ├── SQLConnector class
+│   │   ├── Schema introspection (SQLAlchemy)
+│   │   ├── Query execution
+│   │   └── Support for: MySQL, PostgreSQL, Oracle, MS-SQL, Snowflake, Databricks
+│   │
+│   ├── nosql_connector.py        # NoSQL database connector
+│   │   ├── NoSQLConnector class
+│   │   ├── Schema introspection
+│   │   ├── Query execution
+│   │   └── Support for: MongoDB, Cassandra, Redis, DynamoDB
+│   │
+│   ├── graph_connector.py        # Graph database connector
+│   │   ├── GraphConnector class
+│   │   ├── Schema introspection
+│   │   ├── Query execution
+│   │   └── Support for: Neo4j, ArangoDB, GraphDB, Neptune, CosmosDB
+│   │
+│   └── graphql_connector.py      # GraphQL API connector
+│       ├── GraphQLConnector class
+│       ├── Schema introspection (introspection query)
+│       ├── Query execution
+│       └── Support for: Generic GraphQL, Saleor, Custom APIs
+│
+├── llm/                          # LLM provider integration
+│   ├── __init__.py
+│   └── provider.py               # LLM provider abstraction
+│       ├── LLMProvider class
+│       ├── OpenAI integration
+│       ├── Anthropic integration
+│       ├── Query generation methods (SQL, NoSQL, Cypher, GraphQL)
+│       └── Prompt building utilities
+│
+├── cache/                        # Schema caching system
+│   ├── __init__.py
+│   └── schema_cache.py           # Schema cache implementation
+│       ├── SchemaCache class
+│       ├── File-based caching
+│       ├── TTL management (24 hours default)
+│       └── Cache invalidation
+│
+├── requirements.txt              # Python dependencies
+│   ├── MCP SDK
+│   ├── LLM providers (OpenAI, Anthropic)
+│   ├── SQL drivers (SQLAlchemy, PyMySQL, psycopg2, cx_Oracle, pyodbc)
+│   ├── NoSQL drivers (pymongo, cassandra-driver, redis, boto3)
+│   ├── Graph drivers (neo4j, python-arango, SPARQLWrapper, gremlinpython)
+│   └── Utilities (httpx, python-dotenv)
+│
+├── test_setup.py                 # Setup testing script (RECOMMENDED)
+│   ├── Tests LLM provider connectivity
+│   ├── Tests all configured database connections
+│   ├── Verifies Python package dependencies
+│   ├── Provides detailed error messages
+│   ├── Command-line options: --quick, --verbose
+│   └── Run before starting server: python test_setup.py
+│
+├── README.md                     # Main project documentation
+├── GET_STARTED.md                # Quick start guide
+├── SETUP_GUIDE.md                # Detailed setup instructions
+├── IMPLEMENTATION.md             # Implementation details
+├── PROJECT_STRUCTURE.txt         # This file - project organization
+├── PROJECT_SUMMARY.md            # High-level project overview
+└── QUICK_REFERENCE.md            # Common commands and operations
+
+Configuration Files (in parent directory):
+├── .env                          # Environment variables (not in repo)
+└── .env.example                  # Environment template
+
+Key Components:
+===============
+
+1. MCP Server (server.py)
+   - Implements MCP protocol
+   - Exposes 5 tools via MCP interface
+   - Handles tool invocations
+   - Coordinates between connectors, LLM, and cache
+
+2. Connectors (connectors/)
+   - Abstract database-specific operations
+   - Handle schema introspection
+   - Execute queries
+   - Manage database connections
+
+3. LLM Provider (llm/)
+   - Pluggable LLM integration
+   - Generates queries from natural language
+   - Supports multiple providers (OpenAI, Anthropic)
+   - Builds context-aware prompts
+
+4. Schema Cache (cache/)
+   - Caches database schemas
+   - Reduces latency for query generation
+   - Configurable TTL
+   - File-based persistence
+
+Setup Testing Flow (test_setup.py):
+====================================
+
+RECOMMENDED: Run before starting the server
+
+1. Load environment variables from .env
+2. Test LLM Provider:
+   - Check provider configuration (OpenAI/Anthropic)
+   - Verify API key is set
+   - Test API connectivity (optional with --quick flag)
+3. Test SQL Databases:
+   - MySQL, PostgreSQL, Oracle, MS-SQL, Snowflake
+   - Verify connection parameters
+   - Test actual connectivity
+4. Test NoSQL Databases:
+   - MongoDB, Redis, Cassandra, DynamoDB
+   - Verify connection parameters
+   - Test actual connectivity
+5. Test Graph Databases:
+   - Neo4j, ArangoDB, Neptune
+   - Verify connection parameters
+   - Test actual connectivity
+6. Test GraphQL APIs:
+   - Generic GraphQL, Saleor
+   - Verify endpoints and tokens
+   - Test API connectivity
+7. Generate summary report:
+   - Total tests run
+   - Passed/Failed counts
+   - Detailed error messages
+   - Recommendations
+
+Data Flow:
+==========
+
+1. Natural Language Query → MCP Server
+2. MCP Server → Schema Cache (check for cached schema)
+3. If not cached → Connector (fetch schema from database)
+4. Schema → LLM Provider (generate query with context)
+5. Generated Query → MCP Server
+6. If execute=true → Connector (execute query)
+7. Results → MCP Server → Client
+
+Supported Databases:
+====================
+
+SQL (9 types):
+- MySQL (Local/Remote/RDS)
+- PostgreSQL (Local/Remote/RDS/Cloud SQL)
+- Oracle Database
+- MS-SQL Server (Local/Remote/Azure SQL)
+- Snowflake
+- Databricks
+- AWS RDS
+- GCP Cloud SQL
+- Azure SQL Database
+
+NoSQL (4 types):
+- MongoDB
+- Apache Cassandra
+- Redis
+- AWS DynamoDB
+
+Graph (5 types):
+- Neo4j
+- ArangoDB
+- GraphDB (RDF/SPARQL)
+- Amazon Neptune (Gremlin)
+- Azure CosmosDB (Gremlin API)
+
+GraphQL:
+- Generic GraphQL endpoints
+- Saleor API
+- Custom implementations
+
+Total: 20+ database types supported
