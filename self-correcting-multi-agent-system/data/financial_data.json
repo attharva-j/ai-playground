@@ -1,0 +1,116 @@
+{
+  "companies": [
+    {
+      "id": 1,
+      "name": "TechCorp Inc",
+      "sector": "Technology",
+      "market_cap": 150000000000,
+      "revenue": 50000000000,
+      "employees": 100000,
+      "founded_year": 1995,
+      "description": "Leading technology company specializing in cloud computing, AI, and enterprise software solutions."
+    },
+    {
+      "id": 2,
+      "name": "FinanceGlobal",
+      "sector": "Financial Services",
+      "market_cap": 80000000000,
+      "revenue": 25000000000,
+      "employees": 50000,
+      "founded_year": 1980,
+      "description": "Global financial services provider offering banking, investment, and insurance products."
+    },
+    {
+      "id": 3,
+      "name": "HealthcarePlus",
+      "sector": "Healthcare",
+      "market_cap": 120000000000,
+      "revenue": 35000000000,
+      "employees": 75000,
+      "founded_year": 1990,
+      "description": "Healthcare company focused on pharmaceuticals, medical devices, and healthcare services."
+    },
+    {
+      "id": 4,
+      "name": "EnergyFuture",
+      "sector": "Energy",
+      "market_cap": 200000000000,
+      "revenue": 60000000000,
+      "employees": 120000,
+      "founded_year": 1970,
+      "description": "Renewable energy company with focus on solar, wind, and energy storage solutions."
+    },
+    {
+      "id": 5,
+      "name": "RetailMega",
+      "sector": "Retail",
+      "market_cap": 90000000000,
+      "revenue": 30000000000,
+      "employees": 200000,
+      "founded_year": 1985,
+      "description": "Large retail chain with both physical stores and e-commerce presence."
+    }
+  ],
+  "financial_metrics": {
+    "2020": {
+      "TechCorp Inc": {"revenue": 45000000000, "profit": 6750000000, "debt": 13500000000, "cash": 4500000000},
+      "FinanceGlobal": {"revenue": 22500000000, "profit": 3375000000, "debt": 6750000000, "cash": 2250000000},
+      "HealthcarePlus": {"revenue": 31500000000, "profit": 4725000000, "debt": 9450000000, "cash": 3150000000},
+      "EnergyFuture": {"revenue": 54000000000, "profit": 8100000000, "debt": 16200000000, "cash": 5400000000},
+      "RetailMega": {"revenue": 27000000000, "profit": 4050000000, "debt": 8100000000, "cash": 2700000000}
+    },
+    "2021": {
+      "TechCorp Inc": {"revenue": 47250000000, "profit": 7087500000, "debt": 14175000000, "cash": 4725000000},
+      "FinanceGlobal": {"revenue": 23625000000, "profit": 3543750000, "debt": 7087500000, "cash": 2362500000},
+      "HealthcarePlus": {"revenue": 33075000000, "profit": 4961250000, "debt": 9922500000, "cash": 3307500000},
+      "EnergyFuture": {"revenue": 56700000000, "profit": 8505000000, "debt": 17010000000, "cash": 5670000000},
+      "RetailMega": {"revenue": 28350000000, "profit": 4252500000, "debt": 8505000000, "cash": 2835000000}
+    },
+    "2022": {
+      "TechCorp Inc": {"revenue": 49612500000, "profit": 7441875000, "debt": 14883750000, "cash": 4961250000},
+      "FinanceGlobal": {"revenue": 24806250000, "profit": 3720937500, "debt": 7441875000, "cash": 2480625000},
+      "HealthcarePlus": {"revenue": 34728750000, "profit": 5209312500, "debt": 10418625000, "cash": 3472875000},
+      "EnergyFuture": {"revenue": 59535000000, "profit": 8930250000, "debt": 17860500000, "cash": 5953500000},
+      "RetailMega": {"revenue": 29767500000, "profit": 4465125000, "debt": 8930250000, "cash": 2976750000}
+    },
+    "2023": {
+      "TechCorp Inc": {"revenue": 52093125000, "profit": 7813968750, "debt": 15627937500, "cash": 5209312500},
+      "FinanceGlobal": {"revenue": 26046562500, "profit": 3906984375, "debt": 7813968750, "cash": 2604656250},
+      "HealthcarePlus": {"revenue": 36465187500, "profit": 5469778125, "debt": 10939556250, "cash": 3646518750},
+      "EnergyFuture": {"revenue": 62511750000, "profit": 9376762500, "debt": 18753525000, "cash": 6251175000},
+      "RetailMega": {"revenue": 31255875000, "profit": 4688381250, "debt": 9376762500, "cash": 3125587500}
+    }
+  },
+  "industry_benchmarks": {
+    "Technology": {
+      "avg_profit_margin": 0.16,
+      "avg_debt_to_revenue": 0.25,
+      "avg_cash_ratio": 0.12,
+      "growth_rate": 0.08
+    },
+    "Financial Services": {
+      "avg_profit_margin": 0.18,
+      "avg_debt_to_revenue": 0.35,
+      "avg_cash_ratio": 0.08,
+      "growth_rate": 0.04
+    },
+    "Healthcare": {
+      "avg_profit_margin": 0.14,
+      "avg_debt_to_revenue": 0.28,
+      "avg_cash_ratio": 0.10,
+      "growth_rate": 0.06
+    },
+    "Energy": {
+      "avg_profit_margin": 0.12,
+      "avg_debt_to_revenue": 0.32,
+      "avg_cash_ratio": 0.09,
+      "growth_rate": 0.05
+    },
+    "Retail": {
+      "avg_profit_margin": 0.08,
+      "avg_debt_to_revenue": 0.30,
+      "avg_cash_ratio": 0.06,
+      "growth_rate": 0.03
+    }
+  }
+}

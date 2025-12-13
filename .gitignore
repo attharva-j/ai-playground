@@ -113,3 +113,8 @@ Desktop.ini
 .dmypy.json
 dmypy.json
 .pyre/ # Pyre IDE project files
+
+
+# Unwanted files
+comprehensive_multi_agent_demo.ipynb
+working_demo.ipynb
