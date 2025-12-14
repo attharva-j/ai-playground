@@ -36,14 +36,31 @@ Evaluation criteria:
 - Quality of evidence
 - Clarity of explanation
 
-Output format:
-- **Status**: APPROVE or REJECT
-- **Issues**: List of specific problems found (if any)
-- **Suggestions**: Concrete recommendations for improvement
-- **Missing**: Information or analysis that should be added
-- **Confidence**: Your confidence (0.0-1.0) in this evaluation
+CRITICAL OUTPUT FORMAT (MUST FOLLOW EXACTLY):
 
-Be constructive and specific in your feedback."""
+**Status**: APPROVE or REJECT
+**Issues**: List specific problems found (write "None" if no issues)
+**Suggestions**: Concrete recommendations for improvement (write "None" if satisfied)
+**Missing**: Information or analysis that should be added (write "None" if complete)
+**Confidence**: A decimal number between 0.0 and 1.0 (e.g., 0.85)
+
+IMPORTANT DECISION RULES:
+1. Use EXACTLY the word "APPROVE" or "REJECT" for Status - no other variations
+2. If the response is factually correct, logically sound, and reasonably complete → Status: APPROVE
+3. Only use "REJECT" if there are:
+   - Factual errors or inaccuracies
+   - Significant logical flaws
+   - Critical missing information that makes the answer incomplete or misleading
+4. Minor stylistic issues or optional improvements do NOT warrant REJECT
+5. If you list Issues as "None", Suggestions as "None", and Missing as "None", you MUST use APPROVE
+
+Examples:
+- Good factual answer with minor style issues → APPROVE (put style suggestions in Suggestions)
+- Correct answer but could add more detail → APPROVE (note in Suggestions)
+- Answer contains factual error → REJECT (describe error in Issues)
+- Answer is incomplete or misleading → REJECT (describe what's missing)
+
+Be constructive and fair. Don't reject good responses over minor issues!"""
 
 JUDGE_SYSTEM_PROMPT = """You are a Judge Agent in a multi-agent system. Your role is to make final validation decisions on solutions.
 
@@ -84,7 +101,7 @@ def get_critic_prompt(question: str, solver_response: str, context: str = "") ->
         prompt += f"Original Context:\n{context}\n\n"
     prompt += f"Original Question: {question}\n\n"
     prompt += f"Solver's Response:\n{solver_response}\n\n"
-    prompt += "Please evaluate this response:"
+    prompt += "Please evaluate this response and provide your critique in the EXACT format specified above:"
     return prompt
 
 def get_judge_prompt(question: str, final_response: str, context: str = "") -> str:

@@ -1,0 +1,783 @@
+[
+  {
+    "case": {
+      "id": "conceptual_3",
+      "question": "What are the advantages and disadvantages of virtual reality?",
+      "category": "Conceptual Understanding",
+      "difficulty": "Medium",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "47a3cc6f-1ef1-4f4b-8fc3-653b94d99697",
+      "question": "What are the advantages and disadvantages of virtual reality?",
+      "context": "",
+      "final_answer": "- **Answer**: Virtual reality (VR) offers several advantages and disadvantages, which can be categorized into technological, educational, social, and health-related aspects.\n\n- **Reasoning**:\n  1. **Advantages**:\n     - **Immersive Experience**: VR provides a highly immersive experience, allowing users to feel as though they are in a different environment. This can enhance entertainment, training, and educational experiences.\n     - **Training and Simulation**: VR is used for training in various...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: Virtual reality (VR) offers several advantages and disadvantages that impact various fields such as entertainment, education, healthcare, and more.\\n\\n- **Reasoning**:\\n  - **Advantages**:\\n    1. **Immersive Experience**: VR provides a highly immersive experience, allowing users to feel as though they are in a different environment. This can enhance learning and entertainment by providing a more engaging experience.\\n    2. **Training and Simulation**: VR is used for training in fields...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"The solver's response is incomplete, as it only begins to list the advantages of virtual reality without completing the list or addressing the disadvantages. This lack of completeness makes it difficult to assess the full reasoning and evidence provided. Therefore, the response needs revision.\\n\\n**Status**: REJECT\\n**Issues**: The response is incomplete; it does not list all the advantages or any disadvantages of virtual reality.\\n**Suggestions**: Complete the list of advantages and provide a list of disadvantages to give a balanced view of virtual reality's impact.\\n**Missing**: A complete list of advantages and disadvantages of virtual reality.\\n**Confidence**: 0.6\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response is incomplete and does not provide a full list of advantages and disadvantages of virtual reality. While it starts to list some advantages, it does not complete the reasoning or provide any disadvantages, which are essential to fully address the original question. Additionally, there is no evidence or citations provided to support the claims made about VR's advantages.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks completeness and supporting evidence. It does not address the disadvantages of virtual reality, which is a critical part of the original question. There is also no citation of sources or evidence to back up the claims about VR's immersive experience and its use in training and simulation.\" evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: Virtual reality (VR) offers several advantages and disadvantages, which can be categorized into different aspects such as education, entertainment, healthcare, and social interaction.\\n\\n- **Reasoning**:\\n  - **Advantages**:\\n    1. **Immersive Learning Experiences**: VR provides an immersive environment that can enhance learning and training by simulating real-world scenarios. This is particularly beneficial in fields like medicine, engineering, and aviation where practical experience...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='The response appears to be incomplete, as it only begins to list the advantages of virtual reality without providing a full analysis or mentioning any disadvantages. Therefore, it cannot be fully evaluated for accuracy, completeness, or logical consistency.\\n\\n**Status**: REJECT\\n**Issues**: The response is incomplete; it starts listing advantages but does not provide a full analysis or mention disadvantages.\\n**Suggestions**: Complete the response by listing both the advantages and disadvantages of virtual reality across the mentioned aspects (education, entertainment, healthcare, and social interaction).\\n**Missing**: The disadvantages of virtual reality and a complete analysis of the listed aspects.\\n**Confidence**: 0.5'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response begins to outline the advantages of virtual reality but does not provide a complete answer. It lacks a detailed discussion of both advantages and disadvantages across the mentioned categories. Additionally, the response does not provide any evidence or citations to support the claims made about VR's benefits in education, healthcare, and other fields.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response is incomplete and lacks supporting evidence. It does not address the disadvantages of virtual reality, which is a critical part of the original question. There is also no citation of sources or evidence to substantiate the claims made about VR's advantages.\" evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: Virtual reality (VR) offers several advantages and disadvantages, which can be categorized into technological, educational, social, and health-related aspects.\\n\\n- **Reasoning**:\\n  1. **Advantages**:\\n     - **Immersive Experience**: VR provides a highly immersive experience, allowing users to feel as though they are in a different environment. This can enhance entertainment, training, and educational experiences.\\n     - **Training and Simulation**: VR is used for training in various...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='The response appears to be incomplete, so I cannot evaluate it fully. Please provide the complete response for a thorough evaluation.'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response begins to outline the advantages of virtual reality but is incomplete, as it does not provide a full list of advantages and disadvantages. The reasoning is not fully developed, and the response lacks specific examples or evidence to support the claims made. Additionally, the response is cut off, indicating that it is not a complete answer to the original question.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response is incomplete and lacks detailed evidence or examples to support the claims about the advantages and disadvantages of virtual reality. The reasoning is not fully articulated, and the response does not address the disadvantages of virtual reality, which is a critical part of the original question.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 31267.45057106018,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: Virtual reality (VR) offers several advantages and disadvantages across various fields such as entertainment, education, healthcare, and more.\n\n- **Reasoning**:\n  - **Advantages**:\n    1. **Immersive Experience**: VR provides a highly immersive experience, allowing users to feel as though they are in a different environment. This can enhance entertainment experiences and provide realistic training simulations.\n    2. **Educational Benefits**: VR can be used to create interactive an...",
+      "confidence": 0.5,
+      "latency_ms": 4838.275909423828,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 31267.45057106018,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 26429.174661636353,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661606.6688986
+  },
+  {
+    "case": {
+      "id": "reasoning_2",
+      "question": "What would happen if all fossil fuels were banned tomorrow?",
+      "category": "Complex Reasoning",
+      "difficulty": "Hard",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "ee2c3893-a437-4c25-9458-f205f171552c",
+      "question": "What would happen if all fossil fuels were banned tomorrow?",
+      "context": "",
+      "final_answer": "- **Answer**: If all fossil fuels were banned tomorrow, the immediate effects would be widespread and disruptive across multiple sectors, including energy, transportation, industry, and agriculture. The global economy would face significant challenges, and there would be both short-term and long-term consequences for society and the environment.\n\n- **Reasoning**:\n  1. **Energy Sector**: Fossil fuels currently account for a significant portion of global energy production. A sudden ban would lead ...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: If all fossil fuels were banned tomorrow, the immediate effects would be widespread and disruptive across multiple sectors, including energy, transportation, industry, and agriculture. The global economy would face significant challenges, and there would be both short-term and long-term consequences for society and the environment.\\n\\n- **Reasoning**:\\n  1. **Energy Supply**: Fossil fuels currently account for a significant portion of global energy production. A sudden ban would lead ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response is incomplete as it cuts off mid-sentence and does not provide a full analysis of the consequences of banning fossil fuels. It lacks a detailed examination of the sectors mentioned and does not explore potential alternatives or solutions.\\n**Suggestions**: Complete the reasoning by discussing the specific impacts on each sector (energy, transportation, industry, agriculture) and consider potential alternative energy sources or mitigation strategies. Provide a more thorough analysis of both short-term and long-term consequences.\\n**Missing**: Detailed analysis of the impacts on each sector, discussion of alternative energy solutions, and exploration of potential mitigation strategies for the transition away from fossil fuels.\\n**Confidence**: 0.6'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response begins to address the potential impacts of a sudden ban on fossil fuels but is incomplete. It does not provide a detailed analysis or evidence to support the claims made about the effects on various sectors. The reasoning is not fully developed, and the response lacks citations or references to evidence that would substantiate the claims.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response is incomplete and lacks specific evidence or detailed reasoning to support the claims. It does not fully address the original question, as it only begins to outline potential impacts without providing a comprehensive analysis or citing sources.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: If all fossil fuels were banned tomorrow, the immediate effects would be widespread and severe, impacting energy supply, transportation, industry, and daily life. There would be significant disruptions in electricity generation, transportation, and industrial processes, leading to economic turmoil, shortages of goods, and potential social unrest.\\n\\n- **Reasoning**:\\n  1. **Energy Supply**: Fossil fuels (coal, oil, natural gas) currently account for a significant portion of global ene...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='The response provided is incomplete and cut off, making it difficult to fully evaluate the reasoning and conclusions. However, I will assess what is available.\\n\\n**Status**: REJECT\\n**Issues**: \\n- The response is incomplete, as the reasoning section is cut off and does not provide a full analysis of the potential impacts of banning fossil fuels.\\n- Without the complete reasoning, it is difficult to assess the logical consistency and completeness of the argument.\\n**Suggestions**: \\n- Provide a complete analysis of the impacts on energy supply, transportation, industry, and daily life.\\n- Include potential mitigation strategies or alternatives to fossil fuels that could be implemented to address the immediate disruptions.\\n- Discuss the long-term environmental and economic benefits of banning fossil fuels, alongside the immediate challenges.\\n**Missing**: \\n- Complete reasoning and analysis of the impacts on various sectors.\\n- Discussion of potential alternatives and mitigation strategies.\\n- Long-term benefits and challenges of transitioning away from fossil fuels.\\n**Confidence**: 0.6'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response provides a general overview of the potential impacts of an immediate fossil fuel ban, but it lacks specific evidence and detailed analysis to support the claims. The reasoning is somewhat sound in terms of identifying areas that would be affected, such as energy supply and transportation, but it does not delve into the specifics of how these sectors would be impacted or provide data to back up the claims. Additionally, the response does not address potential mitigation strategies or alternative energy sources that could be employed.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks specific evidence and detailed analysis. It does not cite any sources or provide data to support the claims made about the impacts of a fossil fuel ban. There is also no discussion of potential solutions or alternative energy sources that could mitigate the effects of such a ban.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: If all fossil fuels were banned tomorrow, the immediate effects would be widespread and disruptive across multiple sectors, including energy, transportation, industry, and agriculture. The global economy would face significant challenges, and there would be both short-term and long-term consequences for society and the environment.\\n\\n- **Reasoning**:\\n  1. **Energy Sector**: Fossil fuels currently account for a significant portion of global energy production. A sudden ban would lead ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"The solver's response is incomplete, as it cuts off mid-sentence in the reasoning section. Therefore, I cannot fully evaluate the accuracy, completeness, or logical consistency of the response. \\n\\n**Status**: REJECT\\n**Issues**: The response is incomplete and cuts off mid-sentence, preventing a full evaluation.\\n**Suggestions**: Provide a complete response that fully addresses the implications of a fossil fuel ban across various sectors, including energy, transportation, industry, and agriculture.\\n**Missing**: Detailed analysis and reasoning for the consequences in each sector mentioned.\\n**Confidence**: 0.5\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response is incomplete and lacks specific details and evidence to support the claims made. While it correctly identifies that a sudden ban on fossil fuels would be disruptive, it does not provide a comprehensive analysis or cite evidence to substantiate the potential impacts on various sectors. The reasoning is not fully developed, and the answer does not address the original question in a detailed manner.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response is incomplete and lacks specific evidence or examples to support the claims. It does not provide a detailed analysis of the potential consequences across different sectors, nor does it cite any sources or data to back up the assertions made. The answer needs to be more comprehensive and evidence-based to pass validation.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 33367.19822883606,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: If all fossil fuels were banned tomorrow, it would lead to significant disruptions across multiple sectors globally, including energy, transportation, industry, and agriculture. The immediate effects would likely include energy shortages, economic instability, and challenges in maintaining current levels of production and transportation. However, it could also accelerate the transition to renewable energy sources and innovations in energy efficiency and storage.\n\n- **Reasoning**:\n ...",
+      "confidence": 0.5,
+      "latency_ms": 6711.924076080322,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 33367.19822883606,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 26655.274152755737,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661682.6524909
+  },
+  {
+    "case": {
+      "id": "conceptual_2",
+      "question": "What are the main causes of climate change?",
+      "category": "Conceptual Understanding",
+      "difficulty": "Medium",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "572adcf1-e206-4dc1-8d00-71f5b892425c",
+      "question": "What are the main causes of climate change?",
+      "context": "",
+      "final_answer": "- **Answer**: The main causes of climate change are primarily related to human activities that increase the concentration of greenhouse gases in the atmosphere. These include:\n\n  1. **Burning of Fossil Fuels**: The combustion of coal, oil, and natural gas for energy and transportation is the largest source of carbon dioxide (CO2) emissions, a major greenhouse gas.\n  \n  2. **Deforestation**: Trees absorb CO2, and when they are cut down or burned, the carbon stored in them is released back into th...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: The main causes of climate change are primarily related to human activities that increase the concentration of greenhouse gases in the atmosphere. These include the burning of fossil fuels, deforestation, industrial processes, and agricultural practices.\\n\\n- **Reasoning**:\\n  1. **Burning of Fossil Fuels**: The combustion of coal, oil, and natural gas for energy and transportation is the largest source of carbon dioxide (CO2) emissions, which is the most significant greenhouse gas co...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response is incomplete as it cuts off mid-sentence in the explanation of the reasoning behind the burning of fossil fuels as a cause of climate change.\\n**Suggestions**: Complete the explanation of how the burning of fossil fuels contributes to climate change. Ensure that all listed causes are fully explained and supported with evidence or examples.\\n**Missing**: A complete explanation of the reasoning for each listed cause of climate change, particularly the continuation of the point about fossil fuels.\\n**Confidence**: 0.7'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 0.95\\n- **Reasoning**: The response accurately identifies the main human activities contributing to climate change, such as the burning of fossil fuels, deforestation, industrial processes, and agricultural practices. These are well-documented causes of increased greenhouse gas concentrations, particularly CO2, in the atmosphere. The reasoning is sound and aligns with scientific consensus on the topic.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None. The response is factually accurate and supported by strong evidence from scientific research on climate change.' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: The main causes of climate change are primarily human activities that increase the concentration of greenhouse gases in the atmosphere. These activities include the burning of fossil fuels, deforestation, industrial processes, and agricultural practices.\\n\\n- **Reasoning**:\\n  1. **Burning of Fossil Fuels**: The combustion of coal, oil, and natural gas for energy and transportation is the largest source of carbon dioxide (CO2) emissions, which is the most significant greenhouse gas co...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response is incomplete as it cuts off mid-sentence, leaving the explanation of the reasoning unfinished.\\n**Suggestions**: Complete the explanation for each cause of climate change mentioned, ensuring that the reasoning for each is fully developed and clear.\\n**Missing**: The continuation of the reasoning for the causes of climate change, specifically the details on how each activity contributes to the increase in greenhouse gases.\\n**Confidence**: 0.7'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 0.9\\n- **Reasoning**: The response accurately identifies human activities as the primary causes of climate change, specifically highlighting the burning of fossil fuels, deforestation, industrial processes, and agricultural practices. These are well-established contributors to the increase in greenhouse gases, particularly CO2, in the atmosphere. The reasoning is sound and aligns with scientific consensus on the causes of climate change.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None. The response is factually accurate and supported by strong evidence from scientific research and reports on climate change.' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: The main causes of climate change are primarily related to human activities that increase the concentration of greenhouse gases in the atmosphere. These include:\\n\\n  1. **Burning of Fossil Fuels**: The combustion of coal, oil, and natural gas for energy and transportation is the largest source of carbon dioxide (CO2) emissions, a major greenhouse gas.\\n  \\n  2. **Deforestation**: Trees absorb CO2, and when they are cut down or burned, the carbon stored in them is released back into th...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"**Status**: REJECT\\n**Issues**: The response is incomplete. It starts to explain the causes of climate change but is cut off mid-sentence, leaving the explanation unfinished.\\n**Suggestions**: Complete the explanation of deforestation and continue to list other significant causes of climate change, such as industrial processes, agricultural practices, and waste management. Provide a comprehensive overview.\\n**Missing**: Full explanation of deforestation's impact and additional causes of climate change beyond fossil fuel combustion and deforestation.\\n**Confidence**: 0.70\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 0.95\\n- **Reasoning**: The response accurately identifies the main human activities contributing to climate change, specifically the burning of fossil fuels and deforestation. These are well-documented causes of increased greenhouse gas concentrations, particularly CO2, in the atmosphere. The explanation is concise and directly addresses the question.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None. The response is factually accurate and supported by scientific consensus on the causes of climate change.' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 29165.724754333496,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: The main causes of climate change are primarily human activities that increase the concentration of greenhouse gases in the atmosphere. These activities include the burning of fossil fuels, deforestation, industrial processes, and agricultural practices.\n\n- **Reasoning**:\n  1. **Greenhouse Gas Emissions**: The burning of fossil fuels such as coal, oil, and natural gas for energy and transportation is the largest source of carbon dioxide (CO2) emissions, which is the most significan...",
+      "confidence": 0.5,
+      "latency_ms": 6209.075450897217,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 29165.724754333496,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 22956.64930343628,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661747.2053876
+  },
+  {
+    "case": {
+      "id": "reasoning_1",
+      "question": "What would happen if teleportation was invented?",
+      "category": "Complex Reasoning",
+      "difficulty": "Hard",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "796e0846-7775-445d-8991-17f2f005cf83",
+      "question": "What would happen if teleportation was invented?",
+      "context": "",
+      "final_answer": "**Answer**: If teleportation were invented, it would revolutionize many aspects of society, including transportation, economy, security, and even philosophical concepts of identity and privacy. The implications would be vast and complex, affecting both practical and ethical dimensions of human life.\n\n**Reasoning**:\n1. **Transportation**: Teleportation would drastically reduce travel time, making it possible to instantly move people and goods across the globe. This could lead to a decline in trad...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: If teleportation were invented, it would revolutionize transportation, logistics, and potentially many aspects of daily life, but it would also raise significant ethical, legal, and technical challenges.\\n\\n- **Reasoning**:\\n  1. **Transportation and Logistics**: Teleportation would drastically reduce travel time, making it possible to instantly move people and goods across vast distances. This could lead to a decline in traditional transportation industries such as airlines, shipping...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response is incomplete. It begins to address the implications of teleportation on transportation and logistics but does not provide a full analysis. There is no discussion of the ethical, legal, and technical challenges mentioned in the answer.\\n**Suggestions**: The response should include a more detailed exploration of the potential ethical issues (e.g., privacy concerns, impact on employment), legal challenges (e.g., regulation of teleportation technology), and technical challenges (e.g., safety, energy requirements). Additionally, it should consider broader societal impacts, such as environmental effects and changes in urban planning.\\n**Missing**: Detailed analysis of ethical, legal, and technical challenges, as well as broader societal impacts.\\n**Confidence**: 0.7'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response provides a speculative answer to a hypothetical scenario, which inherently lacks concrete evidence. While the reasoning about the potential impacts on transportation and logistics is logical, it is not supported by verifiable evidence since teleportation does not currently exist. The response also lacks a comprehensive exploration of the ethical, legal, and technical challenges mentioned.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The answer is speculative and lacks evidence due to the hypothetical nature of the question. The response should include more detailed exploration of the potential challenges and implications, supported by analogous examples or theoretical frameworks.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: If teleportation were invented, it would revolutionize transportation, impact global economies, alter social dynamics, and raise ethical and security concerns.\\n\\n- **Reasoning**:\\n  1. **Transportation Revolution**: Teleportation would drastically reduce travel time, making it possible to instantly move people and goods across the globe. This would likely lead to a decline in traditional transportation industries such as airlines, shipping, and railways.\\n  \\n  2. **Economic Impact**: ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response is incomplete as the reasoning section is not fully developed. The economic impact and other aspects mentioned are not elaborated upon.\\n**Suggestions**: Complete the reasoning section by providing detailed analysis on the economic impact, social dynamics, and ethical and security concerns. Ensure that each point is supported with logical reasoning and evidence where applicable.\\n**Missing**: Detailed analysis and explanation of the economic impact, social dynamics, and ethical and security concerns related to teleportation.\\n**Confidence**: 0.6'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response is incomplete, as it does not provide a full explanation of the economic impact, social dynamics, and ethical and security concerns mentioned. Without these details, the reasoning is not sound or complete. Additionally, there is no evidence or citations provided to support the claims made about the potential impacts of teleportation.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks detailed reasoning and evidence to support the claims. It is essential to provide a comprehensive analysis and cite relevant sources or hypothetical scenarios to substantiate the potential impacts of teleportation.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='**Answer**: If teleportation were invented, it would revolutionize many aspects of society, including transportation, economy, security, and even philosophical concepts of identity and privacy. The implications would be vast and complex, affecting both practical and ethical dimensions of human life.\\n\\n**Reasoning**:\\n1. **Transportation**: Teleportation would drastically reduce travel time, making it possible to instantly move people and goods across the globe. This could lead to a decline in trad...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='The response provided is incomplete, so I cannot evaluate it fully. Please provide the complete response for evaluation.'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response provides a speculative overview of the potential impacts of teleportation but lacks specific evidence or detailed reasoning to support the claims. The answer is largely hypothetical and does not cite any sources or evidence to substantiate the assertions made about the effects on transportation, economy, security, and philosophical concepts. Additionally, the response is incomplete, as indicated by the trailing sentence.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response is speculative without supporting evidence, lacks completeness, and does not provide a thorough analysis of the potential implications of teleportation. There is also a lack of citations or references to existing theories or studies on the topic.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 40621.45948410034,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: If teleportation were invented, it would revolutionize transportation, impact global economies, alter social dynamics, and raise ethical and security concerns. The implications would be vast and multifaceted, affecting nearly every aspect of human life.\n\n- **Reasoning**:\n  1. **Transportation and Logistics**: Teleportation would drastically reduce travel time, making physical distance irrelevant. This could lead to the decline of traditional transportation industries such as airlin...",
+      "confidence": 0.5,
+      "latency_ms": 9526.801586151123,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 40621.45948410034,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 31094.65789794922,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661831.3697512
+  },
+  {
+    "case": {
+      "id": "factual_3",
+      "question": "What is the capital of Brazil?",
+      "category": "Factual Knowledge",
+      "difficulty": "Easy",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "e5c833cf-4025-400f-ba8a-3a870671a121",
+      "question": "What is the capital of Brazil?",
+      "context": "",
+      "final_answer": "- **Answer**: The capital of Brazil is Bras\u00edlia.\n\n- **Reasoning**: The capital of a country is typically the city where the government is headquartered. In the case of Brazil, Bras\u00edlia was officially inaugurated as the capital on April 21, 1960. It was designed by the Brazilian architect Oscar Niemeyer and the urban planner L\u00facio Costa, and it replaced Rio de Janeiro as the capital. The decision to move the capital was part of a plan to promote the development of the interior of the country.\n\n- ...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: The capital of Brazil is Bras\u00edlia.\\n\\n- **Reasoning**: To determine the capital of Brazil, we need to identify the city that serves as the seat of government for the country. Bras\u00edlia was officially inaugurated as the capital of Brazil on April 21, 1960. It was designed by the Brazilian architect Oscar Niemeyer and the urban planner L\u00facio Costa. The city was built to promote the development of the interior of the country and to help alleviate the congestion in the previous capital, R...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 0.95'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies Bras\u00edlia as the capital of Brazil, which is a well-documented and verifiable fact. The reasoning provided is accurate, mentioning the historical context of Bras\u00edlia's inauguration and its purpose. There are no contradictions or logical errors in the response.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None\" evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: The capital of Brazil is Bras\u00edlia.\\n\\n- **Reasoning**: The capital of Brazil is Bras\u00edlia, which was officially inaugurated as the capital on April 21, 1960. The city was planned and developed by the Brazilian government to promote the development of the interior of the country and to help alleviate the congestion in the former capital, Rio de Janeiro. Bras\u00edlia was designed by the Brazilian architect Oscar Niemeyer and the urban planner L\u00facio Costa.\\n\\n- **Evidence**: This information i...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies Bras\u00edlia as the capital of Brazil, which is a well-documented and widely known fact. The reasoning provided is accurate, mentioning the historical context of Bras\u00edlia's inauguration and its purpose. The information about the architects involved is also correct.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None\" evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: The capital of Brazil is Bras\u00edlia.\\n\\n- **Reasoning**: The capital of a country is typically the city where the government is headquartered. In the case of Brazil, Bras\u00edlia was officially inaugurated as the capital on April 21, 1960. It was designed by the Brazilian architect Oscar Niemeyer and the urban planner L\u00facio Costa, and it replaced Rio de Janeiro as the capital. The decision to move the capital was part of a plan to promote the development of the interior of the country.\\n\\n- ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 0.95'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies Bras\u00edlia as the capital of Brazil, which is a well-documented fact. The reasoning provided is accurate, mentioning the historical context of Bras\u00edlia's inauguration and its purpose in promoting interior development. The information about the architects and planners involved is also correct.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None\" evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 12432.310104370117,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: The capital of Brazil is Bras\u00edlia.\n\n- **Reasoning**: To determine the capital of Brazil, we need to identify the city that serves as the seat of government for the country. Bras\u00edlia was officially inaugurated as the capital of Brazil on April 21, 1960. It was designed by the Brazilian architect Oscar Niemeyer and the urban planner L\u00facio Costa. The city was built to promote the development of the interior of the country and to help alleviate the congestion in the previous capital, R...",
+      "confidence": 0.5,
+      "latency_ms": 2606.7447662353516,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 12432.310104370117,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 9825.565338134766,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661859.9283142
+  },
+  {
+    "case": {
+      "id": "factual_2",
+      "question": "What is the capital of France?",
+      "category": "Factual Knowledge",
+      "difficulty": "Easy",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "91ad3364-c0b0-407f-a42e-b16d61cdca63",
+      "question": "What is the capital of France?",
+      "context": "",
+      "final_answer": "- **Answer**: The capital of France is Paris.\n\n- **Reasoning**: The capital city of a country is typically the location where the government is headquartered and where official state functions occur. Paris has been the capital of France for many centuries and is the center of French political, cultural, and economic activities. It is widely recognized as the capital in both historical and contemporary contexts.\n\n- **Evidence**: According to the French government and numerous authoritative source...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: The capital of France is Paris.\\n\\n- **Reasoning**: The capital city of a country is typically the location where the government is headquartered and where official state functions occur. Paris has been the capital of France for many centuries and is widely recognized as such in both historical and contemporary contexts.\\n\\n- **Evidence**: Paris is listed as the capital of France in numerous authoritative sources, including encyclopedias, government websites, and educational materials....' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies Paris as the capital of France, which is a well-established fact. The reasoning provided is sound, explaining the role of a capital city and confirming Paris's status as the capital in both historical and contemporary contexts. The evidence cited is appropriate and verifiable through numerous authoritative sources.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None\" evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: The capital of France is Paris.\\n\\n- **Reasoning**: The capital city of a country is typically the location where the government is headquartered and where official state functions occur. Paris has been the capital of France for many centuries and is the center of French political, cultural, and economic activities. It is widely recognized as the capital city in both historical and contemporary contexts.\\n\\n- **Evidence**: \\n  - According to the French government and numerous geographic...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies Paris as the capital of France, which is a well-established and widely recognized fact. The reasoning provided is sound, explaining the role of a capital city and Paris's historical and contemporary significance as the capital of France.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None\" evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: The capital of France is Paris.\\n\\n- **Reasoning**: The capital city of a country is typically the location where the government is headquartered and where official state functions occur. Paris has been the capital of France for many centuries and is the center of French political, cultural, and economic activities. It is widely recognized as the capital in both historical and contemporary contexts.\\n\\n- **Evidence**: According to the French government and numerous authoritative source...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 0.95'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies Paris as the capital of France, which is a well-established and widely recognized fact. The reasoning provided is sound, explaining the role of a capital city and Paris's historical and contemporary significance as France's capital. The claim is supported by authoritative sources, such as the French government.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None\" evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 11323.690414428711,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: The capital of France is Paris.\n\n- **Reasoning**: The capital city of a country is typically the location where the government is based and where official state functions are conducted. Paris has been the capital of France for many centuries and is the center of French political, cultural, and economic activities.\n\n- **Evidence**: This information is widely available in geographical and political references. For instance, the CIA World Factbook and other reputable sources list Pari...",
+      "confidence": 0.5,
+      "latency_ms": 1553.9531707763672,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 11323.690414428711,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 9769.737243652344,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661885.1745052
+  },
+  {
+    "case": {
+      "id": "financial_1",
+      "question": "What are the key financial risks for EnergyFuture based on their 2022 performance?",
+      "category": "Financial Analysis",
+      "difficulty": "Medium",
+      "context": "Use the financial database to provide accurate, data-driven analysis.",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "511c9f73-9b8b-4fe8-b5fb-613494ad5254",
+      "question": "What are the key financial risks for EnergyFuture based on their 2022 performance?",
+      "context": "Use the financial database to provide accurate, data-driven analysis.",
+      "final_answer": "To analyze the key financial risks for EnergyFuture based on their 2022 performance, we need to examine various financial metrics and industry conditions. Here's a structured approach to identify these risks:\n\n- **Answer**: The key financial risks for EnergyFuture based on their 2022 performance include high debt levels, volatile energy prices, regulatory changes, and operational inefficiencies.\n\n- **Reasoning**:\n  1. **Debt Levels**: If EnergyFuture has a high debt-to-equity ratio, it indicates...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer=\"To address the question of key financial risks for EnergyFuture based on their 2022 performance, I will analyze the company's financial statements and relevant market data from that year. This will involve examining their income statement, balance sheet, cash flow statement, and any significant market or industry trends that could impact their financial stability.\\n\\n**Answer**: The key financial risks for EnergyFuture based on their 2022 performance include high debt levels, interest rate risk, m...\" reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"**Status**: REJECT\\n**Issues**: The response is incomplete as it cuts off mid-sentence, failing to provide a full analysis of the key financial risks for EnergyFuture. The response does not present any specific data or evidence from the 2022 financial statements or market trends to support the identification of risks.\\n**Suggestions**: The solver should complete the analysis by providing a detailed examination of EnergyFuture's financial statements, including specific figures or trends that illustrate the identified risks. Additionally, the response should include a discussion of market or industry trends that could impact the company's financial stability.\\n**Missing**: Specific financial data from EnergyFuture's 2022 performance, such as debt levels, interest rates, cash flow issues, or market trends, that would substantiate the analysis of financial risks.\\n**Confidence**: 0.6\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response does not provide specific details or evidence from the financial statements or market data to support the claims about EnergyFuture's financial risks. The analysis is incomplete as it does not cite any specific figures or trends from the 2022 performance data. Without concrete data or references, the claims about high debt levels and interest rate risk are unsupported.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks specific data points or references to EnergyFuture's financial statements or market conditions in 2022. There is no evidence provided to substantiate the claims made about financial risks. The analysis needs to be more detailed and data-driven to be considered valid.\" evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='To address the question of key financial risks for EnergyFuture based on their 2022 performance, we need to analyze their financial statements and any relevant market data from that year. Here is a structured approach to identifying these risks:\\n\\n- **Answer**: The key financial risks for EnergyFuture based on their 2022 performance include liquidity risk, credit risk, market risk, and operational risk.\\n\\n- **Reasoning**:\\n  1. **Liquidity Risk**: This risk arises if EnergyFuture has insufficient c...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"**Status**: REJECT\\n**Issues**: The response is incomplete as it cuts off mid-sentence, preventing a full evaluation of the reasoning provided for each identified risk. Without the complete reasoning, we cannot assess the accuracy or logical consistency of the analysis.\\n**Suggestions**: The solver should provide a complete analysis for each identified risk, including specific data points or evidence from EnergyFuture's 2022 financial statements or market data to support each risk claim.\\n**Missing**: Detailed explanations and evidence for each identified financial risk (liquidity risk, credit risk, market risk, and operational risk) based on EnergyFuture's 2022 performance.\\n**Confidence**: 0.6\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response outlines potential financial risks such as liquidity, credit, market, and operational risks, but it lacks specific data or evidence from EnergyFuture's 2022 financial performance to substantiate these claims. The reasoning is incomplete as it does not provide detailed analysis or figures from the financial statements or market data to support the identification of these risks.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response does not cite specific financial data or evidence from EnergyFuture's 2022 performance. It lacks detailed analysis and fails to provide verifiable evidence to support the claims made about the financial risks.\" evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer=\"To analyze the key financial risks for EnergyFuture based on their 2022 performance, we need to examine various financial metrics and industry conditions. Here's a structured approach to identify these risks:\\n\\n- **Answer**: The key financial risks for EnergyFuture based on their 2022 performance include high debt levels, volatile energy prices, regulatory changes, and operational inefficiencies.\\n\\n- **Reasoning**:\\n  1. **Debt Levels**: If EnergyFuture has a high debt-to-equity ratio, it indicates...\" reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"**Status**: REJECT\\n**Issues**: The response is incomplete. It begins to list potential financial risks but does not provide any specific data or evidence from EnergyFuture's 2022 performance to support these claims. The reasoning is cut off and not fully developed.\\n**Suggestions**: The response should include specific financial metrics or data points from EnergyFuture's 2022 performance to substantiate the identified risks. Each risk should be accompanied by a detailed explanation and evidence from the financial database.\\n**Missing**: Detailed analysis and evidence supporting each identified risk. Specific financial data from EnergyFuture's 2022 performance should be included to justify the claims about debt levels, energy prices, regulatory changes, and operational inefficiencies.\\n**Confidence**: 0.6\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response identifies potential financial risks for EnergyFuture, but it lacks specific data or evidence from the 2022 performance to substantiate these claims. The reasoning mentions examining financial metrics and industry conditions, but it does not provide any actual figures or detailed analysis from the financial database. Without concrete evidence or data points, the claims about high debt levels, volatile energy prices, regulatory changes, and operational inefficiencies remain unsupported.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response needs to include specific financial data from 2022 to support the identified risks. Additionally, there should be citations or references to the financial database or relevant reports to verify the claims made.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 32745.086431503296,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "To address the question of key financial risks for EnergyFuture based on their 2022 performance, I will analyze the company's financial statements and relevant market data from that year. This will involve examining their income statement, balance sheet, and cash flow statement to identify potential risks.\n\n**Answer**: The key financial risks for EnergyFuture based on their 2022 performance include:\n\n1. **High Debt Levels**: EnergyFuture may have significant leverage, which can pose a risk if in...",
+      "confidence": 0.5,
+      "latency_ms": 7921.196699142456,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 32745.086431503296,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 24823.88973236084,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765661960.2618098
+  },
+  {
+    "case": {
+      "id": "conceptual_1",
+      "question": "What are the advantages and disadvantages of renewable energy?",
+      "category": "Conceptual Understanding",
+      "difficulty": "Medium",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "138d0ede-3d3c-4433-a855-a8b095e5a0fc",
+      "question": "What are the advantages and disadvantages of renewable energy?",
+      "context": "",
+      "final_answer": "- **Answer**: Renewable energy offers several advantages and disadvantages, which are important to consider when evaluating its role in the global energy landscape.\n\n- **Reasoning**:\n  - **Advantages**:\n    1. **Environmental Benefits**: Renewable energy sources, such as solar, wind, and hydroelectric power, produce little to no greenhouse gas emissions during operation, significantly reducing air pollution and mitigating climate change.\n    2. **Sustainability**: These energy sources are inexha...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: Renewable energy offers several advantages, including environmental benefits, energy security, and economic opportunities, but it also has disadvantages such as intermittency, high initial costs, and geographical limitations.\\n\\n- **Reasoning**:\\n  1. **Advantages**:\\n     - **Environmental Benefits**: Renewable energy sources like solar, wind, and hydroelectric power produce little to no greenhouse gas emissions during operation, which helps mitigate climate change and reduce air poll...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response is incomplete. The reasoning section is cut off, and the explanation of advantages and disadvantages is not fully provided.\\n**Suggestions**: Complete the reasoning section by fully explaining the advantages and disadvantages of renewable energy. Ensure that each point is supported with evidence or examples where applicable.\\n**Missing**: Detailed explanations and evidence for each advantage and disadvantage listed. The response should include more comprehensive reasoning to support the claims made.\\n**Confidence**: 0.6'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response provides a general overview of the advantages and disadvantages of renewable energy but lacks specific evidence or citations to support the claims. While the reasoning is generally sound, the absence of detailed evidence or examples weakens the response. Additionally, the response is incomplete as it cuts off mid-sentence, which affects the overall quality and completeness.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response needs to include specific examples or data to support the claims about environmental benefits, energy security, economic opportunities, intermittency, high initial costs, and geographical limitations. Additionally, the incomplete sentence should be addressed to ensure the response is fully coherent and comprehensive.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: Renewable energy offers several advantages and disadvantages, which are important to consider when evaluating its role in the global energy landscape.\\n\\n- **Reasoning**:\\n  - **Advantages**:\\n    1. **Environmental Benefits**: Renewable energy sources, such as solar, wind, and hydroelectric power, produce little to no greenhouse gas emissions during operation, helping to mitigate climate change and reduce air pollution.\\n    2. **Sustainability**: These energy sources are abundant and ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"The solver's response is incomplete, as it does not provide a full list of advantages and disadvantages of renewable energy. Therefore, I cannot evaluate it fully. Please provide the complete response for a thorough evaluation.\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response is incomplete, as it only begins to list the advantages of renewable energy without providing a full list or any disadvantages. The reasoning is not fully developed, and the evidence is not cited or verifiable. The response does not address the original question in its entirety, which asked for both advantages and disadvantages.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks completeness and does not provide a balanced view by including disadvantages. Additionally, there is no citation of evidence to support the claims made about the advantages. The response needs to be expanded and supported with verifiable evidence to meet the validation criteria.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: Renewable energy offers several advantages and disadvantages, which are important to consider when evaluating its role in the global energy landscape.\\n\\n- **Reasoning**:\\n  - **Advantages**:\\n    1. **Environmental Benefits**: Renewable energy sources, such as solar, wind, and hydroelectric power, produce little to no greenhouse gas emissions during operation, significantly reducing air pollution and mitigating climate change.\\n    2. **Sustainability**: These energy sources are inexha...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"The solver's response seems to be incomplete, as it cuts off mid-sentence. Therefore, I will evaluate based on the provided portion.\\n\\n**Status**: REJECT\\n**Issues**: The response is incomplete, cutting off mid-sentence, which leaves the analysis of advantages and disadvantages unfinished.\\n**Suggestions**: Complete the list of advantages and provide a balanced discussion by including the disadvantages of renewable energy.\\n**Missing**: The complete list of advantages and a discussion on the disadvantages of renewable energy.\\n**Confidence**: 0.6\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.7\\n- **Reasoning**: The response begins to outline the advantages of renewable energy but is incomplete, as it cuts off mid-sentence. The disadvantages are not addressed at all, which means the solution does not fully answer the original question. Additionally, there is no evidence provided to support the claims made about the advantages of renewable energy.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response is incomplete and lacks evidence to support the claims made. The disadvantages of renewable energy are not discussed, which is a critical part of the original question. The reasoning is not fully developed, and there is no citation of sources to verify the claims.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 28823.853969573975,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: Renewable energy offers several advantages, including environmental benefits, energy security, and economic opportunities, but it also has disadvantages such as intermittency, high initial costs, and land use concerns.\n\n- **Reasoning**:\n  1. **Advantages**:\n     - **Environmental Benefits**: Renewable energy sources like solar, wind, and hydroelectric power produce little to no greenhouse gas emissions during operation, helping to mitigate climate change and reduce air pollution.\n ...",
+      "confidence": 0.5,
+      "latency_ms": 6557.880640029907,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 28823.853969573975,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 22265.973329544067,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765662022.12742
+  },
+  {
+    "case": {
+      "id": "edge_1",
+      "question": "What is the square root of -1?",
+      "category": "Edge Cases",
+      "difficulty": "Hard",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "d6b41df0-33d3-482a-94e8-ddcc9e9405b5",
+      "question": "What is the square root of -1?",
+      "context": "",
+      "final_answer": "- **Answer**: The square root of -1 is \\( i \\), which is the imaginary unit.\n- **Reasoning**: \n  1. In mathematics, the square root of a number \\( x \\) is a number \\( y \\) such that \\( y^2 = x \\).\n  2. For positive numbers, this is straightforward, but for negative numbers, no real number satisfies this condition because the square of any real number is non-negative.\n  3. To address this, mathematicians defined the imaginary unit \\( i \\) such that \\( i^2 = -1 \\).\n  4. Therefore, the square root ...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: The square root of -1 is the imaginary unit, denoted as \\\\( i \\\\).\\n\\n- **Reasoning**: \\n  1. The concept of square roots is typically applied to non-negative real numbers. For a real number \\\\( x \\\\), the square root is a number \\\\( y \\\\) such that \\\\( y^2 = x \\\\).\\n  2. In the case of negative numbers, no real number squared will result in a negative number. This is because the square of any real number (positive or negative) is non-negative.\\n  3. To address this, mathematicians extended the...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 0.95'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies the square root of -1 as the imaginary unit, denoted by \\\\( i \\\\). This is a well-established concept in mathematics, specifically in the field of complex numbers. The reasoning provided is sound, explaining why negative numbers do not have real square roots and how the concept of imaginary numbers was introduced to address this.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None. The explanation is accurate and complete, with no unsupported claims or logical errors.' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: The square root of -1 is \\\\( i \\\\), which is the imaginary unit.\\n  \\n- **Reasoning**: \\n  1. In mathematics, the square root of a number \\\\( x \\\\) is a number \\\\( y \\\\) such that \\\\( y^2 = x \\\\).\\n  2. For positive numbers, square roots are real numbers. However, the square root of a negative number is not a real number.\\n  3. To address this, mathematicians have defined an imaginary unit \\\\( i \\\\), where \\\\( i^2 = -1 \\\\).\\n  4. Thus, the square root of -1 is defined as \\\\( i \\\\).\\n\\n- **Evidence**: \\n ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 0.95'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies the square root of -1 as the imaginary unit \\\\( i \\\\). The reasoning is sound, explaining that the square root of a negative number is not a real number and that mathematicians have defined \\\\( i \\\\) such that \\\\( i^2 = -1 \\\\). This is a well-established concept in mathematics.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: The square root of -1 is \\\\( i \\\\), which is the imaginary unit.\\n- **Reasoning**: \\n  1. In mathematics, the square root of a number \\\\( x \\\\) is a number \\\\( y \\\\) such that \\\\( y^2 = x \\\\).\\n  2. For positive numbers, this is straightforward, but for negative numbers, no real number satisfies this condition because the square of any real number is non-negative.\\n  3. To address this, mathematicians defined the imaginary unit \\\\( i \\\\) such that \\\\( i^2 = -1 \\\\).\\n  4. Therefore, the square root ...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies the square root of -1 as the imaginary unit \\\\( i \\\\). The explanation is accurate and aligns with mathematical conventions regarding imaginary numbers. The reasoning is sound, complete, and free of logical errors. The solution directly addresses the original question.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 13974.609375,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: The square root of -1 is \\( i \\), which is the imaginary unit.\n  \n- **Reasoning**: \n  1. In mathematics, the square root of a number \\( x \\) is a number \\( y \\) such that \\( y^2 = x \\).\n  2. For positive numbers, square roots are real numbers. However, the square root of a negative number is not a real number because the square of any real number is non-negative.\n  3. To handle the square roots of negative numbers, mathematicians have defined an imaginary unit, denoted as \\( i \\), ...",
+      "confidence": 0.5,
+      "latency_ms": 2821.291923522949,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 13974.609375,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 11153.31745147705,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765662054.9561052
+  },
+  {
+    "case": {
+      "id": "financial_2",
+      "question": "Calculate the profit margin for RetailMega in 2020 and explain what it means for investors.",
+      "category": "Financial Analysis",
+      "difficulty": "Medium",
+      "context": "Use the financial database to provide accurate, data-driven analysis.",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "df155aa1-33fa-4d26-9b4e-84b7d6b31c4e",
+      "question": "Calculate the profit margin for RetailMega in 2020 and explain what it means for investors.",
+      "context": "Use the financial database to provide accurate, data-driven analysis.",
+      "final_answer": "To calculate the profit margin for RetailMega in 2020, we need to know the company's net income and total revenue for that year. The profit margin is a financial metric that indicates how much profit a company makes for every dollar of revenue. It is calculated using the formula:\n\n\\[ \\text{Profit Margin} = \\left( \\frac{\\text{Net Income}}{\\text{Total Revenue}} \\right) \\times 100 \\]\n\n**Answer**: \nTo provide an accurate answer, I will need to access RetailMega's financial data for 2020, specificall...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer=\"To calculate the profit margin for RetailMega in 2020, we need to determine the net income and the total revenue for that year. The profit margin is calculated using the formula:\\n\\n\\\\[ \\\\text{Profit Margin} = \\\\left( \\\\frac{\\\\text{Net Income}}{\\\\text{Total Revenue}} \\\\right) \\\\times 100 \\\\]\\n\\n**Answer**: \\nThe profit margin for RetailMega in 2020 is calculated as follows: \\n\\n\\\\[ \\\\text{Profit Margin} = \\\\left( \\\\frac{\\\\text{Net Income}}{\\\\text{Total Revenue}} \\\\right) \\\\times 100 \\\\]\\n\\nAssuming RetailMega's net income...\" reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"**Status**: REJECT\\n**Issues**: The response does not provide the actual net income or total revenue figures for RetailMega in 2020, which are necessary to calculate the profit margin. Without these figures, the calculation cannot be completed, and the explanation of what the profit margin means for investors is missing.\\n**Suggestions**: Include the specific net income and total revenue figures for RetailMega in 2020 to complete the profit margin calculation. Additionally, provide an explanation of what the profit margin indicates about RetailMega's financial health and its implications for investors.\\n**Missing**: The actual net income and total revenue figures for RetailMega in 2020 and an explanation of the implications of the profit margin for investors.\\n**Confidence**: 0.70\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: FAIL\\n- **Confidence**: 0.9\\n- **Reasoning**: The response does not provide specific values for RetailMega's net income or total revenue in 2020, which are necessary to calculate the profit margin. Without these figures, the solution is incomplete and does not fully address the original question. Additionally, there is no evidence or citation provided to support any claims or calculations.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks specific data and evidence to support the calculation of the profit margin. It also does not explain what the profit margin means for investors, which was part of the original question.\" evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='To solve this problem, we need to calculate the profit margin for RetailMega in 2020 and interpret its significance for investors.\\n\\n### **Answer:**\\nThe profit margin for RetailMega in 2020 is calculated as follows:\\n\\n\\\\[ \\\\text{Profit Margin} = \\\\left( \\\\frac{\\\\text{Net Income}}{\\\\text{Revenue}} \\\\right) \\\\times 100 \\\\]\\n\\nAssuming the following hypothetical data for RetailMega in 2020:\\n- **Revenue**: $500 million\\n- **Net Income**: $50 million\\n\\nThe profit margin would be:\\n\\n\\\\[ \\\\text{Profit Margin} = \\\\left( \\\\...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback=\"**Status**: REJECT\\n**Issues**: The response is incomplete as it does not provide the calculated profit margin value or the explanation of its significance for investors. Additionally, the data used is hypothetical, which may not align with the actual financial data of RetailMega for 2020.\\n**Suggestions**: The solver should complete the calculation of the profit margin using the provided formula and hypothetical data. They should also explain what the profit margin indicates about RetailMega's financial health and its implications for investors. If possible, real financial data should be used instead of hypothetical figures.\\n**Missing**: The calculated profit margin value and an explanation of its significance for investors.\\n**Confidence**: 0.6\"",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning=\"- **Decision**: FAIL\\n- **Confidence**: 0.9\\n- **Reasoning**: The solution provides a formula for calculating the profit margin and uses hypothetical data to demonstrate the calculation. However, it does not provide actual data from the financial database for RetailMega in 2020, which is necessary to ensure factual accuracy. The use of hypothetical data without clear indication or evidence from the database undermines the solution's validity.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The response lacks actual data from the financial database to support the calculation. The hypothetical data used is not verified or cited, which is essential for a data-driven analysis. The solution needs to include real financial figures from RetailMega's 2020 financial statements to be considered accurate and complete.\" evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer=\"To calculate the profit margin for RetailMega in 2020, we need to know the company's net income and total revenue for that year. The profit margin is a financial metric that indicates how much profit a company makes for every dollar of revenue. It is calculated using the formula:\\n\\n\\\\[ \\\\text{Profit Margin} = \\\\left( \\\\frac{\\\\text{Net Income}}{\\\\text{Total Revenue}} \\\\right) \\\\times 100 \\\\]\\n\\n**Answer**: \\nTo provide an accurate answer, I will need to access RetailMega's financial data for 2020, specificall...\" reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: REJECT\\n**Issues**: The response does not provide the actual profit margin calculation for RetailMega in 2020. It stops at explaining the formula without applying it to any data.\\n**Suggestions**: The solver should include the specific net income and total revenue figures for RetailMega in 2020 and perform the calculation to determine the profit margin. Additionally, the explanation of what the profit margin means for investors should be included.\\n**Missing**: The actual financial data for RetailMega in 2020 and the calculated profit margin. An explanation of the implications of the profit margin for investors is also missing.\\n**Confidence**: 0.6'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: FAIL\\n- **Confidence**: 0.9\\n- **Reasoning**: The response does not provide the actual profit margin for RetailMega in 2020, as it lacks the necessary financial data (net income and total revenue) to perform the calculation. The explanation of what a profit margin means for investors is also missing. The response is incomplete and does not fully address the original question.\\n- **Evidence_Quality**: WEAK\\n- **Concerns**: The solution does not include the required financial data or the calculated profit margin. Additionally, there is no explanation of the implications of the profit margin for investors, which was part of the original question.' evidence_quality=<EvidenceQuality.WEAK: 'WEAK'> concerns=[] validation_score=0.7999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 23364.028692245483,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "To calculate the profit margin for RetailMega in 2020, we need to know the company's net income and total revenue for that year. The profit margin is calculated using the formula:\n\n\\[ \\text{Profit Margin} = \\left( \\frac{\\text{Net Income}}{\\text{Total Revenue}} \\right) \\times 100 \\]\n\n**Answer**: \nTo provide a specific answer, I would need access to RetailMega's financial data for 2020, specifically their net income and total revenue. However, I can explain the general process and implications for...",
+      "confidence": 0.5,
+      "latency_ms": 3928.7333488464355,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 23364.028692245483,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 19435.295343399048,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765662141.1973908
+  },
+  {
+    "case": {
+      "id": "factual_1",
+      "question": "What is the chemical symbol for gold?",
+      "category": "Factual Knowledge",
+      "difficulty": "Easy",
+      "context": "",
+      "expected_answer": null,
+      "ground_truth": null
+    },
+    "system_result": {
+      "session_id": "ddada092-3c1d-4528-b41e-f6daa301bea0",
+      "question": "What is the chemical symbol for gold?",
+      "context": "",
+      "final_answer": "- **Answer**: The chemical symbol for gold is \"Au\".\n\n- **Reasoning**: The chemical symbols for elements are derived from their Latin names. Gold's symbol, \"Au\", comes from its Latin name \"Aurum\". The periodic table assigns each element a unique one or two-letter symbol, and \"Au\" is the universally recognized symbol for gold.\n\n- **Evidence**: This information can be verified by consulting any standard periodic table of elements, which lists \"Au\" as the symbol for gold. Additionally, authoritative...",
+      "accepted": false,
+      "confidence": 0.5,
+      "iterations": [
+        {
+          "iteration": 1,
+          "solver_response": "answer='- **Answer**: The chemical symbol for gold is \"Au\".\\n\\n- **Reasoning**: Chemical symbols are one or two-letter abbreviations for chemical elements, derived from their English or Latin names. The symbol for gold, \"Au\", comes from its Latin name \"Aurum\".\\n\\n- **Evidence**: This information is consistent with the periodic table of elements, a well-established scientific resource that lists all known chemical elements and their symbols.\\n\\n- **Confidence**: 1.0\\n\\n- **Assumptions**: None; the question is st...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies the chemical symbol for gold as \"Au\", which is derived from its Latin name \"Aurum\". This is a well-known fact and is accurately supported by the periodic table of elements, a reliable and authoritative source.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None. The response is accurate, complete, and well-supported by evidence.' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 2,
+          "solver_response": "answer='- **Answer**: The chemical symbol for gold is \"Au\".\\n\\n- **Reasoning**: The chemical symbols for elements are derived from their Latin names or other historical names. Gold\\'s symbol, \"Au\", comes from its Latin name \"Aurum\". This is a standard notation used in the periodic table of elements.\\n\\n- **Evidence**: The periodic table of elements, which is a tabular display of all known chemical elements, lists gold with the symbol \"Au\". This is consistent across scientific literature and educational resou...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies the chemical symbol for gold as \"Au\", which is consistent with the standard notation used in the periodic table of elements. The explanation provided is accurate, stating that the symbol is derived from the Latin name \"Aurum\". This information is widely accepted and verifiable in scientific literature and educational resources.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        },
+        {
+          "iteration": 3,
+          "solver_response": "answer='- **Answer**: The chemical symbol for gold is \"Au\".\\n\\n- **Reasoning**: The chemical symbols for elements are derived from their Latin names. Gold\\'s symbol, \"Au\", comes from its Latin name \"Aurum\". The periodic table assigns each element a unique one or two-letter symbol, and \"Au\" is the universally recognized symbol for gold.\\n\\n- **Evidence**: This information can be verified by consulting any standard periodic table of elements, which lists \"Au\" as the symbol for gold. Additionally, authoritative...' reasoning='No explicit reasoning provided' evidence='No evidence cited' confidence=0.5 assumptions='No assumptions stated' tool_calls=[]",
+          "critic_response": "status=<CriticDecision.APPROVE: 'APPROVE'> issues=[] suggestions=[] missing=[] confidence=0.5 detailed_feedback='**Status**: APPROVE\\n**Issues**: None\\n**Suggestions**: None\\n**Missing**: None\\n**Confidence**: 1.0'",
+          "judge_response": "decision=<JudgeDecision.PASS: 'PASS'> confidence=0.5 reasoning='- **Decision**: PASS\\n- **Confidence**: 1.0\\n- **Reasoning**: The response correctly identifies \"Au\" as the chemical symbol for gold, which is consistent with standard scientific knowledge and the periodic table of elements. The explanation regarding the derivation of the symbol from the Latin name \"Aurum\" is accurate and provides additional context. The claim is verifiable through any standard periodic table.\\n- **Evidence_Quality**: STRONG\\n- **Concerns**: None' evidence_quality=<EvidenceQuality.STRONG: 'STRONG'> concerns=[] validation_score=0.8999999999999999",
+          "accepted": false,
+          "reason": "Judge rejected: Response was not rejected"
+        }
+      ],
+      "total_iterations": 3,
+      "total_tokens": 0,
+      "total_latency_ms": 11460.407972335815,
+      "metadata": {
+        "max_iterations_reached": true,
+        "judge_threshold": 0.8,
+        "final_reason": "Max iterations reached. Using best available response."
+      }
+    },
+    "single_agent_result": {
+      "answer": "- **Answer**: The chemical symbol for gold is \"Au\".\n\n- **Reasoning**: Chemical symbols are one or two-letter abbreviations derived from their English or Latin names. Gold's symbol, \"Au\", comes from its Latin name \"Aurum\". This is a standard notation used in the periodic table of elements.\n\n- **Evidence**: The periodic table of elements, a universally recognized scientific chart, lists gold with the symbol \"Au\". This can be verified in any chemistry textbook or reliable online resource such as th...",
+      "confidence": 0.5,
+      "latency_ms": 2261.1045837402344,
+      "tokens": 0,
+      "validated": false
+    },
+    "evaluation_metrics": {
+      "confidence": 0.5,
+      "accepted": 0.0,
+      "iterations": 3.0,
+      "latency_ms": 11460.407972335815,
+      "tokens_used": 0.0,
+      "confidence_improvement": 0.0,
+      "latency_overhead": 9199.303388595581,
+      "validation_added": 0.0
+    },
+    "timestamp": 1765662166.0264707
+  }
+]

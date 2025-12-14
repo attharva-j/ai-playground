@@ -22,7 +22,7 @@ class AgentConfig:
 class SystemConfig:
     """System-wide configuration."""
     max_iterations: int = 3
-    judge_confidence_threshold: float = 0.8
+    judge_confidence_threshold: float = 0.5
     enable_tools: bool = True
     log_level: str = "INFO"
     

@@ -7,6 +7,9 @@ This script demonstrates the system without relative import issues.
 import sys
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
 
 # Add the current directory to Python path
 current_dir = Path(__file__).parent
