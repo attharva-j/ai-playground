@@ -75,12 +75,15 @@ class JudgeAgent:
             )
             
             raw_response = response.choices[0].message.content
+            print(f"Judge's raw response:\n{raw_response}")
+
             tokens_used = response.usage.total_tokens if response.usage else 0
             latency_ms = (time.time() - start_time) * 1000
             
             # Parse the response into structured format
             parsed_response = self._parse_response(raw_response)
-            
+            print(f"Parsed response:\n{parsed_response}")
+
             # Log the interaction
             logger.log_agent_interaction(
                 agent_type=self.name,
