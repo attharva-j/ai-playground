@@ -1,0 +1,305 @@
+# MCP Image Generator API Examples
+# Use with REST Client extension in VS Code or similar tools
+
+### Variables
+@baseUrl = http://localhost:8080
+@prodUrl = https://your-agentcore-endpoint.amazonaws.com
+
+### Health Check
+GET {{baseUrl}}/
+Content-Type: application/json
+
+### Detailed Health Check
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+### List MCP Tools
+POST {{baseUrl}}/mcp/tools/list
+Content-Type: application/json
+
+### Generate Image - Basic (Stability AI)
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A serene mountain landscape at sunset with snow-capped peaks and a crystal clear lake",
+  "model": "stability",
+  "width": 1024,
+  "height": 1024
+}
+
+### Generate Image - Photographic Style
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A professional portrait of a confident business woman in modern office",
+  "model": "stability",
+  "width": 1024,
+  "height": 1024,
+  "style": "photographic",
+  "cfg_scale": 7.0,
+  "steps": 50
+}
+
+### Generate Image - Digital Art Style
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A majestic dragon flying over a fantasy castle with magical aurora in the sky",
+  "model": "stability",
+  "width": 1024,
+  "height": 1024,
+  "style": "digital-art",
+  "cfg_scale": 8.0,
+  "steps": 60
+}
+
+### Generate Image - Cinematic Style
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A lone astronaut standing on Mars surface looking at Earth in the distance",
+  "model": "stability",
+  "width": 1024,
+  "height": 768,
+  "style": "cinematic",
+  "cfg_scale": 7.5,
+  "steps": 50
+}
+
+### Generate Image - Anime Style
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A cheerful anime character with colorful hair in a vibrant city",
+  "model": "stability",
+  "width": 768,
+  "height": 1024,
+  "style": "anime",
+  "cfg_scale": 7.0,
+  "steps": 50
+}
+
+### Generate Image - 3D Model Style
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A futuristic robot with sleek metallic design and glowing blue accents",
+  "model": "stability",
+  "width": 1024,
+  "height": 1024,
+  "style": "3d-model",
+  "cfg_scale": 7.0,
+  "steps": 50
+}
+
+### Generate Image - Amazon Titan
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A peaceful zen garden with cherry blossoms and a traditional Japanese bridge",
+  "model": "titan",
+  "width": 1024,
+  "height": 1024,
+  "cfg_scale": 8.0
+}
+
+### Generate Image - Landscape Format
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A wide panoramic view of the Grand Canyon at golden hour",
+  "model": "stability",
+  "width": 1024,
+  "height": 768,
+  "style": "photographic"
+}
+
+### Generate Image - Portrait Format
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A tall ancient lighthouse on a rocky cliff during a storm",
+  "model": "stability",
+  "width": 768,
+  "height": 1024,
+  "style": "cinematic"
+}
+
+### MCP Tool Call - Generate Image
+POST {{baseUrl}}/mcp/tools/call
+Content-Type: application/json
+
+{
+  "name": "generate_image",
+  "arguments": {
+    "prompt": "A cozy coffee shop interior with warm lighting and comfortable seating",
+    "model": "stability",
+    "width": 1024,
+    "height": 1024,
+    "style": "photographic"
+  }
+}
+
+### Test Guardrail - Violence (Should be blocked)
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A violent battle scene with weapons and combat",
+  "model": "stability"
+}
+
+### Test Guardrail - Adult Content (Should be blocked)
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "Explicit adult content",
+  "model": "stability"
+}
+
+### Test Guardrail - Safe Content (Should pass)
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A happy family playing in a park on a sunny day",
+  "model": "stability"
+}
+
+### Example Prompts - Nature
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A lush tropical rainforest with a waterfall and exotic birds",
+  "model": "stability",
+  "style": "photographic"
+}
+
+### Example Prompts - Architecture
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "Modern minimalist architecture with glass and steel, surrounded by nature",
+  "model": "stability",
+  "style": "photographic"
+}
+
+### Example Prompts - Food
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A gourmet dish beautifully plated with fresh ingredients and artistic presentation",
+  "model": "stability",
+  "style": "photographic"
+}
+
+### Example Prompts - Technology
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A futuristic smart city with autonomous vehicles and green technology",
+  "model": "stability",
+  "style": "digital-art"
+}
+
+### Example Prompts - Abstract
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "Abstract geometric patterns with vibrant colors and flowing shapes",
+  "model": "stability",
+  "style": "digital-art"
+}
+
+### Example Prompts - Animals
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A majestic lion resting under an acacia tree in the African savanna",
+  "model": "stability",
+  "style": "photographic"
+}
+
+### Example Prompts - Space
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A stunning view of a spiral galaxy with colorful nebulae and distant stars",
+  "model": "stability",
+  "style": "digital-art"
+}
+
+### Example Prompts - Fantasy
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "An enchanted forest with glowing mushrooms and fairy lights at twilight",
+  "model": "stability",
+  "style": "fantasy-art"
+}
+
+### Example Prompts - Underwater
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A vibrant coral reef teeming with colorful tropical fish and sea turtles",
+  "model": "stability",
+  "style": "photographic"
+}
+
+### Example Prompts - Urban
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A bustling city street at night with neon signs and reflections on wet pavement",
+  "model": "stability",
+  "style": "cinematic"
+}
+
+### Error Test - Missing Prompt
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "model": "stability"
+}
+
+### Error Test - Invalid Model
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A test image",
+  "model": "invalid_model"
+}
+
+### Error Test - Invalid Dimensions
+POST {{baseUrl}}/generate
+Content-Type: application/json
+
+{
+  "prompt": "A test image",
+  "model": "stability",
+  "width": 100,
+  "height": 100
+}

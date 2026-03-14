@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mcp-image-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-image-generator
+    ports:
+      - "8080:8080"
+    environment:
+      # AWS Configuration
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      
+      # S3 Configuration
+      - S3_BUCKET=${S3_BUCKET:-agentcore-generated-images}
+      - PRESIGNED_URL_EXPIRY=${PRESIGNED_URL_EXPIRY:-3600}
+      
+      # Guardrail Configuration
+      - GUARDRAIL_ID=${GUARDRAIL_ID}
+      - GUARDRAIL_VERSION=${GUARDRAIL_VERSION:-1}
+      
+      # Application Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENABLE_CLOUDWATCH_LOGS=${ENABLE_CLOUDWATCH_LOGS:-true}
+      - ENABLE_CLOUDWATCH_METRICS=${ENABLE_CLOUDWATCH_METRICS:-true}
+      
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=8080
+    
+    volumes:
+      - ~/.aws:/home/appuser/.aws:ro
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

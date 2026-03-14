@@ -1,0 +1,88 @@
+name: Deploy Backend Docker Image to ECR
+on:
+  push:
+    branches: ["main", "nonprod"]
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT: ${{ github.ref == 'refs/heads/main' && '<prod-account-id>' || '<nonprod-account-id>' }}
+  ENV: ${{ github.ref == 'refs/heads/main' && 'prod' || 'nonprod' }}
+  AGENTCORE_RUNTIME_ID: ${{ github.ref == 'refs/heads/main' && 'to_be_changed' || '<runtime-id>' }}
+  ECR_REPOSITORY: aifoundation
+  DOCKER_BUILD_DIR: ./agentcore/src
+  DOCKER_FILE_PATH: ./agentcore/src/Dockerfile
+
+jobs:
+  deploy:
+    name: Build Docker Image And Push To ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+          aws --version
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT }}:role/gh-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: "true"
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-publish
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          DOCKER_BUILD_DIR: ${{ env.DOCKER_BUILD_DIR }}
+          DOCKER_FILE_PATH: ${{ env.DOCKER_FILE_PATH }}
+        run: |
+          #Create new builder for multiarch build
+          docker buildx create --name multiarch && docker buildx use multiarch
+          echo "Docker version:"
+          docker --version
+          docker info
+          # Build the Docker image with a unique name based on the timestamp
+          echo "Building Docker image with $ENV tag"
+          docker buildx build --platform linux/arm64,linux/amd64 "$DOCKER_BUILD_DIR" --build-arg ECR_CACHE=$AWS_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/docker-hub/library/ \
+          -f "$DOCKER_FILE_PATH" -t "$ECR_REGISTRY/$ECR_REPOSITORY:$ENV" --push
+          echo "Docker image build and push complete"
+          docker buildx stop multiarch && docker buildx rm multiarch
+          echo "Builder cleanup complete"
+
+          echo "Updating agentcore runtime"
+
+          # We have to set all parameters for runtime because AWS will reset them to default (if not set)
+
+          CONTAINER_URI="${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/aifoundation:${ENV}"
+          DISCOVERY_URL="https://<your-oidc-provider>/.well-known/openid-configuration"
+
+          ARTIFACT_JSON=$(jq -n --arg uri "$CONTAINER_URI" \
+            '{containerConfiguration:{containerUri:$uri}}')
+
+          AUTH_JSON=$(jq -n --arg url "$DISCOVERY_URL" \
+            '{customJWTAuthorizer:{discoveryUrl:$url,allowedClients:["AmazonQuickSuite"]}}')
+
+
+          aws bedrock-agentcore-control update-agent-runtime \
+            --agent-runtime-id "$AGENTCORE_RUNTIME_ID" \
+            --agent-runtime-artifact "$ARTIFACT_JSON" \
+            --role-arn arn:aws:iam::$AWS_ACCOUNT:role/ai-foundation-dev-agentcore-runtime-role \
+            --network-configuration '{"networkMode":"PUBLIC"}' \
+            --protocol-configuration '{"serverProtocol":"MCP"}' \
+            --authorizer-configuration "$AUTH_JSON"
+          echo "Runtime update complete"

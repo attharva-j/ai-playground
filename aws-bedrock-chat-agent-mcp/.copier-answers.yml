@@ -1,0 +1,154 @@
+# Changes here will be overwritten by Copier
+_commit: <commit-hash>
+_src_path: gh:<org>/copier-templates
+account_owner: [contact your administrator]
+application_name: AI Foundation
+sdlc_tfvars:
+    nonprod:
+        account_id: '<nonprod-account-id>'
+        account_name: <account-name>
+        account_owner: [contact your administrator]
+        account_tags:
+            APM: <apm-id>
+            AppName: <app-name>
+            ApplicationOwner: "[application owner]"
+            ApprovalGroup: <approval-group>
+            BusinessOwner: "[business owner]"
+            DRTier: '3'
+            DataClassification: None
+            Funding: <funding-code>
+            ManagedBy: Enterprise
+            MonthlyBudgetAmount: '10'
+            Origin: Greenfield
+            SVC: <svc-id>
+            SupportGroup: Undefined
+            Tower: <tower>
+            Workload: NonSAP
+            application: AI Foundation
+            ou: <ou-path>
+            owner: [contact your administrator]
+            stage: nonprod
+        account_type: workload
+        application_name: AI Foundation
+        cloudwatch_config: true
+        crowdstrike_agent: true
+        custom_roles: {}
+        datadog:
+            additional_metric_namespaces: []
+            additional_regions: []
+            collect_cloudwatch_alarms: false
+            collect_custom_metrics: false
+            enabled: true
+            metric_tag_filters: {}
+        dns: {}
+        ec2_ssm_document_force_create: false
+        github_actions_environments: {}
+        has_github_actions_artifacts: false
+        mgn_target_account: false
+        network:
+            enable_contiguous_vpc_cidr: false
+            enable_ingress_inspection: false
+            enable_non_routable_subnets: true
+            network_shares: []
+            regional_az_numeric_ids:
+                ap-south-1:
+                - 1
+                - 2
+                ap-southeast-1:
+                - 1
+                - 2
+                eu-central-1:
+                - 1
+                - 2
+                us-east-1:
+                - 2
+                - 4
+                us-east-2:
+                - 1
+                - 2
+            regional_enable_contiguous_vpc_cidr:
+                ap-south-1: null
+                ap-southeast-1: null
+                eu-central-1: null
+                us-east-1: null
+                us-east-2: null
+            regional_enable_ingress_inspection:
+                ap-south-1: null
+                ap-southeast-1: null
+                eu-central-1: null
+                us-east-1: null
+                us-east-2: null
+            regional_enable_non_routable_subnets:
+                ap-south-1: null
+                ap-southeast-1: null
+                eu-central-1: null
+                us-east-1: null
+                us-east-2: null
+            regional_nat_subnets: null
+            regional_private_subnets: null
+            regional_public_subnets: null
+            regional_tgw_routable_private_subnets:
+                ap-south-1: null
+                ap-southeast-1: null
+                eu-central-1: null
+                us-east-1: null
+                us-east-2: null
+            regional_tgw_routable_public_subnets:
+                ap-south-1: null
+                ap-southeast-1: null
+                eu-central-1: null
+                us-east-1: null
+                us-east-2: null
+            tgw_routable_private_subnets: true
+            tgw_routable_public_subnets: false
+        ou: <ou-path>
+        spacelift_modules: {}
+        spacelift_parent_space_path: <spacelift-space-path>
+        spacelift_stacks:
+            ai-foundation-quicksuite-administration-nonprod:
+                _slug: quicksuite-administration
+                administrative: null
+                auto_deploy: null
+                auto_retry: null
+                aws_integration_role_policy_arns:
+                - arn:aws:iam::aws:policy/AdministratorAccess
+                branch: nonprod
+                contexts: []
+                description: Managed by AFT Account Request
+                drift_detection: null
+                environment_variables: {}
+                external_dependencies: {}
+                install_kubectl: null
+                kubectl_version: null
+                labels: {}
+                local_preview: null
+                name: AI Foundation - QuickSuite Administration - nonprod
+                policies: []
+                project_root: quicksuite-administration
+                protect_from_deletion: null
+                repo_name: ai-foundation
+                repo_owner: <github-org>
+                required_labels:
+                    stage: nonprod
+                    team: platform-engineering
+                runner_image: null
+                scripts: null
+                spacelift_manage_state: null
+                terraform_version: null
+                terraform_workspace: null
+                use_public_hosted_workers: null
+        stage: nonprod
+        stage_permission_set_group_map:
+            nonprod:
+                AccountReadOnly: AWS AI Foundation NONPROD AccountReadOnly
+                DevOpsContributor: AWS AI Foundation NONPROD DevOpsContributor
+                DevOpsOwner: AWS AI Foundation NONPROD DevOpsOwner
+        stages:
+        - nonprod
+stage_permission_set_group_map:
+    nonprod:
+        AccountReadOnly: AWS AI Foundation NONPROD AccountReadOnly
+        DevOpsContributor: AWS AI Foundation NONPROD DevOpsContributor
+        DevOpsOwner: AWS AI Foundation NONPROD DevOpsOwner
+template: default-template
+this_github_repo: ai-foundation

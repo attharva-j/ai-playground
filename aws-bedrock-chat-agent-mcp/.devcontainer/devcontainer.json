@@ -1,0 +1,22 @@
+{
+	"name": "Ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+		}
+	},
+	"initializeCommand": "bash ${localWorkspaceFolder}/.devcontainer/scripts/initialize.sh",
+	"postCreateCommand": "CONTAINER_WORKSPACE_FOLDER=${containerWorkspaceFolder} bash ${containerWorkspaceFolder}/.devcontainer/scripts/post-create.sh",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"hashicorp.terraform",
+				"redhat.vscode-yaml",
+				"amazonwebservices.amazon-q-vscode",
+				"ms-kubernetes-tools.vscode-kubernetes-tools"
+			]
+		}
+	},
+	"mounts": ["source=${localEnv:HOME}/.aws/credentials,target=/home/vscode/.aws/credentials,type=bind"]
+}
