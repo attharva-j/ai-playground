@@ -15,6 +15,12 @@ This repository contains explorations in **LangGraph**, **LangChain**, **MCP ser
 
 ## 📂 Projects
 
+### 🔍 [Azure MCP ES-GDB Chat — Intent-Aware Enterprise Search & SmartPack Generator](./azure-mcp-es-gdb-chat/)
+An **MCP server deployed as an Azure Web App** that provides intent-aware natural language search across **Elasticsearch**, **Neo4j GraphDB**, and **Databricks**, with AI-powered summarization and automated **SmartPack PDF generation** for company and person dossiers. Connected to a Developer Mode-enabled custom chat interface via MCP protocol.  
+→ [README](./azure-mcp-es-gdb-chat/README.md) · [Documentation](./azure-mcp-es-gdb-chat/DOCUMENTATION.md)
+
+---
+
 ### 🏗️ [AWS Bedrock Chat Agent with MCP & SharePoint Integration](./aws-bedrock-chat-agent-mcp/)
 An enterprise-grade AI infrastructure built on **AWS Bedrock AgentCore Runtime**, exposing a production-ready **MCP server** that powers Amazon QuickSuite Chat Agents with SharePoint document access and AI image generation, secured via OAuth2, Bedrock Guardrails, and AWS IAM.  
 → [Documentation](./aws-bedrock-chat-agent-mcp/DOCUMENTATION.md) · [Project Summary](./aws-bedrock-chat-agent-mcp/PROJECT_SUMMARY.md)
@@ -77,7 +83,8 @@ The initial prototype of an **MCP server on AWS AgentCore Runtime** that generat
 | AWS Services | AgentCore Runtime/Gateway/Identity, Bedrock Guardrails, Q Business, QuickSuite, S3, DynamoDB, CloudWatch, Secrets Manager |
 | Protocols | Model Context Protocol (MCP), Microsoft Graph API, OAuth2 |
 | Infrastructure | Terraform, Docker, GitHub Actions, AWS ECR |
-| Databases | PostgreSQL, MongoDB, Neo4j, DynamoDB, SQLite, GraphQL |
+| Databases | PostgreSQL, MongoDB, Neo4j, DynamoDB, SQLite, GraphQL, Elasticsearch |
+| Cloud (Azure) | Azure App Service, Azure Blob Storage, Azure Key Vault, Azure OpenAI |
 
 ---
 
@@ -86,6 +93,7 @@ The initial prototype of an **MCP server on AWS AgentCore Runtime** that generat
 ```text
 ai-playground/
 │
+├── azure-mcp-es-gdb-chat/                   # Azure MCP server — ES + GraphDB + SmartPack PDF generation
 ├── aws-bedrock-chat-agent-mcp/              # Enterprise AgentCore MCP server + SharePoint integration
 ├── self-correcting-multi-agent-system/      # Multi-agent solver/critic/judge pipeline
 ├── mcp-natural-language-to-data-endpoints/  # NL to multi-database MCP server
