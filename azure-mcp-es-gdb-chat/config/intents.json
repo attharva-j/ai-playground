@@ -1,0 +1,44 @@
+{
+  "smartpack":{
+    "companySmartpack": {
+      "indexes": "searchdataset_company_v1,searchaskathena_company",
+      "size": 10,
+      "searchField":"CompanyName",
+      "source": [
+        "CompanyName",
+        "Ticker",
+        "CompanyOverview.TotalEmployees",
+        "PrimaryIndustry.Description",
+        "CompanyOverview.YearFounded",
+        "Website",
+        "RevenueUSDCurrentYear",
+        "CompanyOverview.CompanyLocation",
+        "MarketCapUSDCurrentYear",
+        "BusinessDescription",
+        "PrivateCapital.PrivateEquityTypeDesc",
+        "FinancialReportingStatistics",
+        "Addresses",
+        "Leadership.Executives",
+        "Leadership.BoardMembers",
+        "AssignmentWorkHistory",
+        "FirmHistory",
+        "CompanyOverview",
+        "CompanyFinancialHistory",
+        "CompanyEvents"
+      ]
+    },
+    "personSmartpack": {
+      "indexes": "searchaskathena_person_v1,searchdataset_person_v1",
+      "size": 10,
+      "searchField": "Overview.FullName",
+      "source": [
+        "Overview.FullName",
+        "EmploymentHistory.JobTitle",
+        "CurrentEmployingCompanyInfo.CompanyName",
+        "EmploymentHistory",
+        "AssignmentWorkHistory.AssignmentDetails.LeadConsultant",
+        "ATSProjectHistory"
+      ]
+    }
+  }
+}

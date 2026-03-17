@@ -1,0 +1,1680 @@
+import mimetypes
+"""
+Utility functions for MCP Server for ChatGPT Integration
+"""
+import json
+import logging
+import os
+import re
+import time
+from functools import lru_cache
+import inspect
+from typing import Dict, List, Any, Optional, Tuple
+import html
+
+from DataSourceConnectors import DatabricksConnector, GraphDBConnector, ElasticSearchConnector
+from prop_resolver import _norm
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    module=r"neo4j\..*",
+)
+
+logger = logging.getLogger(__name__)
+
+# Default field names
+DEFAULT_COMPANY_FIELD = "CompanyName"
+
+# Configuration constants (to be set by caller)
+GRAPHDB_SCHEMA_DB = os.getenv("GRAPHDB_SCHEMA_DB", "neo4j")
+GRAPH_SCHEMA_TTL_SECONDS = int(os.getenv("GRAPH_SCHEMA_TTL_SECONDS", "720000"))
+GRAPH_SCHEMA_MAX_ITEMS = int(os.getenv("GRAPH_SCHEMA_MAX_ITEMS", "500"))
+DEFAULT_LIST_LIMIT = int(os.getenv("DEFAULT_LIST_LIMIT", "100"))
+DEFAULT_RAW_DATA_LIMIT_COUNT = int(os.getenv("DEFAULT_RAW_DATA_LIMIT_COUNT", "25"))
+
+
+# Connectors: singletons (lazy)
+_es_singleton = None
+_gdb_singleton = None
+_dbx_singleton = None
+
+# Schema cache for graph database
+_schema_cache = {"ts": 0.0, "payload": None}
+
+def _es() -> ElasticSearchConnector:
+    global _es_singleton
+    if _es_singleton is None:
+        from mcp_app import SECRETS
+        url = (SECRETS.get("ELASTIC_URL") or "").rstrip("/")
+        user = SECRETS.get("ELASTIC_USER")
+        pwd = SECRETS.get("ELASTIC_PASSWORD")
+        _es_singleton = ElasticSearchConnector(url, user, pwd)
+    return _es_singleton
+
+def _gdb() -> GraphDBConnector:
+    global _gdb_singleton
+    if _gdb_singleton is None:
+        from mcp_app import SECRETS
+        url = (SECRETS.get("NEO4J_URL") or "").rstrip("/")
+        user = SECRETS.get("NEO4J_USER")
+        pwd = SECRETS.get("NEO4J_PASSWORD")
+        _gdb_singleton = GraphDBConnector(url, user, pwd)
+    return _gdb_singleton
+
+def _dbx() -> DatabricksConnector:
+    global _dbx_singleton
+    if _dbx_singleton is None:
+        _dbx_singleton = DatabricksConnector()
+    return _dbx_singleton
+
+# -----------------------------------------------------------
+# Load intents.json
+# -----------------------------------------------------------
+def load_intents(path):
+    """Load the intents configuration from a JSON file."""
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Intents file not found: {path}")
+
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# -----------------------------------------------------------
+# Sanitize output filenames
+# -----------------------------------------------------------
+def sanitize_filename(name: str) -> str:
+    """
+    Cleans the company name to create a safe filename.
+    - Removes special characters
+    - Replaces spaces with underscores
+    - Limits to a safe length
+    """
+    name = name.strip().replace(" ", "_")
+    name = re.sub(r"[^A-Za-z0-9_\-\.]", "", name)
+    return name[:200] if len(name) > 200 else name
+
+def is_empty(val):
+    if val is None:
+        return True
+    if isinstance(val, str) and val.strip() == "":
+        return True
+    if isinstance(val, (list, tuple, set, dict)) and len(val) == 0:
+        return True
+    return False
+
+def merge_values(a, b):
+    if isinstance(a, dict) and isinstance(b, dict):
+        return merge_dicts(a, b)
+    return a if not is_empty(a) else b
+
+def merge_dicts(a: dict, b: dict) -> dict:
+    result = {}
+    for k in set(a.keys()).union(b.keys()):
+        result[k] = merge_values(a.get(k), b.get(k))
+    return result
+
+# -----------------------------------------------------------
+# Build query body using the intent structure
+# -----------------------------------------------------------
+def build_elasticsearch_query(intent: dict, company_name: str) -> dict:
+    """
+    Builds the Elasticsearch query body.
+
+    Two scenarios are supported:
+    1. The intent contains a full custom 'body' → Use it directly
+    2. The intent defines indexes, size, and _source → Build a default query
+    """
+
+    # Case 1: Full custom query body exists
+    if "body" in intent:
+        body_str = json.dumps(intent["body"])
+        # Replace placeholder values
+        body_str = body_str.replace("%%COMPANY_NAME%%", company_name)
+        body_str = body_str.replace("{company_name}", company_name)
+        return json.loads(body_str)
+
+    # Case 2: Build standard match_phrase query
+    size = intent.get("size", 10)
+    source_fields = intent.get("source", [])
+
+    # Ensure CompanyName is included in _source
+    if DEFAULT_COMPANY_FIELD not in source_fields:
+        source_fields = [DEFAULT_COMPANY_FIELD] + source_fields
+
+    return {
+        "size": size,
+        "_source": source_fields,
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match_phrase": {
+                            DEFAULT_COMPANY_FIELD: {
+                                "query": company_name
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+
+def _from_env(name: str, default: Optional[str] = None) -> Optional[str]:
+    v = os.environ.get(name, default)
+    return v
+
+def _get_secrets() -> Dict[str, Optional[str]]:
+    """
+    Load secrets preferring Key Vault only when not running in local development.
+    Use LOCAL_DEV=1/true/yes to force reading from .env/environment variables and skip Key Vault.
+    """
+    # Defaults from env (dotenv already cargado)
+    secrets = {
+        "ELASTIC_URL": _from_env("ELASTIC_URL"),
+        "ELASTIC_USER": _from_env("ELASTIC_USER"),
+        "ELASTIC_PASSWORD": _from_env("ELASTIC_PASSWORD"),
+        "API_VERSION": _from_env("API_VERSION"),
+        "AZ_COGNITIVE_URL": _from_env("AZ_COGNITIVE_URL"),
+        "COGNITIVE_SUBSCRIPTION_KEY": _from_env("COGNITIVE_SUBSCRIPTION_KEY"),
+        "GPT_MODEL_NAME": _from_env("GPT_MODEL_NAME"),
+        "NEO4J_URL": _from_env("NEO4J_URL"),
+        "NEO4J_USER": _from_env("NEO4J_USER"),
+        "NEO4J_PASSWORD": _from_env("NEO4J_PASSWORD"),
+        "AURA_INSTANCEID": _from_env("AURA_INSTANCEID"),
+        "AURA_INSTANCENAME": _from_env("AURA_INSTANCENAME"),
+        "GRAPHDB_SCHEMA_DB":  _from_env("GRAPHDB_SCHEMA_DB"),
+    }
+
+    # If explicitly requested, run in local/dev mode and DON'T use Key Vault
+    local_dev_flag = os.getenv("LOCAL_DEV", "false").lower()
+    local_dev = local_dev_flag in ("1", "true", "yes")
+
+    if local_dev:
+        logger.info("LOCAL_DEV enabled: using environment/.env for secrets (Key Vault skipped).")
+        return secrets
+
+    # Otherwise, attempt Key Vault if configured and azure libs are available
+    try:
+        from azure.identity import DefaultAzureCredential
+        from azure.keyvault.secrets import SecretClient
+    except Exception:
+        DefaultAzureCredential = None
+        SecretClient = None
+
+    kv_name = _from_env("KEY_VAULT_NAME")
+    if kv_name and DefaultAzureCredential and SecretClient:
+        try:
+            kv_uri = f"https://{kv_name}.vault.azure.net"
+            credential = DefaultAzureCredential()
+            vault_client = SecretClient(vault_url=kv_uri, credential=credential)
+
+            def kv(name):
+                try:
+                    return vault_client.get_secret(name).value
+                except Exception:
+                    return None
+
+            # Pull if present in KV; fall back to env if not found
+            secrets.update({
+                "ELASTIC_URL": (kv("elasticUrl") or secrets["ELASTIC_URL"]),
+                "ELASTIC_USER": (kv("elasticUser") or secrets["ELASTIC_USER"]),
+                "ELASTIC_PASSWORD": (kv("elasticPassword") or secrets["ELASTIC_PASSWORD"]),
+                "API_VERSION": (kv("openaiApiVersion") or secrets["API_VERSION"]),
+                "AZ_COGNITIVE_URL": (kv("openaiUrl") or secrets["AZ_COGNITIVE_URL"]),
+                "COGNITIVE_SUBSCRIPTION_KEY": (kv("openAiSubscriptionKey") or secrets["COGNITIVE_SUBSCRIPTION_KEY"]),
+                "GPT_MODEL_NAME": (kv("openaiGPTModelName") or secrets["GPT_MODEL_NAME"]),
+                "NEO4J_URL": (kv("neo4jUri") or secrets["NEO4J_URL"]),
+                "NEO4J_USER": (kv("neo4jUsername") or secrets["NEO4J_USER"]),
+                "NEO4J_PASSWORD": (kv("neo4jPassword") or secrets["NEO4J_PASSWORD"]),
+                "GRAPHDB_SCHEMA_DB": (kv("neo4jdatabase") or secrets["GRAPHDB_SCHEMA_DB"]),
+                "AURA_INSTANCEID": (kv("auraInstanceId") or secrets["AURA_INSTANCEID"]),
+                "AURA_INSTANCENAME": (kv("auraInstanceName") or secrets["AURA_INSTANCENAME"]),
+            })
+        except Exception as e:
+            logger.warning(f"Key Vault not available or misconfigured ({kv_name}): {e}. Falling back to environment variables.")
+    else:
+        if kv_name:
+            logger.warning("KEY_VAULT_NAME provided but Azure Key Vault client libs not available; using environment variables.")
+        else:
+            logger.info("No KEY_VAULT_NAME provided; using environment/.env for secrets.")
+
+    return secrets
+
+# ---------------------------
+# Graph-aware helper utilities
+# ---------------------------
+import html
+import re
+from typing import Tuple, List, Dict, Optional
+
+# small synonym sets
+_PROJECT_TERMS = {"project", "projects", "assignment", "assignments", "engagement", "engagements"}
+_EXPERIENCE_TERMS = {"years of experience", "years experience", "total experience", "experience years", "totalexperience"}
+_FIELD_OF_STUDY_PAT = re.compile(r"(?:studied|degree in|with a degree in|with degree in|major in|field of study|has a degree in)\s+['\"]?([^,'\"]+?)['\"]?(?:\s|$)", flags=re.I)
+_INSTITUTE_PAT = re.compile(r"(?:from|at)\s+['\"]?([^,'\"]+?)['\"]?(?:\s|$)", flags=re.I)
+
+def _is_project_query(text: str) -> bool:
+    t = (text or "").lower()
+    return any(w in t for w in _PROJECT_TERMS)
+
+def _is_experience_query(text: str) -> bool:
+    t = (text or "").lower()
+    return any(w in t for w in _EXPERIENCE_TERMS) or bool(re.search(r"\bexperience\b.*\d{1,2}\b", t))
+
+def _extract_education_clauses(text: str) -> Dict[str, Optional[str]]:
+    """
+    Attempt to extract (field_of_study, institute) from user wording heuristically.
+    Returns dict with keys 'field_of_study' and 'institute' which may be None.
+    """
+    fo = None
+    inst = None
+    if text:
+        m = _FIELD_OF_STUDY_PAT.search(text)
+        if m:
+            fo = m.group(1).strip()
+        # look for 'from <institute>' after the field-of-study phrase, or standalone
+        m2 = re.search(r"(?:from|at)\s+['\"]?([^,\.]+?)['\"]?(?:\s|$)", text, flags=re.I)
+        if m2:
+            inst = m2.group(1).strip()
+    return {"field_of_study": fo, "institute": inst}
+
+def _escape_cypher_literal(s: str) -> str:
+    """Escape single quotes in cypher string literals."""
+    if s is None:
+        return ""
+    return s.replace("'", "\\'")
+
+def _find_entity_aliases_in_graph(candidate_tokens: List[str], search_targets: List[Tuple[str,str]], limit: int = 5) -> Dict[str, List[str]]:
+    """
+    Look up likely canonical names for tokens in the graph.
+
+    - candidate_tokens: list of tokens/phrases to try (['stanford','harvard'])
+    - search_targets: list of (Label, property) pairs to search (e.g., [('Company','CompanyName'), ('Project','label')])
+    Returns: dict token -> list of canonical values (strings) found in graph
+    """
+    out = {}
+    for token in candidate_tokens:
+        vals = []
+        t = token.strip().lower()
+        if not t:
+            out[token] = vals
+            continue
+        for lab, prop in search_targets:
+            # conservative cypher, case-insensitive contains
+            safe = _escape_cypher_literal(t)
+            cy = f"MATCH (n:{lab}) WHERE toLower(n.{prop}) CONTAINS '{safe}' RETURN DISTINCT n.{prop} AS name LIMIT {limit}"
+            try:
+                rows = _gdb_query_safe(cypher=cy, database=GRAPHDB_SCHEMA_DB)
+                for r in (rows or []):
+                    if isinstance(r, dict):
+                        nm = r.get("name") or r.get(prop)
+                        if nm and isinstance(nm, str):
+                            if nm not in vals:
+                                vals.append(nm)
+                # if we already found good matches stop early
+                if vals:
+                    break
+            except Exception:
+                # ignore and continue to next label/prop
+                continue
+        out[token] = vals
+    return out
+
+def _augment_query_with_aliases(original_query: str, aliases_map: Dict[str, List[str]]) -> str:
+    """
+    Given original query and a mapping token -> [canonical values],
+    produce an augmented query that suggests alternative canonical forms
+    to the LLM so it can generate Cypher using canonical names.
+    Example: "Find Stanford projects" -> add "(aka Stanford University)" in the user prompt.
+    """
+    augmented = original_query
+    for token, vals in (aliases_map or {}).items():
+        if not vals:
+            continue
+        # keep short: add first canonical value and up to 2 alternates
+        first = vals[0]
+        others = vals[1:3]
+        extras = ", ".join(others) if others else ""
+        repl = f"{token} (e.g., {first}{', ' + extras if extras else ''})"
+        # Only append augmentation rather than replace words (be non-destructive)
+        augmented += f" -- interpreted '{token}' as {repl}"
+    return augmented
+
+def _strip_code_fences(txt: str) -> str:
+    t = txt.strip()
+    if t.startswith("```"):
+        # try to remove first and last fence
+        t = t.strip("`")
+        # if language hint present, drop first line
+        if "\n" in t:
+            parts = t.split("\n", 1)
+            # if first line looks like 'json' or similar, drop it
+            if parts[0].strip().lower() in {"json", "javascript", "js"}:
+                t = parts[1]
+            else:
+                t = "\n".join(parts)
+    return t.strip()
+
+def _openai_json_call(openai_client, gpt_model_name: str, system_prompt: str, user_prompt: str, temperature: float = 0.0, max_tokens: int = 256) -> Dict[str, Any]:
+    if not openai_client or not gpt_model_name:
+        raise RuntimeError("OpenAI client/model not configured.")
+    resp = openai_client.chat.completions.create(
+        model=gpt_model_name,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    txt = _strip_code_fences(resp.choices[0].message.content or "")
+    try:
+        return json.loads(txt)
+    except Exception:
+        # last-ditch: try to salvage JSON block
+        start = txt.find("{")
+        end = txt.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            return json.loads(txt[start:end+1])
+        raise
+
+def _classify_intent(openai_client, gpt_model_name: str, query: str, mcp_config: dict) -> str:
+    cfg = mcp_config.get("openai", {}).get("classify_intent", {})
+    sys = cfg.get("system", "Classify the user's intent.")
+    tmpl = cfg.get("user_template", "Query: {{query}}\nReturn JSON only.")
+    usr = tmpl.replace("{{query}}", query)
+    out = _openai_json_call(openai_client, gpt_model_name, sys, usr, temperature=0.0, max_tokens=150)
+    return out
+
+def _get_intent(out: str) -> str:
+    intent = (out.get("intent") or "other").lower().strip()
+    return intent if intent in {"qna", "smartpack"} else "other"
+
+def _parse_smartpack_backends() -> List[str]:
+    smartpack_backends = os.getenv("SMARTPACK_BACKENDS", "elastic")
+    smartpack_primary = os.getenv("SMARTPACK_PRIMARY", "elastic")
+    xs = [x.strip().lower() for x in smartpack_backends.split(",") if x.strip()]
+    valid = [x for x in xs if x in {"elastic", "databricks"}]
+    if not valid:
+        valid = ["elastic"]
+    # put primary first if present
+    if smartpack_primary in valid:
+        valid = [smartpack_primary] + [x for x in valid if x != smartpack_primary]
+    return valid
+
+def _connectors_for_intent(intent: str) -> List[str]:
+    if intent == "qna":
+        return ["graphdb"]
+    if intent == "smartpack":
+        # Elastic only by default; env can allow databricks or both
+        sp = _parse_smartpack_backends()
+        # map names to internal connector keys
+        mapped = []
+        for b in sp:
+            if b == "elastic":
+                mapped.append("elasticsearch")
+            elif b == "databricks":
+                mapped.append("databricks")
+        return mapped or ["elasticsearch"]
+    # Fallback
+    return ["elasticsearch", "databricks", "graphdb"]
+
+def _generate_request_for(openai_client, gpt_model_name: str, connector: str, query: str, mcp_config: dict) -> Dict[str, Any]:
+    gen_cfg_root = mcp_config.get("openai", {}).get("generate_request", {})
+    cfg = gen_cfg_root.get(
+        "elasticsearch" if connector == "elasticsearch" else
+        "graphdb" if connector == "graphdb" else
+        "databricks"
+    , {})
+    sys = cfg.get("messages_system", "Generate connector-specific request JSON only.")
+    prompt = cfg.get("prompt", "").format(query=query)
+    temp = cfg.get("temperature", 0.2)
+    max_toks = cfg.get("max_tokens", 400)
+    return _openai_json_call(openai_client, gpt_model_name, sys, prompt, temperature=temp, max_tokens=max_toks)
+
+def _post_process_with_openai(openai_client, gpt_model_name: str, data: Any, query: str) -> Dict[str, Any]:
+    """
+    Post-process search results with OpenAI to generate a simplified JSON summary.
+    Returns a structured JSON object containing both AI-generated insights and the raw database data.
+
+    The returned object includes:
+    - insights: AI-generated analysis with summary, key_insights, result_count, and recommendation
+    - raw_data: The original unprocessed data from the database query (limited to DEFAULT_RAW_DATA_LIMIT_COUNT items)
+    """
+    if not openai_client or not gpt_model_name:
+        logger.warning("OpenAI client not configured, returning raw data")
+        return {
+            "insights": {
+                "summary": "No summary available",
+                "key_insights": [],
+                "result_count": 0,
+                "recommendation": "OpenAI client not configured"
+            },
+            "raw_data": data
+        }
+
+    try:
+        # Limit raw data to DEFAULT_RAW_DATA_LIMIT_COUNT items for token efficiency
+        limited_data = data
+        if isinstance(data, list) and len(data) > DEFAULT_RAW_DATA_LIMIT_COUNT:
+            limited_data = data[:DEFAULT_RAW_DATA_LIMIT_COUNT]
+            logger.info(f"Raw data limited from {len(data)} to {DEFAULT_RAW_DATA_LIMIT_COUNT} items")
+
+        # Convert limited data to string for analysis
+        data_str = json.dumps(limited_data, ensure_ascii=False)[:2000]  # Limit size for token efficiency
+
+        # CHG-0010 move system_prompt and user_prompt to config file.
+        system_prompt = """You are a data summarization assistant.
+        Analyze the search results and return ONLY a JSON object with:
+        - summary: brief description of main findings (1-2 sentences)
+        - key_insights: list of 3-5 key points
+        - result_count: number of results found
+        - recommendation: brief recommendation based on results"""
+
+        user_prompt = f"""Original query: {query}
+
+        Search results data:
+        {data_str}
+
+        Return ONLY valid JSON, no markdown or code fences."""
+
+        # Generate AI-powered insights from the data
+        insights = _openai_json_call(
+            openai_client,
+            gpt_model_name,
+            system_prompt,
+            user_prompt,
+            temperature=0.3,
+            max_tokens=1500
+        )
+
+        # Return both insights and limited raw data for comprehensive information
+        return {
+            "insights": insights,
+            "raw_data": limited_data,
+            "comment": f"Raw data limited from {len(data)} to {len(limited_data)} items"
+        }
+    except Exception as e:
+        logger.error(f"Post-processing with OpenAI failed: {e}")
+        return {
+            "insights": {
+                "summary": f"Error processing results: {str(e)}",
+                "key_insights": [],
+                "result_count": 0,
+                "recommendation": "Please try again"
+            },
+            "raw_data": data
+        }
+
+# --- Neo4j/Bolt result coercion so we always deal with list[dict] ---
+
+def _neo4j_jsonable(val):
+    """Convert Neo4j driver types to plain JSON-safe values."""
+    try:
+        from neo4j.graph import Node, Relationship, Path
+        from neo4j.time import DateTime as NeoDateTime, Date as NeoDate, Time as NeoTime, Duration as NeoDuration
+    except Exception:
+        Node = Relationship = Path = None
+        NeoDateTime = NeoDate = NeoTime = NeoDuration = None
+
+    # primitives
+    if isinstance(val, (str, int, float, bool)) or val is None:
+        return val
+
+    # temporal → ISO strings
+    if NeoDateTime and isinstance(val, NeoDateTime):
+        try:
+            return val.isoformat()
+        except Exception:
+            return str(val)
+    if NeoDate and isinstance(val, NeoDate):
+        try:
+            return val.isoformat()
+        except Exception:
+            return str(val)
+    if NeoTime and isinstance(val, NeoTime):
+        try:
+            return val.isoformat()
+        except Exception:
+            return str(val)
+    if NeoDuration and isinstance(val, NeoDuration):
+        return str(val)
+
+    # containers
+    if isinstance(val, (list, tuple)):
+        return [_neo4j_jsonable(v) for v in val]
+    if isinstance(val, dict):
+        return {k: _neo4j_jsonable(v) for k, v in val.items()}
+
+    # graph entities
+    if Node and isinstance(val, Node):
+        return {"_type": "Node", "labels": list(val.labels), "properties": {k: _neo4j_jsonable(v) for k, v in val.items()}}
+    if Relationship and isinstance(val, Relationship):
+        return {"_type": "Relationship", "type": val.type, "properties": {k: _neo4j_jsonable(v) for k, v in val.items()}}
+    if Path and isinstance(val, Path):
+        return {
+            "_type": "Path",
+            "nodes": [_neo4j_jsonable(n) for n in val.nodes],
+            "relationships": [_neo4j_jsonable(r) for r in val.relationships],
+        }
+
+    # fallback
+    return str(val)
+
+def _coerce_graph_rows(rows):
+    """
+    Normalize ANY Neo4j driver output into list[dict].
+
+    Handles:
+      - neo4j.Result (Bolt)            -> rows.data() (list[dict])
+      - list[neo4j.Record]             -> [dict(record.items())]
+      - list[dict]                     -> as-is
+      - HTTP transactional JSON        -> flatten if {"results":[...]} is passed accidentally
+      - single neo4j.Record / dict     -> [dict]
+      - anything else                  -> [stringified]
+    """
+    logger.info("In coerce graph rows...")
+    # Nothing → empty list
+    if rows is None:
+        return []
+
+    # Already list[dict]?
+    if isinstance(rows, list):
+        if not rows:
+            return []
+        # list of dicts
+        if isinstance(rows[0], dict):
+            return rows
+        # list of Records or scalars
+        out = []
+        for rec in rows:
+            # neo4j.Record supports .items()
+            if hasattr(rec, "items"):
+                try:
+                    out.append({k: _neo4j_jsonable(v) for k, v in rec.items()})
+                    continue
+                except Exception:
+                    pass
+            if isinstance(rec, dict):
+                out.append(rec)
+            else:
+                out.append(_neo4j_jsonable(rec))
+        return out
+
+    # If the object has a .data() method (neo4j.Result), use it (this returns list[dict])
+    try:
+        data_attr = getattr(rows, "data", None)
+        if callable(data_attr):
+            data = rows.data()
+            if isinstance(data, list):
+                return [{k: _neo4j_jsonable(v) for k, v in d.items()} if isinstance(d, dict) else _neo4j_jsonable(d) for d in data]
+    except Exception:
+        pass
+
+    # If it's a neo4j.Result but .data() path failed, try iterating once
+    try:
+        # Has .keys() and is iterable (neo4j.Result duck-typing)
+        if hasattr(rows, "keys") and hasattr(rows, "__iter__") and not isinstance(rows, dict):
+            keys = list(rows.keys())
+            out = []
+            for rec in rows:
+                # neo4j.Record supports dict(rec) and .get/.items(), but be defensive
+                try:
+                    d = {k: _neo4j_jsonable(rec[k]) for k in keys}
+                except Exception:
+                    try:
+                        d = {k: _neo4j_jsonable(rec.get(k)) for k in keys}  # type: ignore[attr-defined]
+                    except Exception:
+                        try:
+                            d = {k: _neo4j_jsonable(v) for k, v in rec.items()}  # type: ignore[attr-defined]
+                        except Exception:
+                            d = _neo4j_jsonable(rec)
+                out.append(d)
+            return out
+    except Exception:
+        pass
+
+    # HTTP transactional shape accidentally passed in: {"results":[{"columns":[...],"data":[{"row":[...]}, ...]}]}
+    if isinstance(rows, dict) and "results" in rows:
+        out = []
+        try:
+            for res in rows.get("results", []):
+                cols = res.get("columns", [])
+                for row in res.get("data", []):
+                    vals = row.get("row", [])
+                    out.append(dict(zip(cols, vals)))
+            return out
+        except Exception:
+            # fall through to stringify
+            pass
+
+    # Single neo4j.Record or dict
+    if hasattr(rows, "items"):
+        try:
+            return [{k: _neo4j_jsonable(v) for k, v in rows.items()}]
+        except Exception:
+            pass
+    if isinstance(rows, dict):
+        return [rows]
+
+    # Last resort: stringify
+    return [_neo4j_jsonable(rows)]
+
+def _rows_via_connector(conn: GraphDBConnector, cypher: str) -> List[Dict[str, Any]]:
+    """
+    Execute a Cypher query and return rows as a list of dicts.
+
+    Primary path: reuse GraphDBConnector.query_cypher().
+    Fallback: use the neo4j driver directly if the connector's method expects
+    an HTTP payload shape or raises unexpectedly.
+    """
+    try:
+        from mcp_app import SECRETS
+        rows = conn.query_cypher(cypher, SECRETS.get("GRAPHDB_SCHEMA_DB"))
+        # Some implementations may return None if they expect HTTP response shape
+        if rows is not None and isinstance(rows, list):
+            return rows
+    except Exception as e:
+        logger.debug("query_cypher() raised %s; falling back to driver.run()", e)
+
+    # Fallback using the established driver/session (works with official neo4j driver)
+    rows: List[Dict[str, Any]] = []
+    with conn.driver.session() as session:
+        result = session.run(cypher)
+        for record in result:
+            # record.data() returns a dict mapping column->value
+            rows.append(record.data())
+    return rows
+
+def _gdb_query_safe(cypher: str, database: Optional[str] = None):
+    """
+    Calls GraphDBConnector.query_cypher safely:
+    - If the method accepts 'database', pass it; otherwise call without it.
+    - Always coerce the result into list[dict] for downstream code.
+    """
+    logger.info("In gdb query safe")
+    gdb = _gdb()
+    # sig = inspect.signature(gdb.query_cypher)
+    rows = _rows_via_connector(gdb, cypher)
+    # if "database" in sig.parameters:
+    #     # rows = gdb.query_cypher(cypher=cypher, database=(database or "neo4j"))
+    #     rows = _rows_via_connector(gdb, cypher)
+    # else:
+    #     rows = gdb.query_cypher(cypher=cypher)
+    # logger.info(f"In GDB query safe: Rows: {rows}")
+    return _coerce_graph_rows(rows)
+
+# --- Property resolver singleton (schema-driven) ---
+try:
+    from prop_resolver import PropertyResolver
+    PROPRES = PropertyResolver(gdb_query_fn=_gdb_query_safe, ttl_seconds=3600, min_cutoff=0.78)
+except Exception as _e:
+    logger.warning(f"PropertyResolver init failed: {_e}")
+    PROPRES = None
+
+# --- Value canonicalization & smart equals ---
+
+from functools import lru_cache
+
+# Pick the properties you care about; adjust to your graph schema.
+NAMEY_PROPS = {
+    "Company": {"CompanyName"},
+    "University": {"UniversityName", "Name"},
+    "Person": {"FullName"},
+    "Industry": {"Industry"},   # property on node that carries the sector/industry name
+}
+
+@lru_cache(maxsize=1)
+def _value_index() -> Dict[str, Dict[str, str]]:
+    """
+    Returns a dict[label] -> { normalized_value -> canonical_value }.
+    We normalize for quick 'Harvard' -> 'Harvard University', etc.
+    """
+    idx: Dict[str, Dict[str, str]] = {}
+    try:
+        for label, props in NAMEY_PROPS.items():
+            # pull distinct values; choose the first property present for that label
+            prop = list(props)[0]
+            rows = _gdb_query_safe(
+                cypher=f"MATCH (n:{label}) WHERE n.{prop} IS NOT NULL RETURN DISTINCT n.{prop} AS v LIMIT 20000",
+                database=GRAPHDB_SCHEMA_DB
+            )
+            table = {}
+            for r in rows or []:
+                v = (r.get("v") or "").strip()
+                if not v: 
+                    continue
+                key = _norm(v)  # reuse prop_resolver._norm behavior
+                table.setdefault(key, v)
+            idx[label] = table
+        logger.info(f"Value index built for labels: {list(idx.keys())}")
+    except Exception as e:
+        logger.warning(f"Value index build failed: {e}")
+    return idx
+
+def _closest_canonical(label: str, raw: str) -> str:
+    table = _value_index().get(label) or {}
+    key = _norm(raw)
+    if key in table:
+        return table[key]
+    # try prefix hits (e.g., "harvard" matches "harvard university")
+    for k, v in table.items():
+        if k.startswith(key) or key.startswith(k):
+            return v
+    # fallback: unchanged
+    return raw
+
+def rewrite_string_equals_to_smart(cypher: str, dbname: Optional[str] = None) -> str:
+    """
+    Rewrites brittle equals on name-like properties into tolerant filters.
+    Examples:
+      n.CompanyName = 'Harvard'      -> toLower(n.CompanyName) STARTS WITH 'harvard'
+      p.FullName = 'A B'             -> toLower(p.FullName) CONTAINS 'a b'
+      c.Industry = 'financial services' -> normalized contains/startsWith
+    Also canonicalizes the right-hand literal to a known value if close.
+    """
+    import re
+    def _norm_lit(s: str) -> str:
+        return _norm(s)
+
+    # (var.prop) = 'literal'
+    pattern = re.compile(r"(?i)\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\s*=\s*'([^']*)'")
+
+    def _rewrite(m: re.Match) -> str:
+        var, prop, lit = m.group(1), m.group(2), m.group(3)
+        norm_lit = _norm_lit(lit)
+
+        # Attempt label inference via simple back-scan on "(var:Label" in the original query
+        label_guess = None
+        for mm in re.finditer(rf"\({var}\s*:\s*([A-Za-z_][A-Za-z0-9_:]*)\)", cypher):
+            labs = [x for x in mm.group(1).split(":") if x]
+            label_guess = labs[0] if labs else None
+            break
+
+        # Canonicalize by label, if we have one
+        canon = lit
+        if label_guess in NAMEY_PROPS:
+            canon = _closest_canonical(label_guess, lit)
+
+        # Heuristic: exact-ish names use STARTS WITH, multiword often use CONTAINS
+        op = "STARTS WITH" if len(norm_lit) <= 20 and " " not in norm_lit else "CONTAINS"
+
+        # Case-insensitive compare
+        return f"toLower({var}.{prop}) {op} '{_norm_lit(canon)}'"
+
+    return pattern.sub(_rewrite, cypher)
+
+def _graph_schema_context(force_refresh: bool = False) -> dict:
+    """
+    Pulls a concise schema snapshot. Caches for GRAPH_SCHEMA_TTL_SECONDS.
+    If any introspection call fails, we still return whatever we have.
+    """
+    global _schema_cache
+
+    now = time.time()
+    print(f"current starting schema {now}")
+    if (not force_refresh) and _schema_cache["payload"] and (now - _schema_cache["ts"] < GRAPH_SCHEMA_TTL_SECONDS):
+        print(f"finished schema {time.time()}")
+        return _schema_cache["payload"]
+
+    nodes = []
+    rels = []
+    labels = []
+    reltypes = []
+
+    try:
+        logger.info("Getting nodes context...")
+        nodes = _gdb_query_safe(
+            cypher=(
+                "CALL db.schema.nodeTypeProperties() "
+                "YIELD nodeType, propertyName, propertyTypes, mandatory "
+                "RETURN toString(nodeType) AS label, propertyName, propertyTypes, mandatory "
+                "ORDER BY label, propertyName"
+            ),
+            database=GRAPHDB_SCHEMA_DB
+        )
+        logger.info(f"Nodes context retrieved!")
+    except Exception as e:
+        logger.warning(f"Graph schema (nodes) fetch failed: {e}")
+
+    try:
+        logger.info("Getting Relationships context...")
+        rels = _gdb_query_safe(
+            cypher=(
+                "CALL db.schema.relTypeProperties() "
+                "YIELD relType, propertyName, propertyTypes, mandatory "
+                "RETURN toString(relType) AS relTypeName, propertyName, propertyTypes, mandatory "
+                "ORDER BY relTypeName, propertyName"
+            ),
+            database=GRAPHDB_SCHEMA_DB
+        )
+        logger.info(f"Relationships context retrieved!")
+    except Exception as e:
+        logger.warning(f"Graph schema (rels) fetch failed: {e}")
+
+    try:
+        logger.info("Getting Labels context...")
+        labels = _gdb_query_safe(
+            cypher="CALL db.labels() YIELD label RETURN label ORDER BY label",
+            database=GRAPHDB_SCHEMA_DB
+        )
+        logger.info(f"Labels context retrieved!")
+    except Exception as e:
+        logger.warning(f"Graph schema (labels) fetch failed: {e}")
+
+    try:
+        logger.info("Getting Relationship types context...")
+        reltypes = _gdb_query_safe(
+            cypher="CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType ORDER BY relationshipType",
+            database=GRAPHDB_SCHEMA_DB
+        )
+        logger.info(f"Relationship types retrieved!")
+    except Exception as e:
+        logger.warning(f"Graph schema (rel types) fetch failed: {e}")
+
+    def _trim(rows):
+        rows = list(rows or [])
+        if len(rows) > GRAPH_SCHEMA_MAX_ITEMS:
+            return rows[:GRAPH_SCHEMA_MAX_ITEMS]
+        return rows
+
+    payload = {
+        "nodes": _trim(nodes),
+        "rels": _trim(rels),
+        "labels": [r.get("label") for r in (labels or []) if isinstance(r, dict) and "label" in r],
+        "relationshipTypes": [r.get("relationshipType") for r in (reltypes or []) if isinstance(r, dict) and "relationshipType" in r],
+        "database": GRAPHDB_SCHEMA_DB,
+    }
+
+    _schema_cache["payload"] = payload
+    _schema_cache["ts"] = now
+
+    print(f"finished schema {time.time()}")
+    logger.info(f"Exiting graph schema context...")
+    return payload
+
+# ---- ensure we don't execute an empty cypher ----
+def _validate_graph_request_or_error(request_spec: dict) -> Optional[dict]:
+    """
+    Return an error dict if cypher is missing/empty; else None.
+    """
+    cypher = (request_spec or {}).get("cypher", "")
+    if not isinstance(cypher, str) or not cypher.strip():
+        return {
+            "error": "GraphDB request generation produced no Cypher. "
+                     "Check LLM credentials/config and schema fetch logs."
+        }
+    return None
+
+def _format_schema_for_prompt(schema: dict) -> str:
+    """
+    Convert the schema dict into a compact, LLM-friendly text block.
+    This version lists ALL labels/reltypes and ALL properties (no sampling).
+    """
+    def _fmt_types(t):
+        if t is None:
+            return ""
+        if isinstance(t, (list, tuple, set)):
+            return "/".join([str(x) for x in t])
+        return str(t)
+
+    lines = []
+    lines.append(f"Database: {schema.get('database', 'neo4j')}")
+
+    # Labels & relationship types (deduped + sorted for stability)
+    labels = sorted({* (schema.get("labels") or [])})
+    if labels:
+        lines.append("Labels: " + ", ".join(labels))
+
+    reltypes_all = sorted({* (schema.get("relationshipTypes") or [])})
+    if reltypes_all:
+        lines.append("RelationshipTypes: " + ", ".join(reltypes_all))
+
+    # ---- Node properties by label (all) ----
+    nodes = schema.get("nodes") or []
+    if nodes:
+        lines.append("\nNodeTypeProperties:")
+        by_label = {}
+        for r in nodes:
+            lab = r.get("label")
+            prop = r.get("propertyName")
+            ptypes = _fmt_types(r.get("propertyTypes"))
+            mandatory = "!" if r.get("mandatory") else ""
+            if not lab or not prop:
+                continue
+            by_label.setdefault(lab, set()).add(f"{prop}:{ptypes}{mandatory}")
+
+        for lab in sorted(by_label.keys()):
+            props = sorted(by_label[lab])
+            lines.append(f"  - {lab}: " + ", ".join(props))
+
+    # ---- Relationship properties by type (all) ----
+    rels = schema.get("rels") or []
+    if rels:
+        lines.append("\nRelTypeProperties:")
+        by_rel = {}
+        for r in rels:
+            rel = r.get("relTypeName")
+            prop = r.get("propertyName")
+            ptypes = _fmt_types(r.get("propertyTypes"))
+            mandatory = "!" if r.get("mandatory") else ""
+            if not rel or not prop:
+                continue
+            by_rel.setdefault(rel, set()).add(f"{prop}:{ptypes}{mandatory}")
+
+        for rel in sorted(by_rel.keys()):
+            props = sorted(by_rel[rel])
+            lines.append(f"  - {rel}: " + ", ".join(props))
+
+    return "\n".join(lines)
+
+def _generate_graphdb_request_with_schema(openai_client, gpt_model_name: str, user_query: str, mcp_config: dict) -> dict:
+    """
+    Enhanced schema-aware Cypher generator that:
+      - Augments user query with canonical aliases from the graph (Stanford -> Stanford University)
+      - Applies domain rules: prefer Project label for project/assignment queries;
+        uses Person.TotalExperience for experience queries; joins Person->Company for person-industry queries.
+      - Provides the model explicit examples & mapping rules to reduce hallucination of properties.
+    
+    Extended (12/09): if user_query mentions a degree/major/field-of-study, attempt to find
+    close canonical degree names (from known top-degree list(top 500 degree names) in code or DB) and augment
+    the generated Cypher by adding additional filters against schema properties that
+    actually exist.
+
+    Returns: dict { "cypher": "...", "database": "neo4j" }
+    """
+    gen_cfg_root = mcp_config.get("openai", {}).get("generate_request", {})
+    cfg = gen_cfg_root.get("graphdb", {})
+    base_system = cfg.get("messages_system", "Generate connector-specific request JSON only.")
+    base_temp = 0.0
+    base_max = cfg.get("max_tokens", 600)
+
+    # --- live schema ---
+    try:
+        schema = _graph_schema_context(force_refresh=False)
+    except Exception as e:
+        logger.warning(f"Schema context unavailable, falling back: {e}")
+        schema = {"database": "neo4j", "labels": [], "relationshipTypes": [], "nodes": [], "rels": []}
+
+    # Build label -> props map
+    label_props = {}
+    for r in (schema.get("nodes") or []):
+        lab = r.get("label"); prop = r.get("propertyName")
+        if lab and prop:
+            label_props.setdefault(lab, set()).add(prop)
+    label_props = {k: sorted(v) for k, v in label_props.items()}
+
+    # relationship types
+    reltypes = set(schema.get("relationshipTypes") or [])
+    for r in (schema.get("rels") or []):
+        t = r.get("relTypeName")
+        if t:
+            reltypes.add(t)
+    reltypes = sorted(reltypes)
+
+    pretty_schema_text = _format_schema_for_prompt(schema)
+
+    # --- Augment query with quick entity-alias lookups if we can identify tokens ---
+    # Simple token heuristics: split by spaces for short tokens; also capture quoted phrases
+    user_q = (user_query or "").strip()
+    tokens = []
+    # pull quoted phrases first
+    tokens += re.findall(r"'([^']+)'|\"([^\"]+)\"", user_q)
+    # flatten tuples from regex
+    tokens = [t[0] or t[1] for t in tokens if t and (t[0] or t[1])]
+    # also add 1-2 word nouns heuristically (avoid stopwords)
+    words = [w for w in re.findall(r"[A-Za-z0-9&\-\+]{2,}", user_q) if len(w) > 2]
+    # pick shorter subset to check
+    tokens += words[:6]
+    tokens = list(dict.fromkeys([t.strip() for t in tokens if t.strip()][:8]))  # uniq, max 8
+
+    # Choose plausible search targets (label, property) to look for aliases.
+    # Keep minimal targets: Company, Project, Person, Location, Education (if present)
+    search_targets = []
+    if "Company" in label_props:
+        # common company name fields
+        if "CompanyName" in label_props["Company"]:
+            search_targets.append(("Company", "CompanyName"))
+        if "name" in label_props["Company"]:
+            search_targets.append(("Company", "name"))
+    if "Project" in label_props:
+        # project label/title fields
+        if "label" in label_props["Project"]:
+            search_targets.append(("Project", "label"))
+        if "ProjectId" in label_props["Project"]:
+            search_targets.append(("Project", "ProjectId"))
+        if "SectorDesc" in label_props["Project"]:
+            search_targets.append(("Project", "SectorDesc"))
+        if "IndustrialPracticeDesc" in label_props["Project"]:
+            search_targets.append(("Project", "IndustrialPracticeDesc"))
+    if "Person" in label_props:
+        if "FullName" in label_props["Person"]:
+            search_targets.append(("Person", "FullName"))
+    if "Location" in label_props:
+        if "country" in label_props["Location"]:
+            search_targets.append(("Location", "country"))
+        if "LocationId" in label_props["Location"]:
+            search_targets.append(("Location", "LocationId"))
+    # Education / School might be stored on Person or Education label if present. Try a couple
+    if "Education" in label_props:
+        if "SchoolName" in label_props["Education"]:
+            search_targets.append(("Education", "SchoolName"))
+
+    # do alias lookups only if we have candidates
+    alias_map = {}
+    try:
+        if tokens and search_targets:
+            alias_map = _find_entity_aliases_in_graph(tokens, search_targets, limit=5)
+            # reduce alias_map to only tokens that returned results
+            alias_map = {k: v for k, v in alias_map.items() if v}
+            if alias_map:
+                user_q = _augment_query_with_aliases(user_q, alias_map)
+                logger.info(f"Alias augmentation applied: {alias_map}")
+    except Exception as e:
+        logger.debug(f"Alias augmentation failed: {e}")
+        alias_map = {}
+
+    # --- Heuristics: determine mode (list vs count) and domain hints (project/person/company) ---
+    q_lower = (user_q or "").lower()
+    wants_count = any(w in q_lower for w in ["how many", "count of", "number of", "total number", "how many people", "how many projects"])
+    wants_list  = any(w in q_lower for w in ["list", "show", "find all", "find", "who ", "which ", "give me all", "return all", "projects", "assignments", "project"]) and not wants_count
+    if not wants_count and not wants_list:
+        wants_list = True
+
+    prefer_label = None
+    # If user mentions project synonyms, prefer Project
+    if _is_project_query(user_q):
+        prefer_label = "Project"
+    # if user mentions person-oriented questions, prefer Person
+    elif re.search(r"\b(person|people|who|which person|employee|employees|executive|leader|head|cfo|ceo)\b", q_lower):
+        prefer_label = "Person"
+
+    # Additional domain rules
+    field_edu = _extract_education_clauses(user_q)
+    wants_experience_prop = _is_experience_query(user_q)
+
+    # Build an "allowed vocabulary" text for the model with explicit mapping rules from your additional context
+    vocab_lines = ["ALLOWED VOCABULARY (derived from live schema):"]
+    for lab in sorted(label_props.keys()):
+        props = ", ".join(sorted(label_props[lab])) if label_props[lab] else "(no properties)"
+        vocab_lines.append(f"- {lab}: {props}")
+    vocab_text = "\n".join(vocab_lines)
+
+    # Detect relationship-level schema details (e.g., PERSON_EDUCATION.Major)
+    rel_props_by_type = {}
+    for r in (schema.get("rels") or []):
+        rel = r.get("relTypeName")
+        prop = r.get("propertyName")
+        if rel and prop:
+            rel_props_by_type.setdefault(rel, set()).add(prop)
+    # canonicalize sets -> lists for checks
+    rel_props_by_type = {k: sorted(v) for k, v in rel_props_by_type.items()}
+
+    # Check for PERSON_EDUCATION (or similarly named) relationship that holds Major
+    edu_rel_candidate = None
+    edu_rel_has_major = False
+    # try exact name first, then fallback to presence of 'Major' on any rel
+    if "PERSON_EDUCATION" in rel_props_by_type:
+        edu_rel_candidate = "PERSON_EDUCATION"
+        edu_rel_has_major = ("Major" in rel_props_by_type.get(edu_rel_candidate, []))
+    else:
+        # fallback scan for any rel that appears to relate Person<->Education and has 'Major'
+        for relname, props in rel_props_by_type.items():
+            if "Major" in props:
+                # prefer relnames containing EDUC or EDU when ambiguous
+                if "EDUC" in relname.upper() or "EDU" in relname.upper():
+                    edu_rel_candidate = relname
+                    edu_rel_has_major = True
+                    break
+                # otherwise keep a candidate but continue searching for better name
+                if edu_rel_candidate is None:
+                    edu_rel_candidate = relname
+                    edu_rel_has_major = True
+
+    # Provide explicit domain-specific guidance (so the LLM does not invent properties)
+    domain_rules = []
+    domain_rules.append("Domain mapping rules (apply these when relevant):")
+    domain_rules.append("- If the question asks about 'projects' or 'assignments' or 'engagements', prefer label Project and use Project.SectorDesc or Project.IndustrialPracticeDesc for industry filters.")
+    domain_rules.append("- If the question asks about years of experience, use Person.TotalExperience property (do NOT invent 'YearsExperience').")
+    domain_rules.append("- If the question asks about 'industry' of a person, join Person -> Company using Person.CurrentCompanyId or Person.CurrentCompanyName and then use Company.industry (do not assume Person.industry exists).")
+    # Replace the generic education guidance with explicit guidance that matches your schema:
+    if edu_rel_has_major and edu_rel_candidate:
+        domain_rules.append(f"- Education/major data lives on relationship '{edu_rel_candidate}' with property 'Major'. When the user asks for a field-of-study or 'degree in X', prefer to MATCH (p:Person)-[r:`{edu_rel_candidate}`]->(e:Education) and filter on r.Major (case-insensitive).")
+    else:
+        # if no rel-major detected, fall back to existing labels if present
+        domain_rules.append("- Recognize field-of-study phrases (e.g., 'degree in MBA' -> map to Education.fieldOfStudy or Person.education entries) and institute phrases (e.g., 'from Harvard' -> canonical school name from graph).")
+    domain_rules.append("- Do NOT invent properties that are not in ALLOWED VOCABULARY. Use only listed labels and properties.")
+    domain_text = "\n".join(domain_rules)
+
+    # Mode instructions (LIST vs COUNT)
+    limit_clause = ""
+    if wants_list and " all" not in q_lower and " all." not in q_lower:
+        limit_clause = f" Include a LIMIT {DEFAULT_LIST_LIMIT} at the end."
+
+    mode_instructions = (
+        "MODE: LIST.\n"
+        "- Do NOT use COUNT in the RETURN.\n"
+        "- Use Cypher map projection with dot shorthand (e.g., p{.PersonId, .FullName, ...}).\n"
+        "- Return rows that directly answer the question."
+        f"{limit_clause}\n"
+        "- Prefer compact maps rather than full nodes."
+        if wants_list else
+        "MODE: COUNT.\n"
+        "- Use COUNT(...) in the RETURN to answer the numeric question.\n"
+        "- Do not return full nodes."
+    )
+
+    system_prompt = (
+        base_system + "\n"
+        "Use ONLY labels/relationship types/properties from ALLOWED VOCABULARY. "
+        "Return STRICT JSON (no markdown) with key 'cypher' (required) and optional 'database'."
+    )
+
+    user_prompt = (
+        f"USER QUERY:\n{user_q}\n\n"
+        f"SCHEMA CONTEXT (pretty):\n{pretty_schema_text}\n\n"
+        f"{vocab_text}\n\n"
+        f"{domain_text}\n\n"
+        f"EXTRA CONTEXT / HINTS:\n"
+        f"- Prefer label: {prefer_label or 'none explicitly'}\n"
+        f"- Education extraction: field_of_study={field_edu.get('field_of_study')}, institute={field_edu.get('institute')}\n"
+        f"- Use Person.TotalExperience for experience-based filters: {wants_experience_prop}\n\n"
+        f"{mode_instructions}\n"
+        "Rules:\n"
+        "- Use exact property names from ALLOWED VOCABULARY; do not invent synonyms.\n"
+        "- Use only relationship types listed in ALLOWED VOCABULARY.\n"
+        "- If you filter by industry and the target entity is a Person, join to Company and filter Company.industry.\n"
+        "- If the query mentions Project.SectorDesc values like 'Financial Services', prefer Project label.\n"
+        "- Return JSON only: {\"cypher\": \"...\", \"database\": \"neo4j\"}."
+    )
+
+    logger.info(f"Current context: \n\n{user_prompt}")
+
+    out = _openai_json_call(openai_client, gpt_model_name, system_prompt, user_prompt, temperature=base_temp, max_tokens=base_max)
+    if not isinstance(out, dict):
+        out = {"cypher": str(out)}
+
+    cypher = (out.get("cypher") or "").strip()
+    if not cypher:
+        return {"cypher": "", "database": schema.get("database", "neo4j")}
+
+    # Minimal cleanups and domain-specific corrections:
+    import re as _re
+
+    # Ensure we have safe defaults for edu_rel_* vars (they may be referenced elsewhere)
+    edu_rel_has_major = locals().get("edu_rel_has_major", False)
+    edu_rel_candidate = locals().get("edu_rel_candidate", None)
+
+    # Detect PERSON_EDUCATION relationship + Major property from schema rels (defensive)
+    try:
+        for r in (schema.get("rels") or []):
+            relname = r.get("relTypeName") or r.get("relType") or r.get("relTypeName")
+            propname = r.get("propertyName")
+            if relname and relname.upper() == "PERSON_EDUCATION" and propname and propname.lower() == "major":
+                edu_rel_has_major = True
+                edu_rel_candidate = "PERSON_EDUCATION"
+                break
+    except Exception:
+        # keep defaults if introspection fails
+        edu_rel_has_major = bool(edu_rel_has_major)
+        edu_rel_candidate = edu_rel_candidate
+
+    # 1) If query clearly was about projects but model returned Company, try to rewrite to Project (best-effort)
+    if prefer_label == "Project" and _re.search(r"\bMATCH\s*\(\s*[A-Za-z_]+\s*:\s*Company\b", cypher, flags=_re.I):
+        # naive substitution: only if Project exists in schema
+        if "Project" in label_props:
+            cypher = _re.sub(r":\s*Company\b", ": Project", cypher, flags=_re.I)
+            logger.info("Adjusted cypher to prefer Project label based on heuristics.")
+
+    # 2) If experience query and model used other property names, attempt to use Person.TotalExperience if present in schema
+    if wants_experience_prop and "Person" in label_props and "TotalExperience" in label_props.get("Person", []):
+        # replace common variants like 'yearsExperience' or 'years_experience' with 'TotalExperience'
+        cypher = _re.sub(r"\b(years[_ ]?experience|total[_ ]?exp|experienceYears|yearsExperience)\b", "TotalExperience", cypher, flags=_re.I)
+
+    # 3) If the model filters person.industry directly, but schema doesn't have it, rewrite to join through Company if possible
+    if "Person" in label_props and "industry" not in label_props.get("Person", []):
+        # detect pattern "WHERE p.industry" and try to rewrite to join
+        if _re.search(r"\bp\.(industry|sector)\b", cypher, flags=_re.I) and "Company" in label_props:
+            # add a simple join if not present already
+            if not _re.search(r"\bMATCH\s*\([A-Za-z_]+\s*:\s*Person\)\s*-\[", cypher, flags=_re.I):
+                # try to locate first MATCH and insert a join pattern
+                cypher = _re.sub(r"(MATCH\s*\([A-Za-z_]+\s*:\s*Person[^\)]*\))", r"\1-[:PERSON_COMPANY]->(c:Company)", cypher, count=1, flags=_re.I)
+                # rewrite p.industry -> toLower(c.industry)
+                cypher = _re.sub(r"\bp\.(industry|sector)\b", "toLower(c.industry)", cypher, flags=_re.I)
+                logger.info("Rewrote person.industry filter into join via Company.industry")
+
+    # 4) Education mapping rewrite:
+    # If we detected a rel that stores Major (edu_rel_candidate) and the model produced queries that target
+    # Education.fieldOfStudy or Person.education or Education.major-like properties, rewrite to use the relationship.
+    if edu_rel_has_major and edu_rel_candidate:
+        try:
+            # If the model already included a join using this rel, skip.
+            # Look for patterns like -[:PERSON_EDUCATION]->(e:Education) (case-insensitive)
+            if not _re.search(rf"\-\[.*:`?{re.escape(edu_rel_candidate)}`?.*\]\-\(.*:Education\)", cypher, flags=_re.I):
+                # find occurrences where the cypher contains EDUCATION-like property checks
+                if _re.search(r"\b(e|education|Education)\.(fieldOfStudy|field_of_study|field|major|study|degree)\b", cypher, flags=_re.I) or _re.search(r"\bp\.education\b", cypher, flags=_re.I):
+                    # insert join after first Person MATCH if present, otherwise leave untouched (defensive)
+                    # attempt: replace first "MATCH (p:Person...)" with "MATCH (p:Person)-[r:`PERSON_EDUCATION`]->(e:Education)"
+                    cypher = _re.sub(
+                        r"(MATCH\s*\(\s*([A-Za-z_]+)\s*:\s*Person[^\)]*\))",
+                        rf"\1-[r:`{edu_rel_candidate}`]->(e:Education)",
+                        cypher,
+                        count=1,
+                        flags=_re.I
+                    )
+                    # rewrite guessed prop references to r.Major (case-insensitive comparisons preserved)
+                    cypher = _re.sub(r"\b(e|education|Education)\.(fieldOfStudy|field_of_study|field|major|study|degree)\b", "r.Major", cypher, flags=_re.I)
+                    cypher = _re.sub(r"\bp\.education\b", "r.Major", cypher, flags=_re.I)
+                    logger.info(f"Rewrote education-related property usage to relationship '{edu_rel_candidate}.Major' for robustness.")
+        except Exception:
+            logger.debug("Education rewrite failed; continuing without it.")
+
+    # 5) Normalize a few company name prop variants if necessary (safe)
+    company_props = set(label_props.get("Company", []))
+    if "name" in company_props and "CompanyName" not in company_props:
+        cypher = _re.sub(r"(\(\s*[A-Za-z_]*\s*:\s*Company\s*\{\s*)company[_ ]?name\s*:", r"\1name:", cypher, flags=_re.I)
+
+    # ---------------------------
+    # NEW: Degree / field-of-study augmentation (conservative & schema-driven)
+    # ---------------------------
+    try:
+        # local imports - optional; if module missing we'll fall back gracefully
+        try:
+            from degree_resolver import find_similar_degrees
+        except Exception:
+            find_similar_degrees = None
+
+        # Small helper: do we have degree-like cues in the user query?
+        def _user_mentions_degree(q: str) -> bool:
+            cues = [
+                "degree", "studied", "with a degree", "major", "field of study", "mba", "phd", "master",
+                "bachelor", "msc", "ms ", "bs ", "ba ", "mba."
+            ]
+            ql = (q or "").lower()
+            return any(c in ql for c in cues)
+
+        def _extract_degree_phrase(q: str) -> str:
+            # Attempt to extract the immediate degree phrase after 'studied', 'degree in', 'major in', 'with a degree in', 'mba' etc.
+            ql = q or ""
+            patterns = [
+                r"studied\s+([A-Za-z0-9 &\-\+,/]+)",
+                r"degree in\s+([A-Za-z0-9 &\-\+,/]+)",
+                r"with a degree in\s+([A-Za-z0-9 &\-\+,/]+)",
+                r"major(?:ing| in)?\s+([A-Za-z0-9 &\-\+,/]+)",
+                r"\b(mba|msc|ms|phd|bsc|bs|ba|master of [A-Za-z ]+|bachelor of [A-Za-z ]+)\b"
+            ]
+            for p in patterns:
+                m = _re.search(p, ql, flags=_re.IGNORECASE)
+                if m:
+                    return m.group(1).strip()
+            # fallback: return last short trailing phrase
+            words = _re.findall(r"[A-Za-z0-9&\-\']+", ql)
+            if words:
+                tail = words[-3:]
+                return " ".join(tail)
+            return ""
+
+        degree_candidates = []
+        if _user_mentions_degree(user_q):
+            # prepare top degrees list
+            top_degrees_list = mcp_config.get("degrees_top_list") or []
+            if not top_degrees_list:
+                # conservative fallback small list — keeps behavior unchanged when not provided
+                top_degrees_list = [
+                    "Economics", "Business Administration", "Finance", "Law", "Accounting",
+                    "Marketing", "Mechanical Engineering", "Computer Science", "Electrical Engineering",
+                    "Chemical Engineering", "Political Science", "Chemistry", "Engineering", "Business",
+                    "Management", "MBA", "Business Administration and Management", "Psychology",
+                    "Mathematics"
+                ]
+            # attempt to extract phrase; if not found use whole query
+            deg_phrase = _extract_degree_phrase(user_q) or user_q
+
+            candidates = []
+            if find_similar_degrees:
+                try:
+                    # find_similar_degrees expected to return list of (degree,score)
+                    candidates = find_similar_degrees(deg_phrase, top_degrees_list, top_n=8, min_score=0.35)
+                except Exception as e:
+                    logger.debug(f"degree_resolver failed: {e}")
+                    candidates = []
+            else:
+                # fallback: simple contains check against top_degrees_list (case-insensitive)
+                low = deg_phrase.lower()
+                for d in top_degrees_list:
+                    if low in d.lower() or d.lower() in low:
+                        candidates.append((d, 1.0))
+
+            degree_candidates = [d for d, s in candidates] if candidates else []
+
+        # If we found candidate canonical degrees, try to inspect schema for fields to filter on
+        if degree_candidates:
+            candidate_props = []  # list of tuples (label, prop)
+            # heuristics for property names that likely store degree/major
+            edu_keywords = {"degree", "field", "major", "study", "education", "qualification", "degreeName", "fieldOfStudy", "field_of_study", "majorName", "school", "schoolname", "college"}
+            for label, props in label_props.items():
+                for p in props:
+                    pl = p.lower()
+                    if any(k in pl for k in edu_keywords):
+                        candidate_props.append((label, p))
+            # prefer Person-located fields
+            person_props = [(lab, p) for (lab, p) in candidate_props if lab.lower() == "person"]
+            if person_props:
+                # keep person props first (higher priority)
+                candidate_props = person_props + [x for x in candidate_props if x not in person_props]
+
+            # also look for Education label props if none found
+            if not candidate_props:
+                for lab in label_props.keys():
+                    if "education" in lab.lower() or lab.lower().startswith("edu") or "school" in lab.lower():
+                        for p in label_props.get(lab, []):
+                            candidate_props.append((lab, p))
+
+            # If still none, be extra conservative and look for any property name that mentions 'school' or 'university' or 'college'
+            if not candidate_props:
+                for label, props in label_props.items():
+                    for p in props:
+                        pl = p.lower()
+                        if "school" in pl or "university" in pl or "college" in pl:
+                            candidate_props.append((label, p))
+
+            # Only proceed if we have at least one property to filter
+            if candidate_props:
+                # build or-clauses for each (label,prop)
+                or_clauses = []
+                used_temp_aliases = []  # list of tuples (alias,label)
+                has_person_var = bool(_re.search(r"\(p\s*:\s*Person\b", cypher, flags=_re.IGNORECASE))
+
+                for (lab, prop) in candidate_props:
+                    prop_exprs = []
+                    pl_exact = prop  # preserve exact case
+                    if lab.lower() == "person" or (has_person_var and lab.lower() in {"person", "people"}):
+                        for deg in degree_candidates:
+                            esc = deg.replace("'", "\\'")
+                            # guard: only reference p.<prop> if p actually appears in cypher (has_person_var)
+                            if has_person_var:
+                                prop_exprs.append(f"toLower(p.{pl_exact}) CONTAINS toLower('{esc}')")
+                            else:
+                                # fallback: reference generic variable 'p' only if not present — but be conservative and skip
+                                continue
+                    else:
+                        # try to find existing var for that label in cypher
+                        m_label_var = _re.search(r"\b([A-Za-z_]\w*)\s*:\s*" + _re.escape(lab) + r"\b", cypher, flags=_re.IGNORECASE)
+                        if m_label_var:
+                            varname = m_label_var.group(1)
+                            for deg in degree_candidates:
+                                esc = deg.replace("'", "\\'")
+                                prop_exprs.append(f"toLower({varname}.{pl_exact}) CONTAINS toLower('{esc}')")
+                        else:
+                            # only add optional match for clearly education-like labels
+                            if "educ" in lab.lower() or "school" in lab.lower() or "degree" in lab.lower() or lab.lower().startswith("edu"):
+                                # safe alias that starts with a letter
+                                alias = f"e_{re.sub(r'[^A-Za-z0-9_]', '_', lab.lower())}"
+                                if alias not in [a for a, _ in used_temp_aliases]:
+                                    used_temp_aliases.append((alias, lab))
+                                for deg in degree_candidates:
+                                    esc = deg.replace("'", "\\'")
+                                    prop_exprs.append(f"toLower({alias}.{pl_exact}) CONTAINS toLower('{esc}')")
+                            # else skip to avoid inventing relationships
+                    if prop_exprs:
+                        or_clauses.append("(" + " OR ".join(prop_exprs) + ")")
+
+                if or_clauses:
+                    full_or = " OR ".join(or_clauses)
+                    match_frag = ""
+                    if used_temp_aliases and has_person_var:
+                        for alias, lab in used_temp_aliases:
+                            # safe OPTIONAL MATCH pattern linking p to alias via a short hop (0..1)
+                            # choose a non-greedy path and do not invent rel types
+                            match_frag += f"\nOPTIONAL MATCH (p)-[*0..1]->({alias}:{lab})"
+
+                    # inject WHERE clause conservatively
+                    if _re.search(r"(?is)\bwhere\b", cypher):
+                        # append our predicates with AND before RETURN if RETURN exists
+                        if _re.search(r"(?is)\breturn\b", cypher):
+                            cypher = _re.sub(r"(?is)(\bwhere\b.*?)(\breturn\b)", lambda m: m.group(1) + " AND (" + full_or + ") " + m.group(2), cypher, count=1)
+                        else:
+                            # there's a WHERE but no explicit RETURN (odd) — append to end
+                            cypher = cypher.rstrip() + " AND (" + full_or + ")"
+                    else:
+                        # insert WHERE before RETURN or append to end
+                        if _re.search(r"(?is)\breturn\b", cypher):
+                            cypher = _re.sub(r"(?is)\breturn\b", "WHERE (" + full_or + ") RETURN", cypher, count=1)
+                        else:
+                            cypher = cypher.rstrip() + "\nWHERE (" + full_or + ")"
+
+                    # attach any OPTIONAL MATCH fragments above the WHERE (only if match_frag non-empty)
+                    if match_frag:
+                        # insert match_frag before the WHERE we just added (first occurrence)
+                        cypher = _re.sub(r"(?is)(WHERE\s*\()", match_frag + r"\n\1", cypher, count=1)
+
+    except Exception as e:
+        # never fail the whole generation if augmentation fails; log and continue
+        logger.debug(f"Degree augmentation skipped due to error: {e}")
+
+    # Done - return cypher
+    out["cypher"] = cypher
+    out.setdefault("database", schema.get("database", "neo4j"))
+    return out
+
+
+# -------------------------------
+#  sync functions
+# -------------------------------
+def _execute_connector(connector: str, request_spec: Dict[str, Any]) -> Any:
+    """
+    Execute the connector-specific request and return raw data (unnormalized).
+    """
+    if connector == "databricks":
+        op = (request_spec.get("operation") or "").lower()
+        if op == "sql":
+            sql = request_spec.get("sql", "")
+            catalog = request_spec.get("catalog")
+            schema = request_spec.get("schema")
+            rows = _dbx().query_sql(sql=sql, catalog=catalog, schema=schema)
+            return rows
+        elif op == "dbfs_read":
+            path = request_spec.get("path", "")
+            text = _dbx().read_dbfs_file_text(path=path)
+            return {"text": text}
+        else:
+            return {"error": "Unsupported Databricks operation"}
+
+    elif connector == "graphdb":
+        cypher = (request_spec or {}).get("cypher", "")
+        logger.info(f"In _execute_connector method for {connector} and cypher {cypher}")
+
+        if not isinstance(cypher, str) or not cypher.strip():
+            return {"error": "GraphDB request generation produced no Cypher. Check LLM config and schema logs."}
+
+        # --- Preprocessing for common LLM mistakes: map projections & minor typos ---
+        # Goal 1: Convert var{a, b, c}  ->  var{.a, .b, .c}
+        # Goal 2: Normalize property tokens in projections and WHERE/RETURN usages using schema-driven resolver.
+        import re
+        try:
+            # PROPRES is expected to be a module-level resolver instance (if present).
+            # If not present, we degrade gracefully to no-op token resolution.
+            from prop_resolver import PROPRES  # type: ignore
+        except Exception:
+            PROPRES = None  # type: ignore
+
+        # Infer variable -> labels map (best-effort) and obtain schema map if resolver available
+        var2labels = PROPRES.infer_var_labels(cypher) if PROPRES and hasattr(PROPRES, "infer_var_labels") else {}
+        schema_lp = {}
+        if PROPRES and hasattr(PROPRES, "_schema"):
+            try:
+                schema_lp = PROPRES._schema.get(database=GRAPHDB_SCHEMA_DB)
+            except Exception:
+                schema_lp = {}
+
+        def _resolve(var: str, token: str) -> str:
+            """
+            Resolve a token (property name) for a given variable using the PropertyResolver if available.
+            Returns the canonical property name (or original token if no better match).
+            """
+            if not PROPRES or not hasattr(PROPRES, "resolve_token"):
+                return token
+            try:
+                best, conf = PROPRES.resolve_token(var, token, var2labels, schema_lp)
+                if best and best != token:
+                    logger.info(f"[prop-fix] {var}.{token} -> {var}.{best} (conf={conf})")
+                    return best
+            except Exception as e:
+                logger.debug(f"Property resolution failed for {var}.{token}: {e}")
+            return token
+
+        # 1) Fix projection maps: p{Fullname, currentname} -> p{.FullName, .CurrentCompanyName}
+        def _fix_projection(m: re.Match) -> str:
+            var = m.group(1)
+            inner = m.group(2)
+            parts = [x.strip() for x in inner.split(",") if x.strip()]
+            out_parts = []
+            for part in parts:
+                # keep explicit aliases unchanged (alias: expr)
+                if ":" in part:
+                    out_parts.append(part)
+                    continue
+                # if already dotted (.prop) preserve dotted but resolve token
+                if part.startswith("."):
+                    tok = part[1:].strip()
+                    out_parts.append("." + _resolve(var, tok))
+                else:
+                    # bare identifier -> dot it and resolve
+                    out_parts.append("." + _resolve(var, part))
+            return f"{var}" + "{" + ", ".join(out_parts) + "}"
+
+        cypher = re.sub(r"\b([A-Za-z_]\w*)\s*\{\s*([^}]*)\}", _fix_projection, cypher)
+
+        # 2) Fix property tokens appearing as var.prop in WHERE/RETURN/SET/etc.
+        #    This is conservative: only pattern var.prop where both are identifier-like.
+        def _fix_var_prop(m: re.Match) -> str:
+            var, prop = m.group(1), m.group(2)
+            return f"{var}.{_resolve(var, prop)}"
+
+        cypher = re.sub(r"\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b", _fix_var_prop, cypher)
+
+        # 3) Apply string-equality / canonicalization helper if available.
+        #    This function is expected elsewhere in your codebase; if missing, skip.
+        try:
+            cypher = rewrite_string_equals_to_smart(cypher, dbname=GRAPHDB_SCHEMA_DB)
+        except Exception:
+            # If helper not present or fails, continue with current cypher
+            logger.debug("rewrite_string_equals_to_smart not available or raised; skipping.")
+
+        # --- Enforce one row per person at the Cypher level -------------------------
+        # Only enforce for queries that obviously reference Person variable 'p'
+        def _force_return_distinct_p_map_if_person(cq: str) -> str:
+            is_person = bool(re.search(r"\(p\s*:\s*Person\b", cq, flags=re.IGNORECASE))
+            if not is_person:
+                return cq
+
+            # If query already returns a projection for p, leave it alone.
+            if re.search(r"(?is)\breturn\b.*\bp\s*\{", cq):
+                return cq
+
+            p_projection = (
+                "RETURN DISTINCT "
+                "p{ .PersonId, .FullName, .CurrentTitle, .CurrentCompanyName, .LanguageProficiency } AS p"
+            )
+
+            if re.search(r"(?is)\breturn\b", cq):
+                cq = re.sub(r"(?is)\breturn\b.*$", p_projection, cq, count=1)
+            else:
+                cq = cq.rstrip() + "\n" + p_projection
+            return cq
+
+        cypher = _force_return_distinct_p_map_if_person(cypher)
+        logger.info(f"Cypher after DISTINCT enforcement: {cypher}")
+
+        # --- Execute via safe wrapper so we always return list[dict] ----------------
+        rows = _gdb_query_safe(cypher=cypher, database=GRAPHDB_SCHEMA_DB)
+
+        # --- Belt-and-suspenders: dedupe by PersonId in Python ---------------------
+        def _extract_person(record):
+            # Expect {'p': {...}}; be defensive otherwise.
+            if isinstance(record, dict):
+                p = record.get("p")
+                if isinstance(p, dict):
+                    return p
+                # fallback: look for any dict value that appears to be a person (has PersonId or personId)
+                for v in record.values():
+                    if isinstance(v, dict) and ("PersonId" in v or "personId" in v):
+                        return v
+            return None
+
+        seen = set()
+        deduped = []
+        for r in (rows or []):
+            p = _extract_person(r)
+            if p is None:
+                deduped.append(r)
+                continue
+            # support both camelCase and PascalCase property keys
+            pid = p.get("personId") or p.get("PersonId")
+            if pid is None:
+                deduped.append(r)
+                continue
+            if pid in seen:
+                continue
+            seen.add(pid)
+            deduped.append(r)
+
+        # Return structured result with rows and the final cypher that was executed.
+        return {
+            "rows": deduped,
+            "generated_cypher": cypher
+        }
+
+    else:  # elasticsearch
+        op = (request_spec.get("operation") or "").lower()
+        if op == "get":
+            index = request_spec.get("index", "")
+            doc_id = request_spec.get("doc_id", "")
+            doc = _es().get_document(index=index, doc_id=doc_id)
+            return doc
+        elif op == "search":
+            index_str = request_spec.get("index", "")
+            q = request_spec.get("query", {})
+            query = {"query": q}
+            indexes = [i.strip() for i in index_str.split(",") if i.strip()]
+
+            merged_hit = None
+
+            for idx in indexes:
+                res = _es().search(index=idx, query=query, size=1)
+                hits = res.get("hits", {}).get("hits", [])
+                if not hits:
+                    continue
+                src = hits[0].get("_source", {})
+                if merged_hit is None:
+                    merged_hit = {
+                        "_id": hits[0].get("_id"),
+                        "_index": idx,
+                        "_source": src.copy() if isinstance(src, dict) else src
+                    }
+                else:
+                    merged_hit["_source"] = merge_dicts(merged_hit["_source"], src)
+
+            if merged_hit is None:
+                hits = []
+            else:
+                hits = [{
+                    "_index": merged_hit["_index"],
+                    "_id": merged_hit["_id"],
+                    "_score": None,
+                    "_source": merged_hit["_source"]
+                }]
+
+            final_response = {
+                "timed_out": False,
+                "hits": {
+                    "total": {"value": len(hits), "relation": "eq"},
+                    "max_score": None,
+                    "hits": hits
+                }
+            }
+
+            return final_response
+        else:
+            return {"error": "Unsupported ElasticSearch operation"}

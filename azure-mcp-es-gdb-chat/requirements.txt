@@ -1,0 +1,16 @@
+fastmcp==2.13.0.2
+starlette==0.50.0
+uvicorn==0.38.0
+gunicorn==23.0.0
+flask==3.1.2
+python-dotenv==1.2.1
+openai==2.7.1
+requests==2.32.4
+PyPDF2==3.0.1
+azure-identity==1.25.1
+azure-keyvault-secrets==4.10.0
+typing_extensions>=4.15.0,<5
+neo4j
+reportlab>=4.0
+azure-storage-blob
+requests-ntlm

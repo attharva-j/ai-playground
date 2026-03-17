@@ -1,0 +1,112 @@
+{
+  "description": "Mapping configuration for Person SmartPack - transforms summary data to pdf_content structure",
+  "version": "1.0",
+
+  "pdf_content_mappings": {
+    "title": "{{person_name}}",
+    "company": "{{company}}",
+    "subtitle": "{{basic_info.title}}",
+
+    "bio_bullets": {
+      "source": "basic_info.profile_summary",
+      "default": ["Reference to bio bullets"]
+    },
+
+    "ra_assignments_revenue": {
+      "title": "Firm # of Assignments/Revenue",
+      "header": ["Year", "# of Assignments", "Revenue", "Practice", "Region"],
+      "rows_source": "RRA_#_of_assignments/revenue.assignments/revenue_table",
+      "row_mapping": {
+        "year": "year",
+        "assignments": "assignments",
+        "revenue": "revenue",
+        "practice": "practice",
+        "region": "region"
+      },
+      "default_row": ["Reference", "Assignments", "Revenue", "Data", "Here"]
+    },
+
+    "rra_relationships": {
+      "title": "Firm Relationships",
+      "summary_lines": [
+        {
+          "template": "Strongest Connection: {{RRA_relationships.strongest_connection}}"
+        },
+        {
+          "template": "Relationship Managers: {{RRA_relationships.relationship_managers}}"
+        },
+        {
+          "template": "Open Search Assignments: {{RRA_relationships.open_assignments_with_current_company.search}}"
+        },
+        {
+          "template": "Open Consulting Assignments: {{RRA_relationships.open_assignments_with_current_company.consulting}}"
+        }
+      ],
+      "lead_consultants": {
+        "source": "RRA_relationships.lead_consultants_on_RRA_projects",
+        "default": ["Reference to lead consultants"]
+      }
+    },
+
+    "recent_marquee_assignments": {
+      "title": "Recent / Marquee Assignments",
+      "search_completed": {
+        "source": "recent/marquee_assignments_for_company.search_assignments",
+        "default": ["Reference to completed search assignments"]
+      },
+      "pure_consulting_completed": {
+        "source": "recent/marquee_assignments_for_company.pure_consulting",
+        "default": ["Reference to completed consulting assignments"]
+      },
+      "open_assignments": {
+        "Search": {
+          "template": "{{recent/marquee_assignments_for_company.open_assignments.search}} open search assignments"
+        },
+        "Consulting": {
+          "template": "{{recent/marquee_assignments_for_company.open_assignments.pure_consulting}} open consulting assignments"
+        }
+      }
+    },
+
+    "current_board_back": {
+      "title": "Current Board",
+      "board_leadership_team_analysis": {
+        "title": "Board / Leadership Team Analysis",
+        "headers": ["Category", "Value", "Notes", "Details", "Status"],
+        "rows": [
+          ["Reference", "Board", "Analysis", "Data", "Here"]
+        ],
+        "footnote": "Note: Data to be populated from board analysis"
+      },
+      "most_recent_executive_hires": {
+        "title": "Most Recent Executive Hires",
+        "items": {
+          "source": "most_recent_executive_hires.most_recent_executive_hires",
+          "default": "Reference to recent hires"
+        }
+      },
+      "recent_company_news": {
+        "title": "Recent Company News",
+        "items": ["Reference to recent company news"]
+      },
+      "potential_conversation_topics": {
+        "title": "Potential Topics / Conversation Starters",
+        "items": ["Reference to conversation topics"]
+      }
+    },
+
+    "executive_directors": {
+      "header": ["Name", "Position", "Tenure", "Background", "Notes"],
+      "rows": [
+        ["Reference", "Executive", "Directors", "Data", "Here"]
+      ]
+    },
+
+    "supervisory_directors": {
+      "header": ["Name", "Position", "Tenure", "Background", "Notes"],
+      "rows": [
+        ["Reference", "Supervisory", "Directors", "Data", "Here"]
+      ]
+    }
+  }
+}

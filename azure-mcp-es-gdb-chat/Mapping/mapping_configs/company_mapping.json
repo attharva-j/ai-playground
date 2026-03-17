@@ -1,0 +1,141 @@
+{
+  "description": "Mapping configuration for Company SmartPack - transforms summary data to pdf_content structure",
+  "version": "1.0",
+
+  "pdf_content_mappings": {
+    "company": "{{company_name}}",
+
+    "first_table": {
+      "headers": ["Key Information", "Financial snapshot (Source: CapIQ / Annual Report, etc.)"],
+      "left_entries": [
+        {
+          "label": "Entity Type",
+          "path": "key_information.Entity Type"
+        },
+        {
+          "label": "No. of Employees",
+          "path": "key_information.No. of Employees"
+        },
+        {
+          "label": "Industry",
+          "path": "key_information.Industry"
+        },
+        {
+          "label": "Year Founded",
+          "path": "key_information.Year Founded"
+        },
+        {
+          "label": "Active Portfolio",
+          "path": "key_information.Active Portfolio"
+        }
+      ],
+      "right_entries": [
+        {
+          "label": "AUM/Revenue",
+          "path": "key_information.AUM/Revenue.amount",
+          "format": "currency"
+        },
+        {
+          "label": "Headquarter",
+          "path": "key_information.Headquarter"
+        },
+        {
+          "label": "Dry Powder",
+          "path": "key_information.Dry Powder",
+          "format": "currency"
+        },
+        {
+          "label": "Website",
+          "path": "key_information.Website"
+        }
+      ]
+    },
+
+    "about_investment": [
+      {
+        "label": "About the company",
+        "path": "about_company.Company Overview"
+      },
+      {
+        "label": "Investment Strategy",
+        "path": "investment_strategy",
+        "format": "bullet_list"
+      }
+    ],
+
+    "indicative_portfolio": [
+      {
+        "label": "Indicative Portfolio (Current)",
+        "path": "indicative_portfolio_current.portfolio_list"
+      },
+      {
+        "label": "Financials",
+        "path": "financials.Financials (general).current_year_revenue_usd",
+        "format": "currency"
+      },
+      {
+        "label": "Segmental Financials",
+        "path": "financials.Segmental Financials"
+      },
+      {
+        "label": "Competitors",
+        "path": "competitors.list"
+      },
+      {
+        "label": "Analyst Reports",
+        "path": "analyst_reports.reports"
+      }
+    ],
+
+    "news": {
+      "header": "News (Recent)",
+      "items_source": "news",
+      "item_mapping": {
+        "headline": "headline",
+        "summary": "summary"
+      }
+    },
+
+    "leadership_team": {
+      "title": "Leadership Team",
+      "rows_source": "leadership_team.members",
+      "row_mapping": {
+        "name": "Name",
+        "title": "Title",
+        "biography": "Biography"
+      }
+    },
+
+    "board_directors": {
+      "title": "Board of Directors",
+      "headers": ["Name", "Title"],
+      "rows_source": "board_of_directors.members",
+      "row_mapping": {
+        "name": "Name",
+        "title": "Title"
+      }
+    },
+
+    "sustainability": {
+      "title": "Sustainability",
+      "subsections": [
+        {
+          "subtitle": "Sustainability ranking",
+          "path": "sustainability.Sustainability ranking"
+        },
+        {
+          "subtitle": "Sustainability Report",
+          "path": "sustainability.Sustainability Report"
+        }
+      ]
+    },
+
+    "assignments_rra": {
+      "title": "Firm Assignment History",
+      "data": {
+        "label": "Firm Assignment History",
+        "path": "assignments_with_rra.RRA History – Assignments and PNBs in last 3 years"
+      }
+    }
+  }
+}
