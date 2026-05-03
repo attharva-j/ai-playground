@@ -14,6 +14,7 @@ dist/
 eggs/
 .eggs/
 lib/
+!alo-rag/demo/lib
 lib64/
 parts/
 sdist/
@@ -154,3 +155,10 @@ override.tf.json
 .terraformrc
 terraform.rc
 .local
+
+# Kiro Specific
+.kiro
+
+# Next.js / React / Typescript UI components specific
+.next
+node_modules

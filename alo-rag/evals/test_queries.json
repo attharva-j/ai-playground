@@ -1,0 +1,258 @@
+{
+  "version": "2025-Q1",
+  "description": "Test query suite for ALO RAG system evaluation. 25 queries across easy, medium, and hard difficulty tiers covering product, policy, customer, and cross-domain queries.",
+  "queries": [
+    {
+      "query_id": "TQ-001",
+      "query": "What fabric is the 7/8 High-Waist Airlift Legging made of?",
+      "domain": "product",
+      "difficulty": "easy",
+      "expected_answer": "The 7/8 High-Waist Airlift Legging is made from Airlift fabric, composed of 78% Nylon and 22% Spandex. It is a high-compression, ultralightweight double-knit fabric with a subtle sheen and second-skin feel.",
+      "expected_chunk_ids": ["W5766R-BLK"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-002",
+      "query": "What's the difference between Airlift and Airbrush fabric?",
+      "domain": "product",
+      "difficulty": "easy",
+      "expected_answer": "Airlift is a high-compression fabric (78% Nylon, 22% Spandex) with a subtle sheen and second-skin feel, designed for high-intensity workouts. Airbrush is a medium-compression fabric (73% Nylon, 27% Spandex) with a matte, cotton-like finish, thicker and more durable than Airlift, with flatlock seaming for comfort.",
+      "expected_chunk_ids": ["W5561R-BLK", "W5604R-BLK"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-003",
+      "query": "How should I wash my High-Waist Airlift Legging?",
+      "domain": "product",
+      "difficulty": "easy",
+      "expected_answer": "Machine wash cold, tumble dry low. Do not bleach or iron.",
+      "expected_chunk_ids": ["W5561R-BLK"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-004",
+      "query": "How many days do I have to return an item?",
+      "domain": "policy",
+      "difficulty": "easy",
+      "expected_answer": "Alo accepts returns within 30 days of the original purchase date for a full refund, provided the item is unworn, unwashed, unaltered, with original tags still attached and in sellable condition.",
+      "expected_chunk_ids": ["returns-section-2"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-005",
+      "query": "How much does standard U.S. shipping cost?",
+      "domain": "policy",
+      "difficulty": "easy",
+      "expected_answer": "Standard shipping is free on all U.S. orders with no minimum order value required. Estimated delivery is 3-5 business days after shipment.",
+      "expected_chunk_ids": ["shipping-section-4"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-006",
+      "query": "What are the loyalty tier levels and how many points do I need for each?",
+      "domain": "policy",
+      "difficulty": "easy",
+      "expected_answer": "Alo Access has three tiers based on cumulative points earned in a rolling 12-month period: VIP (1-299 points), A-List (300-999 points), and All Access (1,000+ points).",
+      "expected_chunk_ids": ["loyalty-section-7"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-007",
+      "query": "What sizes are available for the Warrior Compression Pant?",
+      "domain": "product",
+      "difficulty": "easy",
+      "expected_answer": "The Warrior Compression Pant (M5044R-BLK) is available in sizes XS, S, M, L, XL, and XXL.",
+      "expected_chunk_ids": ["M5044R-BLK"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-008",
+      "query": "What is the status of my order?",
+      "domain": "customer",
+      "difficulty": "easy",
+      "expected_answer": "Your order ALO-2025-005511 placed on 2025-01-28 is currently In Transit. It includes a High-Waist Airlift Legging in Winter Frost and an Airlift Intrigue Bra in White. The estimated delivery date is 2025-02-03.",
+      "expected_chunk_ids": [],
+      "customer_id": "CUST-10421"
+    },
+    {
+      "query_id": "TQ-009",
+      "query": "Can I return the items from my Black Friday order?",
+      "domain": "customer",
+      "difficulty": "medium",
+      "expected_answer": "No, the items from your Black Friday order ALO-2024-881234 cannot be returned. Both items — the 7/8 High-Waist Airlift Legging in Vintage Pink and the Airlift Suit Up Bra in Black/White — were purchased at 30% off and are marked as Final Sale. Items discounted 30% or more, including those purchased during Black Friday, are non-returnable and non-exchangeable.",
+      "expected_chunk_ids": ["returns-section-2", "returns-section-13"],
+      "customer_id": "CUST-10041"
+    },
+    {
+      "query_id": "TQ-010",
+      "query": "Why was my return rejected?",
+      "domain": "customer",
+      "difficulty": "medium",
+      "expected_answer": "Your return for the 7/8 High-Waist Airbrush Legging in White (order ALO-2024-812200) was rejected because the return was initiated 34 days after the purchase date, which is outside Alo's 30-day return window. Returns must be initiated within 30 days of the original purchase date.",
+      "expected_chunk_ids": ["returns-section-2"],
+      "customer_id": "CUST-10312"
+    },
+    {
+      "query_id": "TQ-011",
+      "query": "What shipping benefits do I get with my loyalty tier?",
+      "domain": "cross-domain",
+      "difficulty": "medium",
+      "expected_answer": "As an A-List member, you receive free 2-day shipping on all U.S. orders. This is an upgrade from the VIP tier, which only includes free standard shipping.",
+      "expected_chunk_ids": ["shipping-section-8", "loyalty-section-7"],
+      "customer_id": "CUST-10177"
+    },
+    {
+      "query_id": "TQ-012",
+      "query": "I want to exchange my Vapor Crewneck for a larger size. How do I do that?",
+      "domain": "cross-domain",
+      "difficulty": "medium",
+      "expected_answer": "Alo does not offer direct exchanges for online purchases. To get a different size of the ALO Vapor Crewneck Short Sleeve, you would need to initiate a return for the original item and place a new order for the replacement size. As an A-List member, you may also be offered an Instant Exchange option through the Returns Portal, where you can select the replacement item before shipping back your return.",
+      "expected_chunk_ids": ["returns-section-9"],
+      "customer_id": "CUST-10177"
+    },
+    {
+      "query_id": "TQ-013",
+      "query": "I live in Canada. If I need to return something, do I get a prepaid return label?",
+      "domain": "policy",
+      "difficulty": "medium",
+      "expected_answer": "No, Alo does not provide prepaid return labels for international orders. International customers, including those in Canada, are responsible for all return shipping costs. Returns must still be dropped off within the 30-day return window from the purchase date, accounting for international shipping time.",
+      "expected_chunk_ids": ["returns-section-12"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-014",
+      "query": "Do I earn loyalty points on items I buy during the Black Friday sale?",
+      "domain": "policy",
+      "difficulty": "medium",
+      "expected_answer": "No, you do not earn loyalty points on items purchased during the Black Friday sale. Alo Access loyalty points are earned at a rate of 1 point per $1 spent on full-price purchases only. Items purchased at 30% off during Black Friday are not eligible for point earning.",
+      "expected_chunk_ids": ["loyalty-section-5", "promo-section-17"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-015",
+      "query": "What is the status of my return for the Vapor Crewneck?",
+      "domain": "customer",
+      "difficulty": "medium",
+      "expected_answer": "Your return for the ALO Vapor Crewneck Short Sleeve in Black (order ALO-2024-631089) has a status of Return Requested — Pending. The return was initiated on 2024-05-30, which was within the 30-day return window. Note that Alo does not offer direct exchanges — you will need to place a new order for the replacement size.",
+      "expected_chunk_ids": ["returns-section-9"],
+      "customer_id": "CUST-10177"
+    },
+    {
+      "query_id": "TQ-016",
+      "query": "How long does it take to get my refund after I drop off my return?",
+      "domain": "policy",
+      "difficulty": "medium",
+      "expected_answer": "Refunds are processed within 2-4 business days of the warehouse receiving your returned item. Depending on your bank or card issuer, it may take an additional 5-10 business days for the refund to appear on your statement.",
+      "expected_chunk_ids": ["returns-section-8"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-017",
+      "query": "Can I return an online purchase at an Alo store?",
+      "domain": "policy",
+      "difficulty": "medium",
+      "expected_answer": "The returns policy states that in-store purchases must be returned to the same Alo store where the purchase was made and cannot be returned online. For online purchases, you should use the Alo Returns Portal at returns.aloyoga.com to initiate a return and receive a prepaid UPS return label.",
+      "expected_chunk_ids": ["returns-section-7"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-018",
+      "query": "Can I use my military discount during the Aloversary Sale?",
+      "domain": "policy",
+      "difficulty": "medium",
+      "expected_answer": "No, community discounts such as the military discount (40% off) cannot be combined with sitewide sale pricing. During the Aloversary Sale, you must choose one or the other — you cannot stack the military discount on top of the sale price. If no sitewide sale is active, the military discount applies normally to full-price items.",
+      "expected_chunk_ids": ["promo-section-9"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-019",
+      "query": "I want to redeem my loyalty points on my next order. I have over 2,000 points. Can I use them during the Cyber Monday sale?",
+      "domain": "cross-domain",
+      "difficulty": "hard",
+      "expected_answer": "No, loyalty points cannot be redeemed during active sale periods, including Cyber Monday. This restriction applies even if your cart contains only full-price items during the sale event. Additionally, your most recent order (ALO-2024-950002) was a Cyber Monday order where all items were purchased at 30% off and marked as Final Sale — those items did not earn any loyalty points since points are only earned on full-price purchases.",
+      "expected_chunk_ids": ["loyalty-section-15", "promo-section-19"],
+      "customer_id": "CUST-10254"
+    },
+    {
+      "query_id": "TQ-020",
+      "query": "Can I return the leggings from my Cyber Monday order? They don't fit right.",
+      "domain": "cross-domain",
+      "difficulty": "hard",
+      "expected_answer": "Unfortunately, none of the items from your Cyber Monday order ALO-2024-950002 can be returned. All items in that order — three 7/8 High-Waist Airlift Leggings in Black and two High-Waist Airlift Leggings in Navy — were purchased at 30% off and are marked as Final Sale. Items discounted 30% or more during Cyber Monday are non-returnable and non-exchangeable under Alo's Final Sale policy.",
+      "expected_chunk_ids": ["returns-section-2", "returns-section-13"],
+      "customer_id": "CUST-10254"
+    },
+    {
+      "query_id": "TQ-021",
+      "query": "I'm an All Access member. What shipping benefits do I get on my next order?",
+      "domain": "cross-domain",
+      "difficulty": "hard",
+      "expected_answer": "As an All Access member with 1,342 points, you receive free 2-day shipping plus priority processing on all U.S. orders. This is the highest shipping tier benefit available in the Alo Access program. Priority processing means your order is dispatched ahead of standard orders.",
+      "expected_chunk_ids": ["shipping-section-8", "loyalty-section-12"],
+      "customer_id": "CUST-10082"
+    },
+    {
+      "query_id": "TQ-022",
+      "query": "I want to return the leggings from my Aloversary order and also redeem some of my loyalty points on a new purchase. Can I do both?",
+      "domain": "cross-domain",
+      "difficulty": "hard",
+      "expected_answer": "Neither action is possible. Your Aloversary order (ALO-2024-820341) included two 7/8 High-Waist Airlift Leggings in Light Provence Blue purchased at 30% off — these are Final Sale items and cannot be returned or exchanged. Regarding point redemption, points cannot be redeemed during active sale periods including the Aloversary Sale. Outside of sale periods, you can redeem points for products from the Alo Rewards catalog.",
+      "expected_chunk_ids": ["returns-section-13", "loyalty-section-15", "promo-section-19"],
+      "customer_id": "CUST-10082"
+    },
+    {
+      "query_id": "TQ-023",
+      "query": "I'm looking for a legging for hot yoga that has high compression, and also one for lounging that's really soft. What do you recommend and what sizes are available?",
+      "domain": "product",
+      "difficulty": "hard",
+      "expected_answer": "For hot yoga with high compression, the High-Waist Airlift Legging (W5561R-BLK, $128) is ideal — it's made from Airlift fabric (78% Nylon, 22% Spandex) with high compression, moisture-wicking, and antimicrobial properties. For lounging, the High-Waist Alosoft Lounge Legging (W6105R-BLK, $98) is the softest option — made from Alosoft fabric (55% Modal, 37% Polyester, 8% Spandex) with a velvety feel and light compression. Both are available in sizes XXS, XS, S, M, L, and XL.",
+      "expected_chunk_ids": ["W5561R-BLK", "W6105R-BLK"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-024",
+      "query": "If I buy something in an Alo store and want to return it, can I do it online? And how long until I get my refund?",
+      "domain": "policy",
+      "difficulty": "hard",
+      "expected_answer": "No, in-store purchases must be returned to the same Alo store where the purchase was made — you cannot return an in-store purchase online or at a different Alo store. Once the return is processed in-store, refunds are returned to the original form of payment. For cash transactions, refunds are issued to an Alo gift card. Depending on your bank or card issuer, it may take 5-10 business days for the refund to appear on your statement.",
+      "expected_chunk_ids": ["returns-section-7", "returns-section-8"],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-025",
+      "query": "My package shows as delivered but I never received it. What should I do, and if they reship it, will I get the same fast shipping I normally get?",
+      "domain": "cross-domain",
+      "difficulty": "hard",
+      "expected_answer": "If your package shows as delivered but you haven't received it, contact Alo customer service at customerservice@aloyoga.com or call (855) 793-3100. You should report the issue within 7 days of the delivery date — reports submitted after 7 days may not be eligible for reshipping or refund. Alo will work with the carrier to investigate, which typically takes 5-10 business days for U.S. orders. As an A-List member, your shipping benefits (free 2-day shipping) would apply to any reshipped order.",
+      "expected_chunk_ids": ["shipping-section-15", "shipping-section-8", "loyalty-section-11"],
+      "customer_id": "CUST-10389"
+    },
+    {
+      "query_id": "TQ-026",
+      "query": "What is the status of my order?",
+      "domain": "customer",
+      "difficulty": "medium",
+      "expected_answer": "I can help with that, but I need to know which customer you are. Please select a customer profile to access order-specific information.",
+      "expected_chunk_ids": [],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-027",
+      "query": "Can I return the items from my last order?",
+      "domain": "customer",
+      "difficulty": "medium",
+      "expected_answer": "I can help with return eligibility, but I need to know which customer you are. Please select a customer profile so I can check your specific order details.",
+      "expected_chunk_ids": [],
+      "customer_id": null
+    },
+    {
+      "query_id": "TQ-028",
+      "query": "What is the weather like in New York today?",
+      "domain": "policy",
+      "difficulty": "easy",
+      "expected_answer": "I'm sorry, but that question is outside my area of expertise. I can help with ALO Yoga products, policies, shipping, returns, and loyalty program questions.",
+      "expected_chunk_ids": [],
+      "customer_id": null
+    }
+  ]
+}

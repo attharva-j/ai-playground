@@ -1,0 +1,105 @@
+
+<style>
+*{box-sizing:border-box}
+.wrap{padding:1rem 0;font-size:13px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+button.f{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+button.f.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-align:left;padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap}
+td{padding:8px 8px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:top;color:var(--color-text-primary);line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr.hidden{display:none}
+.badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.easy{background:var(--color-background-success);color:var(--color-text-success)}
+.medium{background:var(--color-background-warning);color:var(--color-text-warning)}
+.hard{background:var(--color-background-danger);color:var(--color-text-danger)}
+.d-product{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.d-policy{background:var(--color-background-info);color:var(--color-text-info)}
+.d-customer{background:#EEEDFE;color:#3C3489}
+.d-cross{background:#FAECE7;color:#712B13}
+.trap{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;font-style:italic}
+.qid{font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);white-space:nowrap}
+.count{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px}
+</style>
+
+<div class="wrap">
+<div class="filters">
+  <button class="f active" onclick="filter('all',this)">All 25</button>
+  <button class="f" onclick="filter('easy',this)">Easy</button>
+  <button class="f" onclick="filter('medium',this)">Medium</button>
+  <button class="f" onclick="filter('hard',this)">Hard</button>
+  <button class="f" onclick="filter('product',this)">Product</button>
+  <button class="f" onclick="filter('policy',this)">Policy</button>
+  <button class="f" onclick="filter('customer',this)">Customer</button>
+  <button class="f" onclick="filter('cross-domain',this)">Cross-domain</button>
+</div>
+<div class="count" id="count">Showing all 25 questions</div>
+<table>
+<thead><tr><th>ID</th><th>Difficulty</th><th>Domain</th><th style="width:55%">Question</th><th>Retrieval challenge</th></tr></thead>
+<tbody id="tbody">
+</tbody>
+</table>
+</div>
+
+<script>
+const qs=[
+{id:"TQ-026",d:"easy",dom:"product",q:"What is the Alosoft fabric made of and what activities is it best suited for?",trap:"Fabric glossary lookup — different chunk from product listings"},
+{id:"TQ-027",d:"easy",dom:"product",q:"Does the Airlift Intrigue Bra come in any colours other than black?",trap:"Color/variant attribute lookup within a single product chunk"},
+{id:"TQ-028",d:"easy",dom:"policy",q:"If I want to start a return, what website do I go to?",trap:"Procedural policy lookup — a specific URL buried in the returns doc"},
+{id:"TQ-029",d:"easy",dom:"product",q:"What is the inseam length on the 7/8 High-Waist Airlift Legging in a size medium?",trap:"Size-specific attribute lookup — tests per-size data in product chunk"},
+{id:"TQ-030",d:"easy",dom:"policy",q:"Does Alo offer free express shipping for any loyalty tier?",trap:"Tier-benefit lookup requiring the loyalty program doc — not the shipping doc"},
+{id:"TQ-031",d:"easy",dom:"customer",q:"How many loyalty points does Marcus Webb currently have?",trap:"Exact structured lookup — customer_id=CUST-10389, no retrieval needed"},
+{id:"TQ-032",d:"medium",dom:"policy",q:"Can I return a gift I received if I don't have the original receipt?",trap:"Gift return edge case — tests whether the policy chunk covers this or scope guard fires"},
+{id:"TQ-033",d:"medium",dom:"cross-domain",q:"Sofia Reyes used a welcome discount on her first order. Does that make her items Final Sale?",trap:"Welcome discount vs Final Sale threshold — 10% welcome code is below 30% Final Sale threshold. Requires joining customer data with policy rules."},
+{id:"TQ-034",d:"medium",dom:"policy",q:"I placed an order two hours ago and I want to cancel it. Is that possible?",trap:"Order cancellation — likely not covered in policy docs; tests graceful out-of-scope handling"},
+{id:"TQ-035",d:"medium",dom:"cross-domain",q:"Chloe Zhang's order is in transit. When she receives it, how long does she have to return it if something doesn't fit?",trap:"Customer context (in-transit status) + return window policy. Return window starts from delivery date, not order date."},
+{id:"TQ-036",d:"medium",dom:"product",q:"I need a men's legging for high-intensity training. What's the most compressive option in the catalog?",trap:"Compression-level comparison across men's products — requires reading fabric properties and filtering by gender"},
+{id:"TQ-037",d:"medium",dom:"policy",q:"I'm an Alo Access loyalty member. How many points do I earn per dollar spent?",trap:"Loyalty earn rate — tests whether the system finds the earn-rate rule and correctly identifies the tier (note: 'Alo Access' is the programme name, not a tier name — potential confusion trap)"},
+{id:"TQ-038",d:"medium",dom:"cross-domain",q:"Ethan Brooks has a pending return. Once it's processed, how long will it take to get his refund?",trap:"Customer status (Return Requested — Pending) + refund timeline policy. Two-chunk retrieval required."},
+{id:"TQ-039",d:"medium",dom:"policy",q:"Can I use store credit and a loyalty points redemption on the same order?",trap:"Payment stacking rules — likely in promotions policy. Tests whether the system retrieves the right section or hallucinates."},
+{id:"TQ-040",d:"medium",dom:"product",q:"What's the difference in rise between the High-Waist Airlift Legging and the Airlift High-Waist Suit Up Legging?",trap:"Intra-category comparison requiring two product chunks simultaneously"},
+{id:"TQ-041",d:"hard",dom:"cross-domain",q:"I'm Jordan Kim. I have 1,342 points. Can I use them to get a discount on the Warrior Mat I'm thinking of buying during the next flash sale?",trap:"Three-way join: customer points balance + points-during-sale restriction (loyalty doc) + whether the Warrior Mat qualifies (product doc). All three chunks needed."},
+{id:"TQ-042",d:"hard",dom:"cross-domain",q:"Maya Patel wants to return the Airlift Suit Up Bra from her Black Friday order and use the refund credit to buy the Airbrush Strapless Bra instead. Walk her through what's possible.",trap:"Final Sale trap (30% BF discount = Final Sale, ineligible for return) + product info on the replacement item. System must block the return before discussing the new purchase."},
+{id:"TQ-043",d:"hard",dom:"cross-domain",q:"Priya Nair placed a full-price order in January. Can she return those items and also get free shipping on the return?",trap:"Two orders — must distinguish the January full-price order (ALO-2025-002887, returnable) from the Cyber Monday Final Sale order. Return shipping benefit depends on loyalty tier (All Access)."},
+{id:"TQ-044",d:"hard",dom:"policy",q:"If a flash sale offers 35% off and I buy three items, are all of them automatically Final Sale or does it depend on something else?",trap:"Final Sale threshold rule (≥30%) applied to a hypothetical scenario. Tests whether the system applies the rule correctly to all three items uniformly without hedging."},
+{id:"TQ-045",d:"hard",dom:"cross-domain",q:"I'm an All Access member with 1,800 points. I want to buy the Conquer Max Performance Jogger during the Aloversary Sale. Will I earn points on it, and can I use my existing points at checkout?",trap:"Points earn during sale (no, policy restricts this) + points redemption during sale (also restricted) + product info on the jogger. Two separate policy rules from the same document, plus product chunk."},
+{id:"TQ-046",d:"hard",dom:"cross-domain",q:"Lena Johansson's return was rejected. If she disputes this and the rejection is overturned, what would the refund process look like and how long would it take?",trap:"Hypothetical on a rejected return (CUST-10312, 34 days post-purchase, outside window). System must correctly state the return was rejected for a valid policy reason, not speculate on dispute outcomes — tests hallucination guard on hypotheticals."},
+{id:"TQ-047",d:"hard",dom:"product",q:"I do both hot yoga and cold-weather outdoor runs. I need one sports bra and one legging that work for both. What do you recommend and what should I know about care?",trap:"Multi-use product recommendation requiring cross-product reasoning on fabric properties (moisture-wicking for yoga, warmth for outdoor) plus care instructions from two separate product chunks."},
+{id:"TQ-048",d:"hard",dom:"cross-domain",q:"Marcus Webb bought a Warrior Mat. Is that eligible for return, and if so, does his A-List status give him any benefit in the return process?",trap:"Accessory return eligibility (mat may have different rules vs apparel) + tier-based return benefit lookup. Tests whether the system finds accessory-specific policy or applies the general 30-day rule."},
+{id:"TQ-049",d:"hard",dom:"cross-domain",q:"I'm a VIP member and I just received my first order. The legging fits but the bra doesn't. Can I return just the bra and keep the legging, and will I still earn points on the legging I kept?",trap:"Partial order return (Sofia Reyes profile matches this scenario) + points earning on returned vs kept items — two policy rules from different sections of the loyalty doc."},
+{id:"TQ-050",d:"hard",dom:"policy",q:"A friend bought me an Alo item as a gift during the Aloversary Sale. It doesn't fit. Can I exchange it, and if so, do I need the original order number?",trap:"Gift + Final Sale + exchange policy intersection. Aloversary = sale event, item likely Final Sale if ≥30% off. Exchange is not offered directly (Instant Exchange workaround). Three policy constraints converge on one answer."}
+];
+
+function domClass(dom){
+  if(dom==="product")return"d-product";
+  if(dom==="policy")return"d-policy";
+  if(dom==="customer")return"d-customer";
+  return"d-cross";
+}
+function domLabel(dom){
+  return dom==="cross-domain"?"cross-domain":dom;
+}
+
+const tbody=document.getElementById("tbody");
+qs.forEach(q=>{
+  const tr=document.createElement("tr");
+  tr.dataset.diff=q.d;
+  tr.dataset.dom=q.dom;
+  tr.innerHTML=`<td class="qid">${q.id}</td><td><span class="badge ${q.d}">${q.d}</span></td><td><span class="badge ${domClass(q.dom)}">${domLabel(q.dom)}</span></td><td>${q.q}<div class="trap">${q.trap}</div></td><td style="font-size:12px;color:var(--color-text-secondary);">${q.trap}</td>`;
+  tbody.appendChild(tr);
+});
+
+function filter(val,btn){
+  document.querySelectorAll("button.f").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  const rows=tbody.querySelectorAll("tr");
+  let shown=0;
+  rows.forEach(r=>{
+    const show=val==="all"||r.dataset.diff===val||r.dataset.dom===val;
+    r.classList.toggle("hidden",!show);
+    if(show)shown++;
+  });
+  document.getElementById("count").textContent=`Showing ${shown} question${shown!==1?"s":""}`;
+}
+</script>

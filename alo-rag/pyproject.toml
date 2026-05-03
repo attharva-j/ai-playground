@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alo-rag"
+version = "0.1.0"
+description = "Production-grade RAG system for ALO Yoga"
+requires-python = ">=3.12"
+dependencies = [
+    "openai",
+    "chromadb",
+    "rank-bm25",
+    "voyageai",
+    "sentence-transformers",
+    "optimum",
+    "onnxruntime",
+    "pydantic",
+    "fastapi",
+    "uvicorn",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+eval-frameworks = [
+    "ragas",
+    "deepeval",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
