@@ -17,6 +17,11 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
+import logging
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+logging.getLogger("sentence_transformers").setLevel(logging.INFO)
 
 
 # ---------------------------------------------------------------------------
@@ -164,8 +169,19 @@ async def startup_event() -> None:
         new_hash = DocumentRegistry.compute_hash(chunk.text, meta_dict)
         action = registry.classify_chunk(chunk.chunk_id, new_hash)
 
+        # Important:
+        # The server currently uses an in-memory Chroma collection. On every process
+        # restart the vector store is empty, while the SQLite registry may still say
+        # chunks are unchanged. In that case skipping unchanged chunks silently creates
+        # an empty dense index. Only skip unchanged chunks when the vector store is
+        # persistent AND the specific chunk exists in the collection.
         if action == "unchanged":
-            continue
+            if vector_store.is_persistent and vector_store.contains(chunk.chunk_id):
+                continue
+            logger.info(
+                "Registry says chunk unchanged but vector missing/non-persistent; re-upserting %s",
+                chunk.chunk_id,
+            )
         if action == "modified":
             try:
                 vector_store.delete(ids=[chunk.chunk_id])
@@ -467,6 +483,13 @@ async def chat(request: Request):
             "latency_ms": round(sum(pre.stage_latencies.values()), 1),
             "customer_id": customer_id,
             "customer_injected": pre.gen_prompt is not None and pre.gen_prompt.customer_context is not None,
+            "answerability": {
+                "answerable": pre.answerability_decision.answerable,
+                "action": pre.answerability_decision.action,
+                "reason": pre.answerability_decision.reason,
+                "missing_evidence": pre.answerability_decision.missing_evidence,
+            } if getattr(pre, "answerability_decision", None) else None,
+            "evidence_claims": [],
         }
 
         # Handle refused queries (out-of-scope or pipeline errors)

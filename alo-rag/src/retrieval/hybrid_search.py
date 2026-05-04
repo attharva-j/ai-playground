@@ -14,11 +14,76 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from src.ingestion.index_builder import BM25Index, VectorStore
-from src.models import RetrievedChunk
+from src.models import Chunk, RetrievedChunk
 from src.retrieval.fusion import RRFFuser
 from src.retrieval.reranker import CrossEncoderReranker
 
 logger = logging.getLogger(__name__)
+
+
+_KNOWN_FABRICS = {
+    "airlift": "Airlift",
+    "airbrush": "Airbrush",
+    "alosoft": "Alosoft",
+    "softsculpt": "Alo Softsculpt",
+    "conquer": "Conquer",
+    "vapor": "Alo Vapor",
+}
+
+_POLICY_TAG_SIGNALS: dict[str, tuple[str, ...]] = {
+    "community_discount": (
+        "military discount",
+        "community discount",
+        "student discount",
+        "healthcare discount",
+        "first responder",
+        "govx",
+    ),
+    "sale_restriction": (
+        "aloversary",
+        "cyber monday",
+        "sale",
+        "promotional event",
+        "sale period",
+    ),
+    "promo_stacking": (
+        "stack",
+        "combine",
+        "combined",
+        "coupon",
+        "discount during",
+    ),
+    "final_sale": (
+        "final sale",
+        "return sale item",
+        "return discounted",
+    ),
+    "return_window": (
+        "return window",
+        "within 30 days",
+        "eligible for return",
+    ),
+    "exchange_policy": (
+        "exchange",
+        "larger size",
+        "smaller size",
+        "different size",
+        "size exchange",
+    ),
+}
+
+
+def _detect_policy_tags(query_text: str) -> set[str]:
+    q = query_text.lower()
+    tags: set[str] = set()
+    for tag, signals in _POLICY_TAG_SIGNALS.items():
+        if any(signal in q for signal in signals):
+            tags.add(tag)
+    return tags
+
+def _detect_fabrics(query_text: str) -> list[str]:
+    q = query_text.lower()
+    return [canonical for key, canonical in _KNOWN_FABRICS.items() if key in q]
 
 
 class HybridSearch:
@@ -56,6 +121,19 @@ class HybridSearch:
         self._bm25_index = bm25_index
         self._rrf_fuser = rrf_fuser
         self._reranker = reranker
+        self._policy_chunks_by_tag = self._build_policy_tag_index()
+    
+    def _build_policy_tag_index(self) -> dict[str, list[Chunk]]:
+        """Build an in-memory index from policy tag to chunks."""
+        by_tag: dict[str, list[Chunk]] = {}
+
+        for chunk in getattr(self._bm25_index, "chunks", []):
+            if chunk.metadata.domain != "policy":
+                continue
+            for tag in chunk.metadata.policy_tags:
+                by_tag.setdefault(tag, []).append(chunk)
+
+        return by_tag
 
     def search(
         self,
@@ -112,6 +190,62 @@ class HybridSearch:
         # 3. Apply metadata post-filters to de-prioritise irrelevant chunks
         if metadata_filter:
             fused = self._apply_metadata_post_filter(fused, metadata_filter)
+        
+        # Fabric/entity boost for comparison queries.
+        detected_fabrics = _detect_fabrics(query_text)
+        if len(detected_fabrics) >= 1:
+            boosted: list[RetrievedChunk] = []
+            for rc in fused:
+                meta = rc.chunk.metadata
+                if (
+                    meta.domain == "product"
+                    and meta.entity_type == "fabric"
+                    and meta.fabric_name in detected_fabrics
+                ):
+                    boosted.append(
+                        RetrievedChunk(
+                            chunk=rc.chunk,
+                            score=rc.score + 1.0,
+                            source=rc.source,
+                        )
+                    )
+                else:
+                    boosted.append(rc)
+
+            fused = sorted(boosted, key=lambda rc: rc.score, reverse=True)
+
+        # Add companion policy chunks for multi-clause policy questions.
+        query_policy_tags = _detect_policy_tags(query_text)
+        if query_policy_tags:
+            existing_ids = {rc.chunk.chunk_id for rc in fused}
+            companion_chunks: list[RetrievedChunk] = []
+
+            # If a query combines community discount + sale/promo language,
+            # both policy sections are needed for a complete answer.
+            companion_tags = set(query_policy_tags)
+            if "community_discount" in query_policy_tags:
+                companion_tags.update({"sale_restriction", "promo_stacking"})
+            if "sale_restriction" in query_policy_tags:
+                companion_tags.update({"community_discount", "promo_stacking"})
+            if "final_sale" in query_policy_tags:
+                companion_tags.update({"return_window"})
+            if "exchange_policy" in query_policy_tags:
+                companion_tags.update({"return_window", "final_sale"})
+
+            for tag in companion_tags:
+                for chunk in self._policy_chunks_by_tag.get(tag, []):
+                    if chunk.chunk_id not in existing_ids:
+                        companion_chunks.append(
+                            RetrievedChunk(
+                                chunk=chunk,
+                                score=0.25,
+                                source="companion",
+                            )
+                        )
+                        existing_ids.add(chunk.chunk_id)
+
+            if companion_chunks:
+                fused = fused + companion_chunks
 
         # 4. Rerank top candidates with cross-encoder
         # Feed more candidates than final_k to give the reranker a good pool
@@ -178,22 +312,19 @@ class HybridSearch:
         chunks: list[RetrievedChunk],
         metadata_filter: dict[str, Any],
     ) -> list[RetrievedChunk]:
-        """De-prioritise chunks that don't match the metadata filter.
+        """Apply hard metadata filtering with a safe fallback.
 
-        Matching chunks keep their original position; non-matching chunks
-        are moved to the end of the list (rather than removed entirely)
-        so the reranker still has a reasonable candidate pool.
+        For clear single-domain queries, irrelevant-domain chunks should not
+        be reranked or passed to generation. If filtering removes everything,
+        fall back to the original set so the system can still attempt a low-
+        confidence answer or trigger answerability handling.
         """
-        matching: list[RetrievedChunk] = []
-        non_matching: list[RetrievedChunk] = []
+        matching = [
+            rc for rc in chunks
+            if _chunk_matches_filter(rc, metadata_filter)
+        ]
 
-        for rc in chunks:
-            if _chunk_matches_filter(rc, metadata_filter):
-                matching.append(rc)
-            else:
-                non_matching.append(rc)
-
-        return matching + non_matching
+        return matching if matching else chunks
 
 
 def _chunk_matches_filter(

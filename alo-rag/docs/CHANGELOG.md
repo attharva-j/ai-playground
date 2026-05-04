@@ -390,29 +390,55 @@ evicted.
 
 ---
 
+---
+
 ## v0.16 — Panel Evaluation Hardening (May 3, 2026)
 
-**Problem identified:** The architecture was strong, but panel-readiness gaps remained: customer queries could proceed to generation without customer context, the evaluation framework was described as RAGAS/DeepEval when it was actually custom, fabric comparison queries relied on enriched product chunks rather than dedicated fabric entity chunks, and the eval harness lacked a fast smoke mode for quick regression testing.
+**Problem identified:** The architecture was strong, but panel-readiness gaps remained: answerability gating needed to affect the full `pipeline.run()` path used by evaluation, malformed guardrail JSON could still fail open, customer/order questions needed explicit clarification behavior, out-of-scope questions needed deterministic refusal, retrieval precision was still weak for fabric comparisons and multi-clause policy questions, behavior/refusal cases were being scored as normal retrieval failures, and the registry/vector-store lifecycle could silently degrade dense retrieval when using non-persistent Chroma.
 
-**Root cause:** The system could proceed to generation when required evidence was missing (especially for customer-domain queries); documentation overstated the evaluation tooling; and the eval harness had only one mode (full) with no quick regression path.
+**Root cause:** Several behaviors existed as design concepts or demo-path changes before they were fully wired into the synchronous pipeline and eval harness. The retriever also relied too heavily on generic dense/BM25 similarity for cases that needed retail-specific entities or policy tags. Finally, the evaluation harness originally treated all questions as answerable RAG QA, which incorrectly penalised safe clarification/refusal responses.
 
-**Changes made:**
-- Added `AnswerabilityDecision` dataclass and pre-generation answerability gate that short-circuits customer queries when no customer profile is selected
-- Added `FaithfulnessStatus` constants for explicit guardrail state tracking
-- Created first-class fabric glossary chunks (`fabric-airlift`, `fabric-airbrush`, etc.) from the product catalog's fabric glossary, with associated product IDs
-- Added smoke/full eval modes (`--mode smoke` runs 8 representative queries, `--mode full` runs all)
-- Added p50/p95 latency percentiles to eval output
-- Added `--save-baseline` and `--compare-baseline` flags to eval CLI
-- Fixed RAGAS/DeepEval documentation mismatch — moved to optional dependencies, updated tech stack description
-- Added ADR-8 (Evaluation Framework Design) explaining custom vs framework trade-offs
-- Added "Implemented vs Planned" section to README
+**Change made:**
+- Wired pre-generation `AnswerabilityDecision` checks into the full `pipeline.run()` path and the interactive `run_without_generation()` path.
+- Added deterministic customer-context clarification for order, return, purchase-history, loyalty, and “my last order” queries when `customer_id` is missing.
+- Added deterministic out-of-scope refusal for clearly unrelated questions such as weather, sports, stock, crypto, medical, legal, and recipe queries.
+- Changed the faithfulness guardrail to fail closed on malformed judge JSON, no-context verification, or verification errors instead of treating empty claims as success.
+- Added claim-level `EvidenceClaim` tracing for generated answers.
+- Added first-class fabric entity chunks such as `fabric-airlift` and `fabric-airbrush` so comparison queries retrieve fabric-level evidence instead of relying only on SKU/product chunks.
+- Added product/fabric metadata fields including `entity_type`, `fabric_name`, and policy metadata fields including `policy_tags`, `parent_id`, and `section_id`.
+- Added hard metadata post-filtering for clear single-domain queries to reduce irrelevant chunks before reranking.
+- Added policy tag detection and companion policy expansion for exchange/return-window, final-sale, community-discount, sale-restriction, and promo-stacking questions.
+- Fixed non-persistent Chroma startup behavior so chunks marked unchanged by the SQLite registry are still re-upserted when vectors are missing.
+- Added customer-specific eval schema fields such as `expected_behavior`, `requires_customer_context`, `expected_customer_id`, `expected_order_id`, `expected_product_id`, and `expected_customer_facts`.
+- Added behavior-aware evaluation so expected clarification/refusal cases are scored on correct action rather than Recall@5/MRR over nonexistent context.
+- Made `--mode smoke`, `--mode full`, `--output`, `--save-baseline`, and `--compare-baseline` functional in the eval CLI.
+- Added p50/p95 latency reporting and Behavior Success Rate reporting to aggregate eval output.
+- Updated the demo trace path to expose answerability state where available.
 
-**Evaluation impact:** Answerability gate prevents hallucinated customer responses. Fabric glossary chunks improve product comparison retrieval. Smoke mode enables sub-5-minute regression testing.
+**Files changed:**
+- `src/models.py`
+- `src/pipeline.py`
+- `src/generation/guardrails.py`
+- `src/generation/prompt_builder.py`
+- `src/ingestion/index_builder.py`
+- `src/ingestion/chunkers.py`
+- `src/retrieval/hybrid_search.py`
+- `src/query/intent_router.py`
+- `src/eval/harness.py`
+- `src/eval/__main__.py`
+- `src/eval/metrics.py`
+- `evals/test_queries.json`
+- `data/customers/customer_order_history.json`
+- `server.py`
+- `demo/app/page.tsx`
+- `README.md`
+- `docs/ADR.md`
+- `docs/failure_analysis.md`
+- `docs/production_readiness_memo.md`
+- `docs/CHANGELOG.md`
 
-**Additional hardening (v0.16.1):**
-- Made faithfulness guardrail fail closed on verification errors (returns score=0.0 instead of treating parse failure as success)
-- Added EvidenceClaim model for claim-level evidence tracing
-- Added rule-based query fast paths to skip LLM classification for obvious product/policy/customer queries
-- Added policy metadata tags (return_window, final_sale, community_discount, etc.) to policy chunks for improved BM25 matching
-- Added missing-context and refusal test queries (TQ-026, TQ-027, TQ-028)
-- Updated production readiness memo with current model names and measured latency
+**Evaluation impact:** The latest 8-query smoke run after hardening reported: Recall@5 `0.562`, MRR `0.562`, Context Precision `0.323`, Faithfulness `0.750`, Answer Relevance `0.762`, Hallucination Rate `0.250`, Mean Latency `8,654 ms`, p50 Latency `8,953 ms`, and p95 Latency `10,959 ms`. These smoke metrics are not a replacement for the full 28-query eval, but they confirm that answer relevance improved while retrieval precision and hallucination rate still require another pass. Behavior Success Rate should be interpreted only when the selected eval subset includes explicit `expected_behavior != "answer"` cases; otherwise it should be displayed as `N/A`.
+
+**Why this matters:** These changes move the system from a feature-rich RAG POC toward a production-credible enterprise assistant that knows when it can answer, when it should ask for missing customer context, when it should refuse out-of-scope requests, what evidence supports each claim, and how quality changes are measured across regressions.
+
+**Remaining follow-up:** Retrieval remains the biggest quality bottleneck. The next hardening pass should focus on improving Context Precision, calibrating reranker thresholds by domain, validating expected chunk IDs after chunking changes, and lowering hallucination rate below the panel target.

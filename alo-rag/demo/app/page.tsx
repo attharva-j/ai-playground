@@ -57,6 +57,19 @@ type TraceData = {
   latency_ms: number;
   stage_latencies: Record<string, number>;
   error?: string;
+  answerability?: {
+    answerable: boolean;
+    action: string;
+    reason: string;
+    missing_evidence: string[];
+  } | null;
+  evidence_claims?: {
+    claim: string;
+    evidence_type: string;
+    source_id: string | null;
+    supported: boolean;
+    risk_level: string;
+  }[];
 };
 
 function ThreadWithSuggestions() {
@@ -175,6 +188,16 @@ function TracePanel({
                 {trace.faithfulness?.regeneration_triggered &&
                   " (regenerated)"}
               </span>
+              {trace.answerability && (
+              <>
+                <span className="text-muted-foreground">Answerability:</span>
+                <span>
+                  {trace.answerability.answerable
+                    ? "✅ Answerable"
+                    : `⚠️ ${trace.answerability.action}`}
+                </span>
+              </>
+            )}
             </div>
           </div>
 
@@ -263,7 +286,6 @@ export default function Home() {
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [trace, setTrace] = useState<TraceData | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
-  const [messageCount, setMessageCount] = useState(0);
 
   useEffect(() => {
     fetch("http://localhost:8000/api/customers")
@@ -273,7 +295,6 @@ export default function Home() {
   }, []);
 
   // Poll for trace data after messages change
-  // We detect new assistant messages by watching the DOM for changes
   const fetchTrace = useCallback(() => {
     fetch("http://localhost:8000/api/trace")
       .then((res) => res.json())
@@ -287,13 +308,85 @@ export default function Home() {
 
   // Poll for trace updates periodically when a message might be in flight
   useEffect(() => {
-    // Fetch trace 2 seconds after component mounts and on interval
     const interval = setInterval(() => {
       fetchTrace();
     }, 3000);
     return () => clearInterval(interval);
   }, [fetchTrace]);
 
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <header className="flex items-center justify-between border-b px-6 py-3">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl font-bold tracking-widest">ALO</span>
+          <span className="text-sm text-muted-foreground">
+            Yoga Assistant
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="customer-select"
+              className="text-sm text-muted-foreground"
+            >
+              Signed in as:
+            </label>
+            <select
+              id="customer-select"
+              value={selectedCustomer}
+              onChange={(e) => {
+                setSelectedCustomer(e.target.value);
+                setTrace(null);
+              }}
+              className="rounded-md border bg-background px-3 py-1.5 text-sm"
+            >
+              <option value="">No customer (general query)</option>
+              {customers.map((c) => (
+                <option key={c.customer_id} value={c.customer_id}>
+                  {c.name} ({c.loyalty_tier})
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={() => {
+              fetchTrace();
+              setTraceOpen(!traceOpen);
+            }}
+            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+              traceOpen
+                ? "bg-foreground text-background"
+                : "hover:bg-muted"
+            }`}
+          >
+            🔍 Trace
+          </button>
+        </div>
+      </header>
+
+      {/* Chat — keyed by customer so the runtime hook re-initialises on switch */}
+      <ChatSession
+        key={`runtime-${selectedCustomer}`}
+        selectedCustomer={selectedCustomer}
+      />
+
+      {/* Trace Panel */}
+      <TracePanel
+        trace={trace}
+        isOpen={traceOpen}
+        onToggle={() => setTraceOpen(!traceOpen)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Inner component that owns the chat runtime.
+ * Keyed by selectedCustomer in the parent so React fully remounts it
+ * (and re-runs useChatRuntime) whenever the customer changes.
+ */
+function ChatSession({ selectedCustomer }: { selectedCustomer: string }) {
   const runtime = useChatRuntime({
     transport: new AssistantChatTransport({
       api: "/api/chat",
@@ -301,73 +394,10 @@ export default function Home() {
     }),
   });
 
-  // Use selectedCustomer as key to force full runtime reset on customer change.
-  // This clears all conversation history when switching customers.
-  const runtimeKey = `runtime-${selectedCustomer}`;
-
   return (
-    <AssistantRuntimeProvider key={runtimeKey} runtime={runtime}>
-      <div className="flex h-full flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b px-6 py-3">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold tracking-widest">ALO</span>
-            <span className="text-sm text-muted-foreground">
-              Yoga Assistant
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="customer-select"
-                className="text-sm text-muted-foreground"
-              >
-                Signed in as:
-              </label>
-              <select
-                id="customer-select"
-                value={selectedCustomer}
-                onChange={(e) => {
-                  setSelectedCustomer(e.target.value);
-                  setTrace(null);
-                }}
-                className="rounded-md border bg-background px-3 py-1.5 text-sm"
-              >
-                <option value="">No customer (general query)</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name} ({c.loyalty_tier})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={() => {
-                fetchTrace();
-                setTraceOpen(!traceOpen);
-              }}
-              className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-                traceOpen
-                  ? "bg-foreground text-background"
-                  : "hover:bg-muted"
-              }`}
-            >
-              🔍 Trace
-            </button>
-          </div>
-        </header>
-
-        {/* Chat */}
-        <div className="flex-1 overflow-hidden">
-          <ThreadWithSuggestions />
-        </div>
-
-        {/* Trace Panel */}
-        <TracePanel
-          trace={trace}
-          isOpen={traceOpen}
-          onToggle={() => setTraceOpen(!traceOpen)}
-        />
+    <AssistantRuntimeProvider runtime={runtime}>
+      <div className="flex-1 overflow-hidden">
+        <ThreadWithSuggestions />
       </div>
     </AssistantRuntimeProvider>
   );

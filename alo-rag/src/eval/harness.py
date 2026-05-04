@@ -44,6 +44,9 @@ class AggregateMetrics:
     mean_answer_relevance: float = 0.0
     hallucination_rate: float = 0.0
     mean_latency_ms: float = 0.0
+    p50_latency_ms: float = 0.0
+    p95_latency_ms: float = 0.0
+    behavior_success_rate: float = 0.0
     total_queries: int = 0
     queries_by_difficulty: dict[str, int] = field(default_factory=dict)
     queries_by_domain: dict[str, int] = field(default_factory=dict)
@@ -96,6 +99,12 @@ def load_test_queries(path: Path | str = _DEFAULT_TEST_QUERIES_PATH) -> list[Tes
                 expected_answer=entry["expected_answer"],
                 expected_chunk_ids=entry.get("expected_chunk_ids", []),
                 customer_id=entry.get("customer_id"),
+                expected_behavior=entry.get("expected_behavior", "answer"),
+                requires_customer_context=entry.get("requires_customer_context", False),
+                expected_customer_id=entry.get("expected_customer_id"),
+                expected_order_id=entry.get("expected_order_id"),
+                expected_product_id=entry.get("expected_product_id"),
+                expected_customer_facts=entry.get("expected_customer_facts", {}),
             )
         )
 
@@ -218,6 +227,20 @@ class EvalHarness:
             by_difficulty[tq.difficulty] = by_difficulty.get(tq.difficulty, 0) + 1
             by_domain[tq.domain] = by_domain.get(tq.domain, 0) + 1
 
+        latencies = sorted(r.latency_ms for r in results)
+        p50 = latencies[len(latencies) // 2]
+        p95 = latencies[min(int(len(latencies) * 0.95), len(latencies) - 1)]
+        behavior_results = [
+            r for r in results
+            if r.expected_behavior_matched is not None
+        ]
+        behavior_success_rate = (
+            sum(1 for r in behavior_results if r.expected_behavior_matched)
+            / len(behavior_results)
+            if behavior_results
+            else 0.0
+        )
+
         return AggregateMetrics(
             mean_recall_at_5=sum(r.recall_at_5 for r in results) / n,
             mean_mrr=sum(r.mrr for r in results) / n,
@@ -229,6 +252,9 @@ class EvalHarness:
             total_queries=n,
             queries_by_difficulty=by_difficulty,
             queries_by_domain=by_domain,
+            p50_latency_ms=p50,
+            p95_latency_ms=p95,
+            behavior_success_rate=behavior_success_rate,
         )
 
     # ------------------------------------------------------------------
@@ -243,6 +269,108 @@ class EvalHarness:
             query=tq.query,
             customer_id=tq.customer_id,
         )
+        
+        expected_behavior = getattr(tq, "expected_behavior", "answer")
+        answer_lower = pipeline_result.answer.lower()
+
+        answerability_action = (
+            pipeline_result.answerability_decision.action
+            if pipeline_result.answerability_decision
+            else "answer"
+        )
+
+        scope_refused = (
+            pipeline_result.trace is not None
+            and pipeline_result.trace.scope_decision is not None
+            and pipeline_result.trace.scope_decision.is_in_scope is False
+        )
+
+        expected_behavior_matched: bool | None = None
+
+        if expected_behavior == "clarify":
+            expected_behavior_matched = (
+                answerability_action == "clarify"
+                or (
+                    "need" in answer_lower
+                    and ("customer" in answer_lower or "order" in answer_lower)
+                )
+            )
+
+        elif expected_behavior == "refuse_out_of_scope":
+            expected_behavior_matched = (
+                answerability_action == "refuse_out_of_scope"
+                or scope_refused
+                or "outside my area of expertise" in answer_lower
+                or ("outside" in answer_lower and "alo" in answer_lower)
+            )
+
+        elif expected_behavior == "insufficient_context":
+            expected_behavior_matched = (
+                answerability_action == "refuse_insufficient_context"
+                or "don't have enough" in answer_lower
+                or "not enough" in answer_lower
+                or "insufficient" in answer_lower
+            )
+
+        elif expected_behavior == "answer":
+            # Normal answerable RAG queries are evaluated by retrieval/generation metrics.
+            # Keep this as None so aggregate behavior success is only computed over
+            # explicit behavior tests such as clarify/refuse/insufficient_context.
+            expected_behavior_matched = None
+
+        else:
+            expected_behavior_matched = None
+
+        # Safety/clarification/refusal cases should not be scored as retrieval failures.
+        if expected_behavior != "answer":
+            behavior_score = 1.0 if expected_behavior_matched else 0.0
+
+            return EvalResult(
+                query_id=tq.query_id,
+                recall_at_5=behavior_score,
+                mrr=behavior_score,
+                context_precision=behavior_score,
+                faithfulness=behavior_score,
+                answer_relevance=behavior_score,
+                has_hallucination=not bool(expected_behavior_matched),
+                latency_ms=latency_ms,
+                expected_behavior_matched=expected_behavior_matched,
+                customer_record_found=None,
+                correct_order_identified=None,
+                correct_item_identified=None,
+                customer_context_used=None,
+                answerability_action=answerability_action,
+            )
+
+        customer_record_found = None
+        correct_order_identified = None
+        correct_item_identified = None
+        customer_context_used = None
+
+        if tq.domain in {"customer", "cross-domain"} or tq.requires_customer_context:
+            available_evidence = set()
+            if pipeline_result.answerability_decision:
+                available_evidence = set(
+                    pipeline_result.answerability_decision.available_evidence
+                )
+
+            customer_context_used = (
+                "customer_profile" in available_evidence
+                or "[customer:" in answer_lower
+            )
+
+            if tq.expected_customer_id:
+                customer_record_found = (
+                    tq.expected_customer_id.lower() in answer_lower
+                    or "customer_profile" in available_evidence
+                )
+
+            if tq.expected_order_id:
+                correct_order_identified = tq.expected_order_id.lower() in answer_lower
+
+            if tq.expected_product_id:
+                correct_item_identified = tq.expected_product_id.lower() in answer_lower
+        
         latency_ms = (time.perf_counter() - t0) * 1000.0
 
         # Extract retrieved chunk IDs
@@ -282,4 +410,10 @@ class EvalHarness:
             answer_relevance=relevance,
             has_hallucination=has_hallucination,
             latency_ms=latency_ms,
+            expected_behavior_matched=expected_behavior_matched,
+            customer_record_found=customer_record_found,
+            correct_order_identified=correct_order_identified,
+            correct_item_identified=correct_item_identified,
+            customer_context_used=customer_context_used,
+            answerability_action=answerability_action,
         )

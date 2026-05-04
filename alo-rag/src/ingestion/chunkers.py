@@ -63,13 +63,20 @@ class ProductChunker:
 
             # Handle fabric glossary entries (entity_type == "fabric")
             if product.get("entity_type") == "fabric":
-                chunk_id = product.get("chunk_id", f"fabric-{product.get('fabric_name', 'unknown').lower()}")
+                fabric_name = product.get("fabric_name", "")
+                chunk_id = product.get(
+                    "chunk_id",
+                    f"fabric-{fabric_name.lower().replace(' ', '-')}",
+                )
+
                 chunk = Chunk(
                     chunk_id=chunk_id,
                     text=doc.content,
                     metadata=ChunkMetadata(
                         domain="product",
-                        fabric_type=product.get("fabric_name"),
+                        fabric_type=fabric_name,
+                        fabric_name=fabric_name,
+                        entity_type="fabric",
                     ),
                     source_document=doc.source,
                 )
@@ -90,6 +97,7 @@ class ProductChunker:
                     product_id=product_id,
                     category=product.get("category"),
                     fabric_type=product.get("fabric_type") or product.get("fabric"),
+                    entity_type="product",
                 ),
                 source_document=doc.source,
             )
@@ -172,6 +180,7 @@ class PolicyChunker:
             "loyalty_points": ["points", "loyalty", "tier", "a-list", "all access", "vip"],
             "promo_stacking": ["stacking", "cannot be combined", "one discount", "choose one"],
             "shipping_sla": ["shipping", "delivery", "business days", "processing time"],
+            "exchange_policy": ["exchange", "exchanges", "different size", "larger size", "smaller size", "size exchange"],
         }
         for tag, signals in tag_signals.items():
             if any(sig in text_lower for sig in signals):
@@ -202,17 +211,27 @@ class PolicyChunker:
                     continue
 
                 tags = self._detect_policy_tags(stripped)
+
+                section_counter += 1
+                section_id = f"{policy_type}-section-{section_counter}"
+
                 if tags:
                     stripped = stripped + f"\n\n[Policy tags: {', '.join(tags)}]"
 
-                section_counter += 1
                 chunk = Chunk(
-                    chunk_id=f"{policy_type}-section-{section_counter}",
+                    chunk_id=section_id,
                     text=stripped,
                     metadata=ChunkMetadata(
                         domain="policy",
                         policy_type=policy_type,
+                        policy_tags=tags,
+                        entity_type="policy_section",
+                        parent_id=f"{policy_type}-policy",
+                        section_id=section_id,
                         effective_date=effective_date,
+                        effective_from=doc.metadata.get("effective_from"),
+                        effective_to=doc.metadata.get("effective_to"),
+                        policy_version=doc.metadata.get("policy_version"),
                     ),
                     source_document=doc.source,
                 )

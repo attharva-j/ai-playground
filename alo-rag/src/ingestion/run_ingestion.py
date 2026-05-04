@@ -163,9 +163,11 @@ def run_ingestion(
     # ------------------------------------------------------------------
     logger.info("=== Step 4: Computing embeddings ===")
 
-    # Only embed new and modified chunks for efficiency.
-    # On first run all chunks are new, so all get embedded.
-    chunks_to_embed = all_chunks  # full list for index building
+    # For correctness, this CLI rebuilds the full local index every run.
+    # Incremental registry state is recorded for production/persistent index
+    # refresh workflows, but the local Chroma index is rebuilt from all active
+    # chunks so registry/vector-store drift cannot silently degrade retrieval.
+    chunks_to_embed = all_chunks
     embedding_service = EmbeddingService()
     texts_to_embed = [chunk.text for chunk in chunks_to_embed]
     embeddings = embedding_service.embed(texts_to_embed)

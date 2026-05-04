@@ -33,9 +33,17 @@ class ChunkMetadata:
     domain: str  # "product" | "policy"
     product_id: str | None = None
     category: str | None = None
-    fabric_type: str | None = None  # e.g. "Airlift", "Airbrush", "Alosoft"
-    policy_type: str | None = None  # "returns" | "shipping" | "promo" | "loyalty"
+    fabric_type: str | None = None
+    fabric_name: str | None = None
+    entity_type: str | None = None  # "product" | "fabric" | "policy_section"
+    policy_type: str | None = None
+    policy_tags: list[str] = field(default_factory=list)
+    parent_id: str | None = None
+    section_id: str | None = None
     effective_date: str | None = None
+    effective_from: str | None = None
+    effective_to: str | None = None
+    policy_version: str | None = None
 
 
 @dataclass
@@ -139,8 +147,7 @@ class ScopeDecision:
 
 @dataclass
 class AnswerabilityDecision:
-    """Pre-generation gate that determines whether the system has sufficient
-    evidence to produce a reliable answer."""
+    """Pre-generation decision about whether the system has enough evidence."""
 
     answerable: bool
     required_evidence: list[str] = field(default_factory=list)
@@ -176,6 +183,7 @@ class FaithfulnessStatus:
 @dataclass
 class EvidenceClaim:
     """Maps a generated answer claim to its supporting evidence source."""
+
     claim: str
     evidence_type: str  # "product" | "policy" | "customer" | "none"
     source_id: str | None = None
@@ -243,10 +251,18 @@ class TestQuery:
     query_id: str
     query: str
     domain: str
-    difficulty: str  # "easy" | "medium" | "hard"
+    difficulty: str
     expected_answer: str
     expected_chunk_ids: list[str] = field(default_factory=list)
     customer_id: str | None = None
+
+    # New customer/safety eval fields
+    expected_behavior: str = "answer"  # answer | clarify | insufficient_context | refuse_out_of_scope
+    requires_customer_context: bool = False
+    expected_customer_id: str | None = None
+    expected_order_id: str | None = None
+    expected_product_id: str | None = None
+    expected_customer_facts: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -261,3 +277,11 @@ class EvalResult:
     answer_relevance: float
     has_hallucination: bool
     latency_ms: float
+
+    # New structured behavior/customer metrics
+    expected_behavior_matched: bool | None = None
+    customer_record_found: bool | None = None
+    correct_order_identified: bool | None = None
+    correct_item_identified: bool | None = None
+    customer_context_used: bool | None = None
+    answerability_action: str | None = None

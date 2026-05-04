@@ -62,6 +62,7 @@ class VectorStore:
             metadata={"hnsw:space": "cosine"},
         )
         self._collection_name = collection_name
+        self._is_persistent = persist_directory is not None
 
     # ------------------------------------------------------------------
     # Write
@@ -179,31 +180,71 @@ class VectorStore:
 
     @staticmethod
     def _flatten_metadata(meta: ChunkMetadata) -> dict[str, str]:
-        """Convert a :class:`ChunkMetadata` to a flat string dict for ChromaDB."""
+        """Convert ChunkMetadata to a flat dict for ChromaDB."""
         flat: dict[str, str] = {"domain": meta.domain}
-        if meta.product_id is not None:
-            flat["product_id"] = meta.product_id
-        if meta.category is not None:
-            flat["category"] = meta.category
-        if meta.fabric_type is not None:
-            flat["fabric_type"] = meta.fabric_type
-        if meta.policy_type is not None:
-            flat["policy_type"] = meta.policy_type
-        if meta.effective_date is not None:
-            flat["effective_date"] = meta.effective_date
+
+        scalar_fields = [
+            "product_id",
+            "category",
+            "fabric_type",
+            "fabric_name",
+            "entity_type",
+            "policy_type",
+            "parent_id",
+            "section_id",
+            "effective_date",
+            "effective_from",
+            "effective_to",
+            "policy_version",
+        ]
+
+        for field_name in scalar_fields:
+            value = getattr(meta, field_name, None)
+            if value is not None:
+                flat[field_name] = str(value)
+
+        if meta.policy_tags:
+            flat["policy_tags"] = ",".join(meta.policy_tags)
+
         return flat
 
     @staticmethod
     def _unflatten_metadata(meta: dict[str, Any]) -> ChunkMetadata:
-        """Reconstruct a :class:`ChunkMetadata` from a flat dict."""
+        """Reconstruct ChunkMetadata from a flat Chroma metadata dict."""
+        tags = meta.get("policy_tags")
+        policy_tags = tags.split(",") if isinstance(tags, str) and tags else []
+
         return ChunkMetadata(
             domain=meta.get("domain", ""),
             product_id=meta.get("product_id"),
             category=meta.get("category"),
             fabric_type=meta.get("fabric_type"),
+            fabric_name=meta.get("fabric_name"),
+            entity_type=meta.get("entity_type"),
             policy_type=meta.get("policy_type"),
+            policy_tags=policy_tags,
+            parent_id=meta.get("parent_id"),
+            section_id=meta.get("section_id"),
             effective_date=meta.get("effective_date"),
+            effective_from=meta.get("effective_from"),
+            effective_to=meta.get("effective_to"),
+            policy_version=meta.get("policy_version"),
         )
+    
+    @property
+    def is_persistent(self) -> bool:
+        return self._is_persistent
+
+
+    def count(self) -> int:
+        """Return number of vectors in the collection."""
+        return int(self._collection.count())
+
+
+    def contains(self, chunk_id: str) -> bool:
+        """Return True if the vector store contains the chunk ID."""
+        result = self._collection.get(ids=[chunk_id], include=[])
+        return bool(result and result.get("ids"))
 
 
 # ---------------------------------------------------------------------------
@@ -228,6 +269,15 @@ class BM25Index:
         self._bm25 = bm25
         self._chunks = chunks
         self._tokenized_corpus = tokenized_corpus
+    
+    
+    @property
+    def chunks(self) -> list[Chunk]:
+        """Return chunks backing the BM25 index.
+
+        Used by higher-level retrieval logic for companion chunk expansion.
+        """
+        return self._chunks
 
     def query(
         self,
@@ -261,7 +311,6 @@ class BM25Index:
             )
 
         return results
-
 
 class BM25Builder:
     """Builds a :class:`BM25Index` from a list of chunks."""

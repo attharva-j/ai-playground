@@ -10,6 +10,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,13 @@ def main() -> None:
         "--compare-baseline",
         action="store_true",
         help="Compare results against stored baseline",
+    )
+
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Optional path to write JSON eval results",
     )
     args = parser.parse_args()
 
@@ -184,6 +192,7 @@ def main() -> None:
     print(f"  Mean Answer Relevance:  {aggregate.mean_answer_relevance:.3f}")
     print(f"  Hallucination Rate:     {aggregate.hallucination_rate:.3f}")
     print(f"  Mean Latency:           {aggregate.mean_latency_ms:.0f} ms")
+    print(f"  Behavior Success Rate: {aggregate.behavior_success_rate:.3f}")
     print("-" * 70)
 
     if aggregate.queries_by_difficulty:
@@ -236,6 +245,42 @@ def main() -> None:
                 print(f"    → {rec}")
             print()
 
+    from dataclasses import asdict
+    from datetime import datetime, timezone
+    from src.eval.regression import RegressionHarness
+
+    payload = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "mode": args.mode,
+        "aggregate": asdict(aggregate),
+        "results": [asdict(r) for r in results],
+    }
+
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(f"Saved eval results to {args.output}")
+
+    regression = RegressionHarness()
+
+    if args.save_baseline:
+        regression.save_baseline(results)
+        print("Saved regression baseline to evals/baseline.json")
+
+    if args.compare_baseline:
+        if not regression.has_baseline():
+            print("No baseline found at evals/baseline.json. Run with --save-baseline first.")
+        else:
+            report = regression.run_and_compare(results)
+            print("\nRegression comparison:")
+            print(f"  Improved:  {report.improved}")
+            print(f"  Regressed: {report.regressed}")
+            print(f"  Unchanged: {len(report.unchanged)} queries")
+            print(f"  New:       {report.new_queries}")
+            print(f"  Removed:   {report.removed_queries}")
+            print("  Summary deltas:")
+            for metric, delta in sorted(report.summary.items()):
+                print(f"    {metric}: {delta:+.3f}")
 
 if __name__ == "__main__":
     main()

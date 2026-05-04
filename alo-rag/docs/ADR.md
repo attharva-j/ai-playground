@@ -14,14 +14,14 @@ Skim through the overview for a quick understanding of architecture decisions; k
 
 | # | Decision area | Chosen | One-line reason | Future path |
 |---|---|---|---|---|
-| ADR-1 | Chunking | Per-domain: one chunk per product; section-based for policies | Each domain has different boundary rules; splitting a policy clause across chunks breaks retrieval on edge cases | Sliding-window chunking for products at large catalog scale; late chunking if corpus grows significantly |
+| ADR-1 | Chunking | Per-domain: one chunk per product + fabric entity chunks; section-based policy chunks with tags | Each domain has different boundary rules; fabric comparison and policy edge cases need entity/section-level evidence | Sliding-window chunking for large catalog scale; parent-child section expansion if policy corpus grows significantly |
 | ADR-2 | Embedding model | **voyage-3** (primary) + all-mpnet-base-v2 (auto-fallback) | voyage-3 leads MTEB benchmarks on retail/policy text; fallback prevents hard dependency on a single API | Domain fine-tuned embeddings for production; evaluate Cohere embed-v3 if vendor consolidation matters |
-| ADR-3 | Retrieval | Hybrid dense + sparse BM25, fused via **RRF (k=60)** | Dense misses rare vocabulary (SKUs, brand names); BM25 misses abstract paraphrase; RRF merges them without score-scale tuning | SPLADE learned sparse retrieval; managed vector DB (Pinecone/Weaviate) at scale |
+| ADR-3 | Retrieval | Hybrid dense + sparse BM25, fused via **RRF (k=60)**, with hard domain filters, fabric boosts, and policy companion chunks | Dense misses rare vocabulary; BM25 misses abstract paraphrase; entity/tag-aware retrieval improves precision for retail terms and multi-clause policy questions | SPLADE learned sparse retrieval; managed vector DB (Pinecone/Weaviate/OpenSearch) at scale |
 | ADR-3b | HyDE | Activated **only for policy queries** (confidence > 0.5), using GPT-4.1-nano | Policy queries have the widest vocabulary gap between casual language and formal document text; other domains don't benefit enough to justify the added LLM call | Query rewriting before retrieval for multi-turn conversations (rewrites follow-up queries into standalone queries) |
-| ADR-4 | Customer data | **Structured JSON lookup** by `customer_id`; never embedded | Return eligibility needs exact booleans and date arithmetic — operations semantic search cannot perform; embedding PII creates privacy risk | PostgreSQL / DynamoDB for production; row-level security at the storage layer |
-| ADR-5 | Prompt architecture | Numbered chunks with ID + relevance score; optional customer section; last 3 conversation turns injected | Chunk IDs enable source citation and guardrail verification; scores let the model weight uncertain context; history resolves pronouns without touching retrieval | Query-aware history rewriting before retrieval; dynamic `final_k` tuned per domain from eval data |
+| ADR-4 | Customer data | **Structured JSON lookup** by `customer_id`; never embedded; answerability gate for missing customer context | Return eligibility needs exact booleans and date arithmetic; embedding PII creates privacy risk; missing customer data must trigger clarification, not generation | PostgreSQL / DynamoDB for production; row-level security and authenticated session binding at the storage layer |
+| ADR-5 | Prompt architecture | Numbered chunks with ID + relevance score; optional customer section; answerability/evidence-contract trace; last 3 conversation turns injected | Chunk IDs enable source citation and guardrail verification; answerability prevents unsupported answers; evidence contracts expose claim support | Query-aware history rewriting before retrieval; dynamic `final_k` tuned per domain from eval data |
 | ADR-6 | Reranker model | **BAAI/bge-reranker-base** + `min_score = -3.0` floor | MiniLM-L6 (MS MARCO trained) scored 0.208 Context Precision; bge-reranker-base is trained on diverse corpora including domain-specific text; same interface, free, local | bge-reranker-v2-m3 on GPU (~150ms); ONNX export for 5× CPU speedup; fine-tuned model on ALO pairs long-term |
-| ADR-7 | Eval tooling | **Custom LLM-as-judge** prompts; RAGAS + DeepEval installed but not active | Full control over scoring rubric; prompts inspectable in the same file as the metric; uses existing LLM client | Integrate RAGAS at stable release; NLI model replacing LLM-as-judge for faithfulness; LangSmith for team dashboards |
+| ADR-7 | Eval tooling | **Custom LLM-as-judge** prompts + deterministic retrieval metrics + behavior-aware safety metrics; RAGAS + DeepEval installed but not active | Full control over scoring rubric; behavior tests score clarify/refuse actions separately from answerable QA; uses existing LLM client | Integrate RAGAS/DeepEval adapters at stable release; NLI model replacing LLM-as-judge for faithfulness; LangSmith for team dashboards |
 
 ---
 
@@ -101,7 +101,7 @@ Skim through the overview for a quick understanding of architecture decisions; k
 | NLI model for faithfulness | Requires downloading and validating a local model in the target environment | Next iteration; cuts guardrail latency from ~800ms to ~200ms |
 | ONNX reranker export | One-time manual export step requiring the target environment to be available | When deployment environment is confirmed |
 | Query-aware retrieval history | Requires an additional LLM call per multi-turn query; needs multi-turn eval queries to measure benefit | Stable release |
-| 30–50 customer profiles | Requires generating synthetic data with realistic edge cases beyond the 8 provided | Before production eval |
+| 50+ customer profiles with adversarial/long-tail edge cases | The panel-hardening pass expanded the synthetic dataset target to 25 profiles; a larger set would support better distributional coverage | Before production pilot |
 ---
 
 ## ADR-1: Per-Domain Chunking Strategy
@@ -114,8 +114,9 @@ The ALO RAG system ingests three distinct knowledge domains — product catalog 
 
 Use domain-specific chunking strategies:
 
-- **Products:** One chunk per product, concatenating all fields (name, description, materials, sizing, care instructions, features) into a single text block with metadata tags for `product_id`, `category`, and `fabric_type`.
-- **Policies:** Semantic section-based chunking that splits at heading boundaries and topic shifts, preserving complete conditional logic blocks (if/then/else rules) within a single chunk. Metadata includes `policy_type` and `effective_date`.
+- **Products:** One chunk per product, concatenating all fields (name, description, materials, sizing, care instructions, features) into a single text block with metadata tags for `product_id`, `category`, `fabric_type`, and `entity_type="product"`.
+- **Fabric entities:** First-class fabric glossary chunks such as `fabric-airlift` and `fabric-airbrush` are generated alongside product chunks. These chunks contain comparison-ready fabric attributes and are tagged with `entity_type="fabric"` and `fabric_name` so fabric comparison queries retrieve fabric-level evidence instead of relying on incidental SKU-level text.
+- **Policies:** Semantic section-based chunking that splits at heading boundaries and topic shifts, preserving complete conditional logic blocks (if/then/else rules) within a single chunk. Metadata includes `policy_type`, `effective_date`, `policy_tags`, `entity_type="policy_section"`, `parent_id`, and `section_id`.
 - **Customers:** No chunking — customer data is handled via structured lookup (see ADR-4).
 
 ### Alternatives Considered
@@ -125,7 +126,7 @@ Use domain-specific chunking strategies:
 
 ### Rationale
 
-Product queries almost always need the full product context ("What fabric is the Airlift Legging made of?" requires fabric, materials, and care instructions together). One-chunk-per-product guarantees a single retrieval hit returns everything. Policy queries frequently target conditional rules ("Can I return a Final Sale item?"), and splitting those rules across chunks would force the retriever to find and reassemble both halves — a fragile pattern. The cost is larger average chunk size for products, but since the catalog is modest (< 100 SKUs), this is acceptable.
+Product queries often need the full product context ("What fabric is the Airlift Legging made of?" requires fabric, materials, and care instructions together). One-chunk-per-product guarantees a single retrieval hit returns product-level evidence. However, comparison questions such as "Airlift vs Airbrush" are better answered from fabric-level entities than from arbitrary product SKUs, so the system now creates fabric glossary chunks with deterministic IDs and metadata. Policy queries frequently target conditional rules ("Can I return a Final Sale item?"), and splitting those rules across chunks would force the retriever to find and reassemble both halves — a fragile pattern. Policy tags and parent/section IDs make those related clauses easier to retrieve and trace.
 
 ---
 
@@ -177,6 +178,12 @@ RRF_score(chunk) = Σ  1 / (rank_i(chunk) + k)
 Where `rank_i` is the 1-based position of the chunk in result list `i`, and `k=60` prevents the highest-ranked chunks from dominating when the list is short. A chunk appearing in both lists receives the sum of both contributions — it is promoted relative to chunks appearing in only one list.
 
 The merged list is passed to the cross-encoder reranker, which scores the top candidates jointly and applies a minimum score threshold before returning the final `final_k` chunks.
+
+Recent hardening added three domain-specific retrieval controls:
+
+- **Hard metadata filtering** for clear single-domain queries so product-only queries do not pass policy chunks to reranking, and policy-only queries do not pass product chunks unless the query is cross-domain.
+- **Fabric/entity boosting** for known fabric terms such as Airlift and Airbrush so comparison queries retrieve `entity_type="fabric"` chunks.
+- **Policy tag companion expansion** for multi-clause policy questions such as military/community discount during a sale event or exchange/return-window questions.
 
 ### Alternatives Considered
 
@@ -238,7 +245,9 @@ Customer order data includes personally identifiable information (names, emails)
 
 ### Decision
 
-Handle customer data via **structured JSON lookup** by `customer_id`, not via embedding similarity search. The `CustomerContextInjector` loads customer profiles from a JSON file and retrieves them by exact ID match. Customer data is injected directly into the generation prompt alongside retrieved policy/product chunks.
+Handle customer data via **structured JSON lookup** by `customer_id`, not via embedding similarity search. The `CustomerContextInjector` loads customer profiles from JSON and retrieves them by exact ID match. Customer data is injected directly into the generation prompt alongside retrieved policy/product chunks only when a customer-specific query has valid customer context.
+
+A pre-generation **answerability gate** now checks whether required evidence is available before generation. Customer/order-status questions without a customer profile are short-circuited into a clarification response rather than being answered from generic product or policy context.
 
 ### Alternatives Considered
 
@@ -252,7 +261,7 @@ Handle customer data via **structured JSON lookup** by `customer_id`, not via em
 
 ### Rationale
 
-Customer queries are fundamentally different from product and policy queries. They require precise, structured data — exact order dates, boolean flags, numerical totals — not semantic similarity. Structured lookup is faster, more accurate, privacy-safe, and always returns current state. The `customer_id` is provided by the demo UI's dropdown, so there is no need for fuzzy matching or retrieval-based customer identification.
+Customer queries are fundamentally different from product and policy queries. They require precise, structured data — exact order dates, boolean flags, numerical totals — not semantic similarity. Structured lookup is faster, more accurate, privacy-safe, and always returns current state. The `customer_id` is provided by the demo UI's dropdown, so there is no need for fuzzy matching or retrieval-based customer identification. The answerability gate is intentionally conservative: if customer evidence is required and not available, the system asks for the customer profile/order context instead of producing a plausible but unsupported answer.
 
 
 ---
@@ -292,6 +301,12 @@ For multi-turn conversations, the last 6 messages (3 user-assistant exchanges) a
 
 - At POC scale with a small catalog this is not triggered
 - Production mitigation: if total chunk text exceeds approximately 6,000 tokens, lower-scoring chunks are dropped from the bottom of the ranked list before prompt assembly
+
+### Answerability and evidence contract
+
+Before prompt construction, the pipeline computes an `AnswerabilityDecision` containing required evidence, available evidence, missing evidence, confidence, reason, and action. The generation layer is skipped when the action is `clarify`, `refuse_insufficient_context`, or `refuse_out_of_scope`. This prevents the model from answering customer/order questions without customer context or policy questions without relevant policy evidence.
+
+The pipeline also records `EvidenceClaim` entries for generated claims when faithfulness verification runs. Each evidence claim maps a natural-language claim to an evidence type (`product`, `policy`, `customer`, or `none`), a source ID when available, support status, and risk level. This is primarily an auditability mechanism for the trace panel and failure analysis; it is not used as a replacement for deterministic retrieval metrics.
 
 ### Alternatives considered
 
@@ -375,6 +390,8 @@ Three categories of tooling were available:
 
 Implement generation metrics using **custom LLM-as-judge prompts** via the existing `LLMClient`, with **custom Python implementations** of retrieval metrics (Recall@5, MRR, Context Precision). No framework library is used as the active evaluation engine.
 
+The harness now also supports **behavior-aware evaluation** for queries whose expected outcome is not an answer, such as `clarify`, `insufficient_context`, and `refuse_out_of_scope`. These cases are scored on whether the system took the correct action instead of being incorrectly penalised for having no retrieved chunks.
+
 RAGAS and DeepEval are retained as installed dependencies for one specific reason: they are candidates for integration in a future iteration and keeping them installed means the integration can be validated without a separate environment setup step. They are not imported or called anywhere in the current codebase.
 
 ### Why LLM-as-judge over RAGAS
@@ -411,6 +428,8 @@ TruLens is primarily designed for LangChain and LlamaIndex pipelines and require
 
 RAGAS includes context recall and context precision implementations. These were not adopted for the same reasons as the generation metrics: the custom implementations in `RetrievalMetrics` are direct, readable, and do not require reformatting chunk ID lists into RAGAS data structures. Recall@5, MRR, and Context Precision are standard IR formulas with no meaningful quality difference between a custom implementation and a library implementation of the same formula.
 
+For expected clarification/refusal cases, the harness avoids treating the absence of retrieved chunks as a retrieval failure. Instead, it computes behavior success from `expected_behavior` and the pipeline's answerability/scope decision. This prevents safe refusals from inflating hallucination rate.
+
 ### Alternatives summary
 
 | Option | Verdict | Rationale |
@@ -431,13 +450,13 @@ RAGAS includes context recall and context precision implementations. These were 
 
 ### Requirements traceability
 
-This decision addresses the brief's explicit requirement to explain evaluation tooling choices. The implemented metrics satisfy R14.1 (Recall@K), R14.2 (MRR), R14.3 (Context Precision), R15.1 (Faithfulness), R15.2 (Answer Relevance), and R15.3 (Hallucination Rate).
+This decision addresses the brief's explicit requirement to explain evaluation tooling choices. The implemented metrics satisfy R14.1 (Recall@K), R14.2 (MRR), R14.3 (Context Precision), R15.1 (Faithfulness), R15.2 (Answer Relevance), and R15.3 (Hallucination Rate). The behavior-aware metrics extend this with explicit scoring for clarification/refusal cases that would otherwise be incorrectly counted as retrieval or hallucination failures.
 
 ---
 
 ## ADR-6: What I Would Do Differently with 2 Additional Weeks
 
-1. **Expand the customer dataset to 30-50 profiles.** The current 8 profiles cover key edge cases well but don't represent the breadth needed for a robust eval suite. Additional profiles should cover: international customers (different return rules), split shipments, partial returns, customers with expiring loyalty points, customers who have used community discounts, and customers with orders spanning multiple sale events.
+1. **Expand the customer dataset beyond the current synthetic target of 25 profiles to 50+ profiles.** The panel-hardening pass added a broader target set of customer edge cases, including international orders, split shipments, partial returns, expiring loyalty points, community discounts, sale-event purchases, and cancelled orders. A production-grade eval suite should go further with adversarial and long-tail profiles: duplicate names, multiple open returns, mixed payment methods, gift returns, fraud-review holds, and incomplete tracking data.
 
 2. **Implement semantic query caching.** Embed each incoming query and compare it against a cache of recent query embeddings using cosine similarity. If similarity exceeds 0.95, return the cached answer without running the pipeline. In a real customer support context, a high proportion of queries are near-duplicates. This alone could eliminate pipeline execution for 40-60% of production traffic.
 
@@ -474,6 +493,11 @@ These metrics are computed by comparing retrieved chunk IDs against ground-truth
 - Answer Relevance: does the answer address the user's question?
 - Hallucination Rate: proportion of answers with at least one unsupported claim
 
+**Behavior and customer-context metrics** (deterministic/action-aware):
+- Behavior Success Rate: whether expected clarification/refusal cases took the correct action
+- Customer context usage: whether customer-profile evidence was available and used when required
+- Order/item correctness fields: expected order ID, customer ID, product ID, and customer facts for structured customer queries
+
 ### Why not RAGAS/DeepEval directly
 
 1. RAGAS and DeepEval metrics are largely LLM-as-judge based themselves — using them does not avoid the cost or non-determinism of LLM evaluation.
@@ -483,4 +507,51 @@ These metrics are computed by comparing retrieved chunk IDs against ground-truth
 
 ### Rationale
 
-Custom metrics give full control over what "correct" means in this domain. The deterministic retrieval metrics are the most trustworthy signal; the LLM-as-judge metrics provide a useful but noisy generation quality estimate.
+Custom metrics give full control over what "correct" means in this domain. The deterministic retrieval metrics are the most trustworthy signal for answerable RAG questions; behavior-aware metrics are the most trustworthy signal for safe clarification/refusal cases; and LLM-as-judge metrics provide a useful but noisy generation quality estimate.
+
+
+---
+
+## ADR-9: Panel Evaluation Hardening Decisions
+
+### Context
+
+The initial hardening pass showed that the system had strong architectural components but could still fail in panel-visible ways: customer/order questions could reach generation without customer context, out-of-scope questions could be scored as hallucinations, policy questions could miss companion clauses, and retrieval/generation metrics could punish correct clarification behavior.
+
+### Decision
+
+Add explicit safety and evaluation controls around the existing RAG pipeline rather than adding another framework layer:
+
+1. **Answerability gate before generation:** The pipeline now checks whether required evidence is present before prompt construction. Missing customer context triggers clarification. Missing required product/policy context triggers an insufficient-context response.
+2. **Fail-closed faithfulness guardrail:** Malformed judge responses and verification errors no longer default to success. High-risk customer/policy answers fail closed when faithfulness cannot be verified.
+3. **Evidence contract tracing:** Claim-level support is represented through `EvidenceClaim` records for auditability.
+4. **Behavior-aware evaluation:** `expected_behavior` allows the harness to score clarification and out-of-scope refusal cases separately from normal answerable RAG questions.
+5. **Domain-specific retrieval hardening:** Hard domain filters, fabric entity chunks, policy tags, companion policy expansion, and deterministic out-of-scope guards make the system less dependent on generic semantic similarity.
+6. **Registry/vector-store safety:** For non-persistent Chroma startup, chunks marked unchanged in the registry are still re-upserted if vectors are missing, preventing silent dense-index degradation.
+
+### Rationale
+
+These changes shift the system from "retrieve and answer" toward an enterprise support assistant that can decide whether it should answer at all. That distinction matters for retail policy and customer-order workflows: a safe clarification is better than a fluent but unsupported answer. The changes also make the eval harness more honest by separating answerable QA quality from behavior correctness.
+
+### Current measured signal
+
+The latest smoke evaluation after hardening is not final production evidence, but it is useful as a regression checkpoint:
+
+| Metric | Smoke eval |
+|---|---:|
+| Queries evaluated | 8 |
+| Mean Recall@5 | 0.562 |
+| Mean MRR | 0.562 |
+| Mean Context Precision | 0.323 |
+| Mean Faithfulness | 0.750 |
+| Mean Answer Relevance | 0.762 |
+| Hallucination Rate | 0.250 |
+| Mean Latency | 8,654 ms |
+| p50 Latency | 8,953 ms |
+| p95 Latency | 10,959 ms |
+
+The signal is mixed: answer relevance improved and latency is lower than earlier full-eval runs, but retrieval precision and hallucination rate still require work. Behavior Success Rate should only be interpreted when the selected eval subset contains explicit `expected_behavior != "answer"` cases; otherwise it should be displayed as `N/A`.
+
+### Next step
+
+Before production pilot, focus on retrieval precision rather than adding more architecture: inspect failed smoke/full queries, compare expected vs retrieved chunk IDs, tune policy companion expansion, and calibrate reranker thresholds per domain.

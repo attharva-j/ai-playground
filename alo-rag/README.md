@@ -63,7 +63,7 @@ Source data lives in `data/` with three subdirectories:
 |---|---|
 | `data/products/` | `alo_product_catalog.json` — product catalog with SKUs, fabrics, sizing, care instructions |
 | `data/policies/` | Markdown policy documents — returns, shipping, loyalty program, promotions |
-| `data/customers/` | `customer_order_history.json` — 8 synthetic customer profiles with order histories |
+| `data/customers/` | `customer_order_history.json` — 25 synthetic customer profiles with order histories |
 
 See `data/README.md` for detailed descriptions of each data file and the intentional retrieval challenges built into the dataset.
 
@@ -253,11 +253,9 @@ alo-rag/
 - HyDE for policy queries (GPT-4o-mini)
 - Parallel HyDE + decomposition via ThreadPoolExecutor
 - Structured customer lookup (not embedded)
-- Pre-generation answerability gate for customer/policy queries
-- Faithfulness guardrail with regeneration (eval harness only)
+- Pre-generation answerability gate for missing customer context and insufficient retrieved evidence- Faithfulness guardrail with regeneration (eval harness only)
 - Multi-turn conversation context (last 3 exchanges)
-- Incremental ingestion via DocumentRegistry (SHA-256 content hashing)
-- True token-by-token streaming from OpenAI API
+- Local registry-based change detection with safe re-upsert behavior for non-persistent Chroma startup- True token-by-token streaming from OpenAI API
 - Custom evaluation harness with deterministic retrieval + LLM-as-judge generation metrics
 - Smoke and full eval modes with regression comparison
 - Next.js chat UI with pipeline trace panel

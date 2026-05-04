@@ -38,6 +38,8 @@ from src.models import (
     ScopeDecision,
     SubQuery,
     TraceLog,
+    EvidenceClaim,
+    FaithfulnessStatus,
 )
 from src.query.decomposer import QueryDecomposer
 from src.query.hyde import HyDEModule
@@ -72,6 +74,7 @@ class PreGenerationResult:
     stage_latencies: dict[str, float]
     is_refused: bool = False
     refusal_message: str | None = None
+    answerability_decision: AnswerabilityDecision | None = None
 
 
 class Pipeline:
@@ -181,6 +184,70 @@ class Pipeline:
                 query, pipeline_start, stage_latencies,
             )
 
+        if self._is_obvious_out_of_scope(query):
+            scope_decision = ScopeDecision(
+                is_in_scope=False,
+                reason="Query is clearly outside ALO product, policy, and customer support scope.",
+                suggested_response=(
+                    "I'm sorry, but that question is outside my area of expertise. "
+                    "I can help with ALO Yoga products, policies, shipping, returns, "
+                    "promotions, loyalty benefits, and customer order questions."
+                ),
+            )
+
+            return self._build_result(
+                answer=scope_decision.suggested_response,
+                query=query,
+                classification=classification,
+                scope_decision=scope_decision,
+                hyde_activated=False,
+                all_chunks=[],
+                reranking_scores=[],
+                faithfulness_result=None,
+                decomposed_queries=None,
+                hyde_hypothetical=None,
+                uncertainty_note=None,
+                stage_latencies=stage_latencies,
+                pipeline_start=pipeline_start,
+                answerability_decision=AnswerabilityDecision(
+                    answerable=False,
+                    required_evidence=[],
+                    available_evidence=[],
+                    missing_evidence=[],
+                    confidence=1.0,
+                    reason="Out-of-scope query.",
+                    action="refuse_out_of_scope",
+                ),
+                evidence_claims=[],
+            )
+
+        # ── Stage 1.5: Deterministic out-of-scope guard ─────────────────
+        if self._is_obvious_out_of_scope(query):
+            scope_decision = ScopeDecision(
+                is_in_scope=False,
+                reason="Query is clearly outside ALO product, policy, and customer support scope.",
+                suggested_response=(
+                    "I'm sorry, but that question is outside my area of expertise. "
+                    "I can help with ALO Yoga products, policies, shipping, returns, "
+                    "promotions, loyalty benefits, and customer order questions."
+                ),
+            )
+            return self._build_result(
+                answer=scope_decision.suggested_response,
+                query=query,
+                classification=classification,
+                scope_decision=scope_decision,
+                hyde_activated=False,
+                all_chunks=[],
+                reranking_scores=[],
+                faithfulness_result=None,
+                decomposed_queries=None,
+                hyde_hypothetical=None,
+                uncertainty_note=None,
+                stage_latencies=stage_latencies,
+                pipeline_start=pipeline_start,
+            )
+
         # ── Stage 2: Scope Guard (if ambiguous) ─────────────────────
         if classification.is_ambiguous:
             try:
@@ -229,6 +296,67 @@ class Pipeline:
                     ),
                 )
                 uncertainty_note = scope_decision.uncertainty_note
+        # ── Stage 2.5: Early customer prerequisite gate ─────────────────────
+        customer_profile = None
+        early_answerability: AnswerabilityDecision | None = None
+
+        if self._query_requires_customer_context(query, classification):
+            if not customer_id:
+                early_answerability = AnswerabilityDecision(
+                    answerable=False,
+                    required_evidence=["customer_profile"],
+                    available_evidence=[],
+                    missing_evidence=["customer_profile"],
+                    confidence=0.0,
+                    reason="This query requires customer/order context, but no customer_id was provided.",
+                    action="clarify",
+                )
+                return self._build_result(
+                    answer=self._answerability_message(early_answerability),
+                    query=query,
+                    classification=classification,
+                    scope_decision=scope_decision,
+                    hyde_activated=False,
+                    all_chunks=[],
+                    reranking_scores=[],
+                    faithfulness_result=None,
+                    decomposed_queries=None,
+                    hyde_hypothetical=None,
+                    uncertainty_note=uncertainty_note,
+                    stage_latencies=stage_latencies,
+                    pipeline_start=pipeline_start,
+                    answerability_decision=early_answerability,
+                    evidence_claims=[],
+                )
+
+            customer_profile = self._load_customer_profile(customer_id, stage_latencies)
+            if customer_profile is None:
+                early_answerability = AnswerabilityDecision(
+                    answerable=False,
+                    required_evidence=["customer_profile"],
+                    available_evidence=[],
+                    missing_evidence=["customer_profile"],
+                    confidence=0.0,
+                    reason=f"No customer profile found for customer_id={customer_id}.",
+                    action="refuse_insufficient_context",
+                )
+                return self._build_result(
+                    answer=self._answerability_message(early_answerability),
+                    query=query,
+                    classification=classification,
+                    scope_decision=scope_decision,
+                    hyde_activated=False,
+                    all_chunks=[],
+                    reranking_scores=[],
+                    faithfulness_result=None,
+                    decomposed_queries=None,
+                    hyde_hypothetical=None,
+                    uncertainty_note=uncertainty_note,
+                    stage_latencies=stage_latencies,
+                    pipeline_start=pipeline_start,
+                    answerability_decision=early_answerability,
+                    evidence_claims=[],
+                )
 
         # ── Stages 3 + 4: HyDE and Decomposition (parallel) ─────────
         # HyDE and decomposition are independent of each other — both
@@ -274,29 +402,47 @@ class Pipeline:
             # Continue with empty chunks — generation will note lack of context
 
         # ── Stage 6: Customer Context Injection ──────────────────────
-        customer_profile = None
-        if customer_id:
-            try:
-                t0 = time.perf_counter()
-                customer_profile = self._customer_injector.get_customer(customer_id)
-                stage_latencies["customer_context"] = _elapsed_ms(t0)
-                if customer_profile:
-                    logger.info(
-                        "Pipeline — loaded customer profile: %s",
-                        customer_id,
-                    )
-                else:
-                    logger.info(
-                        "Pipeline — customer_id=%r not found",
-                        customer_id,
-                    )
-            except Exception:
-                logger.exception(
-                    "Pipeline — customer context failed; stage=customer_context, "
-                    "input=%r",
-                    customer_id,
-                )
+        if customer_profile is None and customer_id:
+            customer_profile = self._load_customer_profile(customer_id, stage_latencies)
 
+        if customer_id and customer_profile:
+            logger.info(
+                "Pipeline — loaded customer profile: %s",
+                customer_id,
+            )
+        elif customer_id and customer_profile is None:
+            logger.info(
+                "Pipeline — customer_id=%r not found",
+                customer_id,
+            )
+
+        # ── Stage 6.5: Evidence answerability gate ───────────────────
+        answerability_decision = self._check_answerability(
+            query=query,
+            classification=classification,
+            customer_id=customer_id,
+            customer_profile=customer_profile,
+            chunks=all_chunks,
+        )
+
+        if not answerability_decision.answerable:
+            return self._build_result(
+                answer=self._answerability_message(answerability_decision),
+                query=query,
+                classification=classification,
+                scope_decision=scope_decision,
+                hyde_activated=hyde_activated,
+                all_chunks=all_chunks,
+                reranking_scores=reranking_scores,
+                faithfulness_result=None,
+                decomposed_queries=decomposed_queries,
+                hyde_hypothetical=hyde_hypothetical,
+                uncertainty_note=uncertainty_note,
+                stage_latencies=stage_latencies,
+                pipeline_start=pipeline_start,
+                answerability_decision=answerability_decision,
+                evidence_claims=[],
+            )
         # ── Stage 7: Prompt Building ─────────────────────────────────
         try:
             t0 = time.perf_counter()
@@ -371,29 +517,60 @@ class Pipeline:
             )
             stage_latencies["faithfulness_guardrail"] = _elapsed_ms(t0)
 
-            # Use regenerated answer if regeneration was triggered
-            if faithfulness_result.regeneration_triggered and faithfulness_result.regenerated_answer:
+            high_risk = self._is_high_risk_domain(classification)
+
+            if faithfulness_result.status in {
+                FaithfulnessStatus.FAILED_VERIFICATION_ERROR,
+                FaithfulnessStatus.FAILED_NO_CONTEXT,
+            } and high_risk:
+                answer = (
+                    "I don't have enough verified evidence to answer this safely. "
+                    "Please check the source policy or provide more specific context."
+                )
+            elif (
+                faithfulness_result.status == FaithfulnessStatus.FAILED_UNSUPPORTED
+                and high_risk
+            ):
+                answer = (
+                    "I found some relevant information, but I could not verify every "
+                    "claim needed to answer this safely. Please review the cited source "
+                    "documents or ask a narrower question."
+                )
+            elif (
+                faithfulness_result.regeneration_triggered
+                and faithfulness_result.regenerated_answer
+                and faithfulness_result.status == FaithfulnessStatus.PASSED
+            ):
                 answer = faithfulness_result.regenerated_answer
-                logger.info(
-                    "Pipeline — using regenerated answer (faithfulness=%.2f)",
-                    faithfulness_result.score,
-                )
-            else:
-                logger.info(
-                    "Pipeline — faithfulness score=%.2f",
-                    faithfulness_result.score,
-                )
+
         except Exception:
             logger.exception(
-                "Pipeline — faithfulness guardrail failed; stage=faithfulness_guardrail, "
-                "input=%r. Returning original answer.",
-                query,
+                "Pipeline — faithfulness guardrail failed; failing closed for high-risk domains"
             )
+            if self._is_high_risk_domain(classification):
+                faithfulness_result = FaithfulnessResult(
+                    score=0.0,
+                    claims=[],
+                    unsupported_claims=[],
+                    regeneration_triggered=False,
+                    regenerated_answer=None,
+                    status=FaithfulnessStatus.FAILED_VERIFICATION_ERROR,
+                )
+                answer = (
+                    "I don't have enough verified evidence to answer this safely. "
+                    "Please try again or ask a narrower question."
+                )
             # Continue with the original answer — better than no answer
 
         # ── Stage 10: Append uncertainty note (R11.3) ────────────────
         if uncertainty_note:
             answer = f"{answer}\n\n---\n*Note: {uncertainty_note}*"
+        
+        evidence_claims = self._build_evidence_claims(
+            faithfulness_result=faithfulness_result,
+            chunks=all_chunks,
+            customer_profile=customer_profile,
+        )
 
         # ── Build final result ───────────────────────────────────────
         return self._build_result(
@@ -410,6 +587,8 @@ class Pipeline:
             uncertainty_note=uncertainty_note,
             stage_latencies=stage_latencies,
             pipeline_start=pipeline_start,
+            answerability_decision=answerability_decision,
+            evidence_claims=evidence_claims,
         )
 
     # ------------------------------------------------------------------
@@ -449,6 +628,39 @@ class Pipeline:
                 hyde_activated=False, hyde_hypothetical=None,
                 stage_latencies=stage_latencies,
                 is_refused=True, refusal_message=_ERROR_RESPONSE,
+            )
+        
+        if self._is_obvious_out_of_scope(query):
+            scope_decision = ScopeDecision(
+                is_in_scope=False,
+                reason="Query is clearly outside ALO product, policy, and customer support scope.",
+                suggested_response=(
+                    "I'm sorry, but that question is outside my area of expertise. "
+                    "I can help with ALO Yoga products, policies, shipping, returns, "
+                    "promotions, loyalty benefits, and customer order questions."
+                ),
+            )
+
+            return PreGenerationResult(
+                gen_prompt=None,
+                chunks=[],
+                classification=classification,
+                scope_decision=scope_decision,
+                uncertainty_note=None,
+                hyde_activated=False,
+                hyde_hypothetical=None,
+                stage_latencies=stage_latencies,
+                is_refused=True,
+                refusal_message=scope_decision.suggested_response,
+                answerability_decision=AnswerabilityDecision(
+                    answerable=False,
+                    required_evidence=[],
+                    available_evidence=[],
+                    missing_evidence=[],
+                    confidence=1.0,
+                    reason="Out-of-scope query.",
+                    action="refuse_out_of_scope",
+                ),
             )
 
         # Stage 2: Scope guard
@@ -494,6 +706,30 @@ class Pipeline:
         except Exception:
             logger.exception("run_without_generation — retrieval failed")
 
+            answerability = AnswerabilityDecision(
+                answerable=False,
+                required_evidence=["retrieved_context"],
+                available_evidence=[],
+                missing_evidence=["retrieved_context"],
+                confidence=0.0,
+                reason="Retrieval failed before relevant context could be loaded.",
+                action="refuse_insufficient_context",
+            )
+
+            return PreGenerationResult(
+                gen_prompt=None,
+                chunks=[],
+                classification=classification,
+                scope_decision=scope_decision,
+                uncertainty_note=uncertainty_note,
+                hyde_activated=hyde_activated,
+                hyde_hypothetical=hyde_hypothetical,
+                stage_latencies=stage_latencies,
+                is_refused=True,
+                refusal_message=self._answerability_message(answerability),
+                answerability_decision=answerability,
+            )
+
         # Stage 6: Customer context
         customer_profile = None
         if customer_id:
@@ -514,25 +750,20 @@ class Pipeline:
         )
 
         if not answerability.answerable:
-            # Build a clarifying/refusal message
-            if answerability.action == "clarify":
-                refusal = (
-                    "I can help with that, but I need to know which customer "
-                    "you are. Please select a customer profile from the dropdown "
-                    "to access order-specific information."
-                )
-            else:
-                refusal = (
-                    "I don't have enough information to answer that question "
-                    "reliably. " + answerability.reason
-                )
+            refusal_message = self._answerability_message(answerability)
+
             return PreGenerationResult(
-                gen_prompt=None, chunks=all_chunks,
+                gen_prompt=None,
+                chunks=all_chunks,
                 classification=classification,
-                scope_decision=scope_decision, uncertainty_note=uncertainty_note,
-                hyde_activated=hyde_activated, hyde_hypothetical=hyde_hypothetical,
+                scope_decision=scope_decision,
+                uncertainty_note=uncertainty_note,
+                hyde_activated=hyde_activated,
+                hyde_hypothetical=hyde_hypothetical,
                 stage_latencies=stage_latencies,
-                is_refused=True, refusal_message=refusal,
+                is_refused=True,
+                refusal_message=refusal_message,
+                answerability_decision=answerability,
             )
 
         # Stage 7: Prompt building
@@ -545,26 +776,207 @@ class Pipeline:
         except Exception:
             logger.exception("run_without_generation — prompt building failed")
             return PreGenerationResult(
-                gen_prompt=None, chunks=all_chunks,
+                gen_prompt=None,
+                chunks=all_chunks,
                 classification=classification,
-                scope_decision=scope_decision, uncertainty_note=uncertainty_note,
-                hyde_activated=hyde_activated, hyde_hypothetical=hyde_hypothetical,
+                scope_decision=scope_decision,
+                uncertainty_note=uncertainty_note,
+                hyde_activated=hyde_activated,
+                hyde_hypothetical=hyde_hypothetical,
                 stage_latencies=stage_latencies,
-                is_refused=True, refusal_message=_ERROR_RESPONSE,
+                is_refused=True,
+                refusal_message=self._answerability_message(answerability),
+                answerability_decision=answerability,
             )
 
         return PreGenerationResult(
-            gen_prompt=gen_prompt, chunks=all_chunks,
+            gen_prompt=gen_prompt,
+            chunks=all_chunks,
             classification=classification,
-            scope_decision=scope_decision, uncertainty_note=uncertainty_note,
-            hyde_activated=hyde_activated, hyde_hypothetical=hyde_hypothetical,
+            scope_decision=scope_decision,
+            uncertainty_note=uncertainty_note,
+            hyde_activated=hyde_activated,
+            hyde_hypothetical=hyde_hypothetical,
             stage_latencies=stage_latencies,
-            is_refused=False, refusal_message=None,
+            is_refused=False,
+            refusal_message=None,
+            answerability_decision=answerability,
         )
 
     # ------------------------------------------------------------------
     # Answerability gate
     # ------------------------------------------------------------------
+
+    def _is_obvious_out_of_scope(self, query: str) -> bool:
+        """Detect clearly non-ALO queries before retrieval/generation."""
+        q = query.lower()
+
+        out_of_scope_signals = (
+            "weather",
+            "stock price",
+            "stock market",
+            "bitcoin",
+            "crypto",
+            "medical advice",
+            "legal advice",
+            "who is the president",
+            "sports score",
+            "nba",
+            "nfl",
+            "recipe",
+        )
+
+        return any(signal in q for signal in out_of_scope_signals)
+
+    def _is_obvious_out_of_scope(self, query: str) -> bool:
+        """Detect clearly non-ALO queries before retrieval/generation."""
+        q = query.lower()
+
+        out_of_scope_signals = (
+            "weather",
+            "stock price",
+            "stock market",
+            "bitcoin",
+            "crypto",
+            "medical advice",
+            "legal advice",
+            "who is the president",
+            "sports score",
+            "nba",
+            "nfl",
+            "recipe",
+        )
+
+        return any(signal in q for signal in out_of_scope_signals)
+
+    def _query_requires_customer_context(
+        self,
+        query: str,
+        classification: IntentClassification,
+    ) -> bool:
+        """Return True when answering requires structured customer context."""
+        q = query.lower()
+
+        customer_phrases = (
+            "my order",
+            "my return",
+            "my purchase",
+            "my shipment",
+            "my delivery",
+            "my account",
+            "my points",
+            "my loyalty",
+            "what did i buy",
+            "order status",
+            "return status",
+            "last order",
+            "last season",
+            "my last order",
+            "items from my last order",
+            "return the items",
+        )
+
+        if any(p in q for p in customer_phrases):
+            return True
+
+        if "my" in q and any(
+            term in q
+            for term in ("order", "return", "purchase", "items", "shipment", "points")
+        ):
+            return True
+
+        customer_score = classification.domains.get("customer", 0.0)
+        return customer_score >= 0.5
+
+
+    def _answerability_message(self, decision: AnswerabilityDecision) -> str:
+        """Convert an AnswerabilityDecision into a safe user-facing response."""
+        if decision.action == "clarify":
+            return (
+                "I can help with that, but I need the customer profile or order "
+                "context first. I do not have enough information to determine "
+                "order-specific details from the product or policy knowledge base alone."
+            )
+
+        return (
+            "I don't have enough reliable information to answer that question. "
+            f"{decision.reason}"
+        )
+
+
+    def _load_customer_profile(
+        self,
+        customer_id: str | None,
+        stage_latencies: dict[str, float],
+    ) -> Any | None:
+        """Load customer profile with timing and error handling."""
+        if not customer_id:
+            return None
+
+        try:
+            t0 = time.perf_counter()
+            profile = self._customer_injector.get_customer(customer_id)
+            stage_latencies["customer_context"] = _elapsed_ms(t0)
+            return profile
+        except Exception:
+            logger.exception(
+                "Pipeline — customer context failed; stage=customer_context, input=%r",
+                customer_id,
+            )
+            return None
+
+
+    def _build_evidence_claims(
+        self,
+        faithfulness_result: FaithfulnessResult | None,
+        chunks: list[RetrievedChunk],
+        customer_profile: Any | None,
+    ) -> list[EvidenceClaim]:
+        """Build claim-level evidence contracts from guardrail output."""
+        if not faithfulness_result:
+            return []
+
+        chunk_domain_by_id = {
+            rc.chunk.chunk_id: rc.chunk.metadata.domain
+            for rc in chunks
+        }
+
+        claims: list[EvidenceClaim] = []
+        for claim in faithfulness_result.claims:
+            source_id = claim.supporting_chunk_id
+            evidence_type = "none"
+
+            if source_id:
+                evidence_type = chunk_domain_by_id.get(source_id, "none")
+
+            if customer_profile and source_id and source_id.startswith("customer:"):
+                evidence_type = "customer"
+
+            risk_level = "low"
+            if evidence_type in {"policy", "customer"}:
+                risk_level = "high"
+
+            claims.append(
+                EvidenceClaim(
+                    claim=claim.text,
+                    evidence_type=evidence_type,
+                    source_id=source_id,
+                    supported=claim.supported,
+                    risk_level=risk_level,
+                )
+            )
+
+        return claims
+
+
+    def _is_high_risk_domain(self, classification: IntentClassification) -> bool:
+        """Policy/customer/cross-domain answers should fail closed."""
+        return (
+            classification.primary_domain in {"policy", "customer"}
+            or classification.is_multi_domain
+            or classification.domains.get("policy", 0.0) > 0.3
+            or classification.domains.get("customer", 0.0) > 0.3
+        )
 
     def _check_answerability(
         self,
@@ -858,8 +1270,10 @@ class Pipeline:
         uncertainty_note: str | None,
         stage_latencies: dict[str, float],
         pipeline_start: float,
+        answerability_decision: AnswerabilityDecision | None = None,
+        evidence_claims: list[EvidenceClaim] | None = None,
     ) -> PipelineResult:
-        """Assemble the final :class:`PipelineResult` with trace log."""
+        """Assemble the final PipelineResult with trace log."""
         total_latency = _elapsed_ms(pipeline_start)
 
         trace = TraceLog(
@@ -870,6 +1284,7 @@ class Pipeline:
             hyde_hypothetical=hyde_hypothetical,
             decomposed_queries=decomposed_queries,
             scope_decision=scope_decision,
+            answerability_decision=answerability_decision,
             retrieval_results=all_chunks,
             reranking_scores=reranking_scores,
             faithfulness_result=faithfulness_result,
@@ -877,21 +1292,15 @@ class Pipeline:
             stage_latencies=stage_latencies,
         )
 
-        faithfulness_score = (
-            faithfulness_result.score if faithfulness_result else None
-        )
-
-        logger.info(
-            "Pipeline — completed in %.1f ms (faithfulness=%s)",
-            total_latency,
-            f"{faithfulness_score:.2f}" if faithfulness_score is not None else "N/A",
-        )
+        faithfulness_score = faithfulness_result.score if faithfulness_result else None
 
         return PipelineResult(
             answer=answer,
             chunks=all_chunks,
             trace=trace,
             faithfulness_score=faithfulness_score,
+            answerability_decision=answerability_decision,
+            evidence_claims=evidence_claims or [],
         )
 
     def _error_result(

@@ -20,6 +20,7 @@ from src.eval.failure_analysis import FailureAnalyzer, FailureReport
 from src.eval.metrics import GenerationMetrics, RetrievalMetrics
 from src.eval.regression import RegressionHarness, RegressionReport
 from src.models import EvalResult
+from src.eval.harness import load_test_queries
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -595,3 +596,31 @@ class TestRegressionHarness:
                                           delta_threshold=0.01)
         report_tight = harness_tight.run_and_compare(current)
         assert "TQ-001" in report_tight.regressed
+    
+    def test_load_test_queries_parses_expected_behavior(tmp_path: Path) -> None:
+        path = tmp_path / "queries.json"
+        path.write_text(
+            json.dumps(
+                {
+                    "queries": [
+                        {
+                            "query_id": "TQ-X",
+                            "query": "What is my order status?",
+                            "domain": "customer",
+                            "difficulty": "easy",
+                            "expected_answer": "Need customer context.",
+                            "expected_chunk_ids": [],
+                            "customer_id": None,
+                            "expected_behavior": "clarify",
+                            "requires_customer_context": True,
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        queries = load_test_queries(path)
+
+        assert queries[0].expected_behavior == "clarify"
+        assert queries[0].requires_customer_context is True

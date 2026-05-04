@@ -22,7 +22,7 @@
               "color": "Vintage Pink",
               "size": "S",
               "quantity": 1,
-              "unit_price": 118.00,
+              "unit_price": 118.0,
               "was_discounted": true,
               "discount_pct": 30,
               "final_sale": true
@@ -33,16 +33,16 @@
               "color": "Black/White",
               "size": "S",
               "quantity": 1,
-              "unit_price": 82.00,
+              "unit_price": 82.0,
               "was_discounted": true,
               "discount_pct": 30,
               "final_sale": true
             }
           ],
-          "subtotal": 140.00,
-          "shipping": 0.00,
+          "subtotal": 140.0,
+          "shipping": 0.0,
           "shipping_method": "Free Standard",
-          "total": 140.00,
+          "total": 140.0,
           "payment_method": "Visa ending 4821",
           "delivery_address": "Los Angeles, CA",
           "delivered_date": "2024-12-03",
@@ -60,16 +60,16 @@
               "color": "Black",
               "size": "S",
               "quantity": 1,
-              "unit_price": 128.00,
+              "unit_price": 128.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 128.00,
-          "shipping": 0.00,
+          "subtotal": 128.0,
+          "shipping": 0.0,
           "shipping_method": "Free Standard",
-          "total": 128.00,
+          "total": 128.0,
           "payment_method": "Visa ending 4821",
           "delivery_address": "Los Angeles, CA",
           "delivered_date": "2024-09-15",
@@ -87,21 +87,21 @@
               "color": "Bone",
               "size": "S",
               "quantity": 1,
-              "unit_price": 134.00,
+              "unit_price": 134.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 134.00,
-          "shipping": 0.00,
-          "total": 134.00,
+          "subtotal": 134.0,
+          "shipping": 0.0,
+          "total": 134.0,
           "payment_method": "Visa ending 4821",
           "delivery_address": "Los Angeles, CA",
           "return_date": "2024-07-01",
           "return_reason": "Wrong size — ordered S but needed XS",
           "refund_issued": true,
-          "refund_amount": 134.00,
+          "refund_amount": 134.0,
           "notes": "Return within 30-day window"
         }
       ]
@@ -126,7 +126,7 @@
               "color": "Navy",
               "size": "M",
               "quantity": 1,
-              "unit_price": 128.00,
+              "unit_price": 128.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -137,16 +137,16 @@
               "color": "Black",
               "size": "Standard",
               "quantity": 1,
-              "unit_price": 148.00,
+              "unit_price": 148.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 276.00,
-          "shipping": 0.00,
+          "subtotal": 276.0,
+          "shipping": 0.0,
           "shipping_method": "Free 2-Day (All Access benefit)",
-          "total": 276.00,
+          "total": 276.0,
           "payment_method": "Mastercard ending 7734",
           "delivery_address": "New York, NY",
           "delivered_date": "2025-01-17",
@@ -164,7 +164,7 @@
               "color": "Black",
               "size": "M",
               "quantity": 1,
-              "unit_price": 134.00,
+              "unit_price": 134.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -175,16 +175,16 @@
               "color": "Black",
               "size": "M",
               "quantity": 1,
-              "unit_price": 72.00,
+              "unit_price": 72.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 206.00,
-          "shipping": 0.00,
+          "subtotal": 206.0,
+          "shipping": 0.0,
           "shipping_method": "Free 2-Day (All Access benefit)",
-          "total": 206.00,
+          "total": 206.0,
           "payment_method": "Mastercard ending 7734",
           "delivery_address": "New York, NY",
           "delivered_date": "2024-12-28",
@@ -202,15 +202,15 @@
               "color": "Light Provence Blue",
               "size": "M",
               "quantity": 2,
-              "unit_price": 118.00,
+              "unit_price": 118.0,
               "was_discounted": true,
               "discount_pct": 30,
               "final_sale": true
             }
           ],
-          "subtotal": 165.20,
-          "shipping": 0.00,
-          "total": 165.20,
+          "subtotal": 165.2,
+          "shipping": 0.0,
+          "total": 165.2,
           "payment_method": "Visa ending 1122",
           "store_location": "Alo SoHo, New York, NY",
           "notes": "Aloversary Sale — Final Sale items"
@@ -237,7 +237,7 @@
               "color": "Black",
               "size": "XS",
               "quantity": 1,
-              "unit_price": 118.00,
+              "unit_price": 118.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -248,16 +248,16 @@
               "color": "Black",
               "size": "XS",
               "quantity": 1,
-              "unit_price": 62.00,
+              "unit_price": 62.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 180.00,
-          "shipping": 0.00,
+          "subtotal": 180.0,
+          "shipping": 0.0,
           "shipping_method": "Free Standard",
-          "total": 180.00,
+          "total": 180.0,
           "payment_method": "Visa ending 9901",
           "delivery_address": "Miami, FL",
           "delivered_date": "2024-10-19",
@@ -285,7 +285,7 @@
               "color": "Black",
               "size": "L",
               "quantity": 1,
-              "unit_price": 128.00,
+              "unit_price": 128.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -296,16 +296,16 @@
               "color": "White",
               "size": "L",
               "quantity": 2,
-              "unit_price": 78.00,
+              "unit_price": 78.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 284.00,
-          "shipping": 0.00,
+          "subtotal": 284.0,
+          "shipping": 0.0,
           "shipping_method": "Free 2-Day (A-List benefit)",
-          "total": 284.00,
+          "total": 284.0,
           "payment_method": "Amex ending 3345",
           "delivery_address": "Chicago, IL",
           "delivered_date": "2025-02-10",
@@ -323,7 +323,7 @@
               "color": "Navy",
               "size": "L",
               "quantity": 1,
-              "unit_price": 68.00,
+              "unit_price": 68.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -334,7 +334,7 @@
               "color": "Black",
               "size": "L",
               "quantity": 1,
-              "unit_price": 78.00,
+              "unit_price": 78.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -345,15 +345,15 @@
               "color": "Jet Black",
               "size": "L",
               "quantity": 1,
-              "unit_price": 88.00,
+              "unit_price": 88.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 234.00,
-          "shipping": 0.00,
-          "total": 234.00,
+          "subtotal": 234.0,
+          "shipping": 0.0,
+          "total": 234.0,
           "payment_method": "Amex ending 3345",
           "delivery_address": "Chicago, IL",
           "delivered_date": "2024-08-08",
@@ -371,15 +371,15 @@
               "color": "Black",
               "size": "L",
               "quantity": 1,
-              "unit_price": 68.00,
+              "unit_price": 68.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 68.00,
-          "shipping": 0.00,
-          "total": 68.00,
+          "subtotal": 68.0,
+          "shipping": 0.0,
+          "total": 68.0,
           "payment_method": "Amex ending 3345",
           "delivery_address": "Chicago, IL",
           "delivered_date": "2024-05-07",
@@ -409,7 +409,7 @@
               "color": "Candy Heart Pink",
               "size": "XS",
               "quantity": 1,
-              "unit_price": 128.00,
+              "unit_price": 128.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -420,7 +420,7 @@
               "color": "Lavender",
               "size": "XS",
               "quantity": 1,
-              "unit_price": 98.00,
+              "unit_price": 98.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -431,16 +431,16 @@
               "color": "Blush",
               "size": "24 oz",
               "quantity": 1,
-              "unit_price": 48.00,
+              "unit_price": 48.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 274.00,
-          "shipping": 0.00,
+          "subtotal": 274.0,
+          "shipping": 0.0,
           "shipping_method": "Free 2-Day (All Access benefit)",
-          "total": 274.00,
+          "total": 274.0,
           "payment_method": "Visa ending 6612",
           "delivery_address": "San Francisco, CA",
           "delivered_date": "2025-01-24",
@@ -458,7 +458,7 @@
               "color": "Black",
               "size": "XS",
               "quantity": 3,
-              "unit_price": 82.60,
+              "unit_price": 82.6,
               "was_discounted": true,
               "discount_pct": 30,
               "final_sale": true
@@ -469,16 +469,16 @@
               "color": "Navy",
               "size": "XS",
               "quantity": 2,
-              "unit_price": 89.60,
+              "unit_price": 89.6,
               "was_discounted": true,
               "discount_pct": 30,
               "final_sale": true
             }
           ],
-          "subtotal": 427.00,
-          "shipping": 0.00,
+          "subtotal": 427.0,
+          "shipping": 0.0,
           "shipping_method": "Free 2-Day (All Access benefit)",
-          "total": 427.00,
+          "total": 427.0,
           "payment_method": "Visa ending 6612",
           "delivery_address": "San Francisco, CA",
           "delivered_date": "2024-12-03",
@@ -506,7 +506,7 @@
               "color": "Bone",
               "size": "M",
               "quantity": 1,
-              "unit_price": 114.00,
+              "unit_price": 114.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -517,16 +517,16 @@
               "color": "Lavender",
               "size": "M",
               "quantity": 1,
-              "unit_price": 104.00,
+              "unit_price": 104.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 218.00,
-          "shipping": 0.00,
+          "subtotal": 218.0,
+          "shipping": 0.0,
           "shipping_method": "Free Standard",
-          "total": 218.00,
+          "total": 218.0,
           "payment_method": "PayPal",
           "delivery_address": "Seattle, WA",
           "delivered_date": "2024-07-24",
@@ -544,15 +544,15 @@
               "color": "White",
               "size": "M",
               "quantity": 1,
-              "unit_price": 114.00,
+              "unit_price": 114.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 114.00,
-          "shipping": 0.00,
-          "total": 114.00,
+          "subtotal": 114.0,
+          "shipping": 0.0,
+          "total": 114.0,
           "payment_method": "PayPal",
           "delivery_address": "Seattle, WA",
           "delivered_date": "2024-10-05",
@@ -583,7 +583,7 @@
               "color": "Athletic Heather Grey",
               "size": "M",
               "quantity": 1,
-              "unit_price": 128.00,
+              "unit_price": 128.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -594,7 +594,7 @@
               "color": "Black",
               "size": "M",
               "quantity": 1,
-              "unit_price": 68.00,
+              "unit_price": 68.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -605,16 +605,16 @@
               "color": "Midnight",
               "size": "Standard",
               "quantity": 1,
-              "unit_price": 148.00,
+              "unit_price": 148.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 344.00,
-          "shipping": 0.00,
+          "subtotal": 344.0,
+          "shipping": 0.0,
           "shipping_method": "Free 2-Day (A-List benefit)",
-          "total": 344.00,
+          "total": 344.0,
           "payment_method": "Apple Pay / Visa",
           "delivery_address": "Brooklyn, NY",
           "delivered_date": "2024-10-22",
@@ -642,7 +642,7 @@
               "color": "Winter Frost",
               "size": "S",
               "quantity": 1,
-              "unit_price": 128.00,
+              "unit_price": 128.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
@@ -653,20 +653,728 @@
               "color": "White",
               "size": "S",
               "quantity": 1,
-              "unit_price": 72.00,
+              "unit_price": 72.0,
               "was_discounted": false,
               "discount_pct": 0,
               "final_sale": false
             }
           ],
-          "subtotal": 200.00,
-          "shipping": 0.00,
+          "subtotal": 200.0,
+          "shipping": 0.0,
           "shipping_method": "Free Standard",
-          "total": 200.00,
+          "total": 200.0,
           "payment_method": "Visa ending 0012",
           "delivery_address": "San Francisco, CA",
           "estimated_delivery": "2025-02-03",
           "notes": "New customer — first order placed after email sign-up discount."
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10505",
+      "name": "Chloe Jones",
+      "email": "synthetic.customer.10505@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 120,
+      "member_since": "2025-01-04",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10505",
+          "order_date": "2025-02-14",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Austin, TX",
+          "subtotal": 118.0,
+          "shipping": 7.95,
+          "total": 125.95,
+          "payment_method": "Visa ending 1021",
+          "notes": "Standard return-eligible order inside normal return window — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W5561R-BLK",
+              "name": "High-Waist Airlift Legging",
+              "color": "Black",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 118.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10506",
+      "name": "Ellie Brannock",
+      "email": "synthetic.customer.10506@example.com",
+      "loyalty_tier": "A-List",
+      "loyalty_points": 760,
+      "member_since": "2023-06-18",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10506",
+          "order_date": "2024-11-29",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Free Standard",
+          "delivery_address": "Chicago, IL",
+          "subtotal": 82.0,
+          "shipping": 0.0,
+          "total": 57.4,
+          "payment_method": "Mastercard ending 2209",
+          "notes": "Black Friday discounted final sale item — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W2201R-BLK",
+              "name": "Airlift Suit Up Bra",
+              "color": "Black",
+              "size": "L",
+              "quantity": 1,
+              "unit_price": 82.0,
+              "was_discounted": true,
+              "discount_pct": 30,
+              "final_sale": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10507",
+      "name": "Michael Hall",
+      "email": "synthetic.customer.10507@example.com",
+      "loyalty_tier": "VIP",
+      "loyalty_points": 1840,
+      "member_since": "2021-03-09",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10507",
+          "order_date": "2024-08-01",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Free 2-Day",
+          "delivery_address": "Seattle, WA",
+          "subtotal": 148.0,
+          "shipping": 0.0,
+          "total": 148.0,
+          "payment_method": "Amex ending 8801",
+          "notes": "Delivered order outside the standard return window — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W6201R-BNE",
+              "name": "ALO Softsculpt High-Waist Legging",
+              "color": "Bone",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 148.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10508",
+      "name": "Tom Delaney 10508",
+      "email": "synthetic.customer.10508@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 90,
+      "member_since": "2025-02-01",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10508",
+          "order_date": "2025-02-20",
+          "order_status": "Cancelled",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Denver, CO",
+          "subtotal": 98.0,
+          "shipping": 7.95,
+          "total": 0.0,
+          "payment_method": "Visa ending 3310",
+          "notes": "Cancelled before fulfillment; no shipment created — generated edge-case profile",
+          "items": [
+            {
+              "sku": "M6801R-BLK",
+              "name": "ALO Vapor Crewneck Short Sleeve",
+              "color": "Black",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 98.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10509",
+      "name": "Sophie Hoffmann",
+      "email": "synthetic.customer.10509@example.com",
+      "loyalty_tier": "A-List",
+      "loyalty_points": 640,
+      "member_since": "2022-09-12",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10509",
+          "order_date": "2025-01-18",
+          "order_status": "Return Requested — Pending",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Miami, FL",
+          "subtotal": 138.0,
+          "shipping": 0.0,
+          "total": 138.0,
+          "payment_method": "Visa ending 9022",
+          "notes": "Return requested within the eligible return window — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W5766R-IVY",
+              "name": "High-Waist Airlift Legging",
+              "color": "Ivy",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 138.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "return_status": "Return Requested — Pending",
+              "return_initiated_date": "2025-02-02"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10510",
+      "name": "Amanda Rhodes",
+      "email": "synthetic.customer.10510@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 220,
+      "member_since": "2024-07-27",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10510",
+          "order_date": "2024-12-02",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Portland, OR",
+          "subtotal": 168.0,
+          "shipping": 0.0,
+          "total": 134.4,
+          "payment_method": "Mastercard ending 4419",
+          "notes": "Cyber Monday promotional order; discount stacking should be checked — generated edge-case profile",
+          "promo_code": "CYBER20",
+          "items": [
+            {
+              "sku": "M3012R-GRY",
+              "name": "Triumph Hoodie",
+              "color": "Athletic Heather Grey",
+              "size": "L",
+              "quantity": 1,
+              "unit_price": 168.0,
+              "was_discounted": true,
+              "discount_pct": 20,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10511",
+      "name": "Oliver Malone",
+      "email": "synthetic.customer.10511@example.com",
+      "loyalty_tier": "VIP",
+      "loyalty_points": 2410,
+      "member_since": "2020-11-02",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10511",
+          "order_date": "2025-02-03",
+          "order_status": "Partially Returned",
+          "channel": "Online",
+          "shipping_method": "Free Express",
+          "delivery_address": "San Francisco, CA",
+          "subtotal": 230.0,
+          "shipping": 0.0,
+          "total": 230.0,
+          "payment_method": "Amex ending 1114",
+          "notes": "Multi-item order with one item returned and one retained — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W5561R-ESP",
+              "name": "High-Waist Airlift Legging",
+              "color": "Espresso",
+              "size": "XS",
+              "quantity": 1,
+              "unit_price": 128.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "return_status": "Returned — Refund Issued"
+            },
+            {
+              "sku": "W9142R-ESP",
+              "name": "Airlift Intrigue Bra",
+              "color": "Espresso",
+              "size": "XS",
+              "quantity": 1,
+              "unit_price": 102.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "return_status": "Kept"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10512",
+      "name": "Paul Wellington",
+      "email": "synthetic.customer.10512@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 310,
+      "member_since": "2024-04-10",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10512",
+          "order_date": "2025-01-25",
+          "order_status": "Exchange Completed",
+          "channel": "Store",
+          "shipping_method": "N/A",
+          "delivery_address": "In-store purchase — New York, NY",
+          "subtotal": 118.0,
+          "shipping": 0.0,
+          "total": 118.0,
+          "payment_method": "Apple Pay",
+          "notes": "In-store exchange completed for size change — generated edge-case profile",
+          "items": [
+            {
+              "sku": "M7002R-WHT",
+              "name": "Conquer Reform Short Sleeve",
+              "color": "White",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 118.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "exchange_status": "Exchanged from size S to size M"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10513",
+      "name": "Richard Johnson",
+      "email": "synthetic.customer.10513@example.com",
+      "loyalty_tier": "A-List",
+      "loyalty_points": 980,
+      "member_since": "2022-01-22",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10513",
+          "order_date": "2025-02-22",
+          "order_status": "Split Shipment",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Phoenix, AZ",
+          "subtotal": 246.0,
+          "shipping": 0.0,
+          "total": 246.0,
+          "payment_method": "Visa ending 7820",
+          "notes": "Split shipment: one item delivered, one item still in transit — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W5561R-BLK",
+              "name": "High-Waist Airlift Legging",
+              "color": "Black",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 128.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "shipment_status": "Delivered"
+            },
+            {
+              "sku": "W9142R-WHT",
+              "name": "Airlift Intrigue Bra",
+              "color": "White",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 118.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "shipment_status": "In Transit"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10514",
+      "name": "Cynthia Righetti",
+      "email": "synthetic.customer.10514@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 45,
+      "member_since": "2025-02-09",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10514",
+          "order_date": "2025-02-28",
+          "order_status": "Processing",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Nashville, TN",
+          "subtotal": 74.0,
+          "shipping": 7.95,
+          "total": 81.95,
+          "payment_method": "Mastercard ending 6721",
+          "notes": "New order still processing; no tracking number yet — generated edge-case profile",
+          "items": [
+            {
+              "sku": "A1001R-BLK",
+              "name": "Performance No-Show Sock 3-Pack",
+              "color": "Black",
+              "size": "One Size",
+              "quantity": 1,
+              "unit_price": 74.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10515",
+      "name": "Roger Caplan",
+      "email": "synthetic.customer.10515@example.com",
+      "loyalty_tier": "VIP",
+      "loyalty_points": 3120,
+      "member_since": "2019-08-15",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10515",
+          "order_date": "2024-12-26",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "International Standard",
+          "delivery_address": "Toronto, ON, Canada",
+          "subtotal": 198.0,
+          "shipping": 24.95,
+          "total": 222.95,
+          "payment_method": "Visa ending 5567",
+          "notes": "International order; return and shipping rules may differ — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W8204R-IVR",
+              "name": "Alosoft Courtside Tennis Dress",
+              "color": "Ivory",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 198.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10516",
+      "name": "Archie Doe",
+      "email": "synthetic.customer.10516@example.com",
+      "loyalty_tier": "A-List",
+      "loyalty_points": 0,
+      "expired_loyalty_points": 420,
+      "member_since": "2022-05-07",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10516",
+          "order_date": "2024-10-10",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Charlotte, NC",
+          "subtotal": 128.0,
+          "shipping": 0.0,
+          "total": 128.0,
+          "payment_method": "Visa ending 9004",
+          "notes": "Customer has expired loyalty points — generated edge-case profile",
+          "items": [
+            {
+              "sku": "M9001R-NVY",
+              "name": "Conquer Performance Tank",
+              "color": "Navy",
+              "size": "L",
+              "quantity": 1,
+              "unit_price": 128.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10517",
+      "name": "Dev Patel",
+      "email": "synthetic.customer.10517@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 185,
+      "member_since": "2024-12-19",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10517",
+          "order_date": "2025-01-05",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Raleigh, NC",
+          "subtotal": 136.0,
+          "shipping": 7.95,
+          "total": 122.35,
+          "payment_method": "Discover ending 3380",
+          "notes": "Community discount used; validate against promo stacking restrictions — generated edge-case profile",
+          "promo_code": "COMMUNITY10",
+          "discount_type": "Community Discount",
+          "items": [
+            {
+              "sku": "W9142R-BLK",
+              "name": "Airlift Intrigue Bra",
+              "color": "Black",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 136.0,
+              "was_discounted": true,
+              "discount_pct": 10,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10518",
+      "name": "Cindy Gerrard",
+      "email": "synthetic.customer.10518@example.com",
+      "loyalty_tier": "VIP",
+      "loyalty_points": 2760,
+      "member_since": "2020-04-30",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10518",
+          "order_date": "2024-09-15",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Free Express",
+          "delivery_address": "Boston, MA",
+          "subtotal": 394.0,
+          "shipping": 0.0,
+          "total": 394.0,
+          "payment_method": "Amex ending 6640",
+          "notes": "Multiple seasonal purchases for purchase-history questions — generated edge-case profile",
+          "items": [
+            {
+              "sku": "W5561R-ESP",
+              "name": "High-Waist Airlift Legging",
+              "color": "Espresso",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 128.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            },
+            {
+              "sku": "M3012R-GRY",
+              "name": "Triumph Hoodie",
+              "color": "Athletic Heather Grey",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 168.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            },
+            {
+              "sku": "M6801R-BLK",
+              "name": "ALO Vapor Crewneck Short Sleeve",
+              "color": "Black",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 98.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        },
+        {
+          "order_id": "ALO-2025-105014",
+          "order_date": "2025-02-10",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Free Express",
+          "delivery_address": "Boston, MA",
+          "subtotal": 198.0,
+          "shipping": 0.0,
+          "total": 198.0,
+          "payment_method": "Amex ending 6640",
+          "notes": "Recent winter-season purchase",
+          "items": [
+            {
+              "sku": "W8204R-IVR",
+              "name": "Alosoft Courtside Tennis Dress",
+              "color": "Ivory",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 198.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10519",
+      "name": "Martin Landermann",
+      "email": "synthetic.customer.10519@example.com",
+      "loyalty_tier": "A-List",
+      "loyalty_points": 890,
+      "member_since": "2021-12-03",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10519",
+          "order_date": "2025-02-01",
+          "order_status": "Delivered — Issue Reported",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Las Vegas, NV",
+          "subtotal": 128.0,
+          "shipping": 0.0,
+          "total": 128.0,
+          "payment_method": "Visa ending 4507",
+          "notes": "Customer reported package marked delivered but not received — generated edge-case profile",
+          "issue_status": "Delivery investigation opened",
+          "items": [
+            {
+              "sku": "W5561R-WHT",
+              "name": "High-Waist Airlift Legging",
+              "color": "White",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 128.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10520",
+      "name": "Patrick Jane",
+      "email": "synthetic.customer.10520@example.com",
+      "loyalty_tier": "All Access",
+      "loyalty_points": 275,
+      "member_since": "2024-03-22",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10520",
+          "order_date": "2024-12-01",
+          "order_status": "Delivered",
+          "channel": "Online",
+          "shipping_method": "Standard",
+          "delivery_address": "Atlanta, GA",
+          "subtotal": 276.0,
+          "shipping": 0.0,
+          "total": 207.0,
+          "payment_method": "Mastercard ending 1299",
+          "notes": "Cyber Monday order with multiple discounted items — generated edge-case profile",
+          "promo_code": "CYBER25",
+          "items": [
+            {
+              "sku": "W2201R-BLK",
+              "name": "Airlift Suit Up Bra",
+              "color": "Black",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 92.0,
+              "was_discounted": true,
+              "discount_pct": 25,
+              "final_sale": true
+            },
+            {
+              "sku": "W5561R-BLK",
+              "name": "High-Waist Airlift Legging",
+              "color": "Black",
+              "size": "S",
+              "quantity": 1,
+              "unit_price": 184.0,
+              "was_discounted": true,
+              "discount_pct": 25,
+              "final_sale": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "customer_id": "CUST-10521",
+      "name": "Teresa Lisbon",
+      "email": "synthetic.customer.10521@example.com",
+      "loyalty_tier": "VIP",
+      "loyalty_points": 1990,
+      "member_since": "2021-06-11",
+      "orders": [
+        {
+          "order_id": "ALO-2025-10521",
+          "order_date": "2025-02-12",
+          "order_status": "Refund Issued",
+          "channel": "Online",
+          "shipping_method": "Free Standard",
+          "delivery_address": "San Diego, CA",
+          "subtotal": 150.0,
+          "shipping": 0.0,
+          "total": 150.0,
+          "payment_method": "Gift Card",
+          "notes": "Gift card purchase refunded back to original gift card — generated edge-case profile",
+          "refund_status": "Refund Issued to Gift Card",
+          "items": [
+            {
+              "sku": "W6201R-TRF",
+              "name": "ALO Softsculpt High-Waist Legging",
+              "color": "Truffle",
+              "size": "M",
+              "quantity": 1,
+              "unit_price": 150.0,
+              "was_discounted": false,
+              "discount_pct": 0,
+              "final_sale": false,
+              "return_status": "Returned — Refund Issued"
+            }
+          ]
         }
       ]
     }

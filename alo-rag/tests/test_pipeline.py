@@ -1418,3 +1418,27 @@ class TestCheckAnswerabilityMethod:
 
         assert result.answerable is False
         assert result.action == "refuse_insufficient_context"
+
+    def test_run_customer_query_without_customer_id_short_circuits() -> None:
+        """Full pipeline.run() should short-circuit customer queries without customer_id."""
+        intent_router = MagicMock(spec=IntentRouter)
+        intent_router.classify.return_value = _make_classification(
+            domains={"product": 0.05, "policy": 0.10, "customer": 0.85},
+            primary_domain="customer",
+            is_ambiguous=False,
+            is_multi_domain=False,
+        )
+
+        retrieval = MagicMock(spec=HybridSearch)
+
+        pipeline = _build_pipeline(
+            intent_router=intent_router,
+            retrieval=retrieval,
+        )
+
+        result = pipeline.run("What is the status of my order?")
+
+        assert result.answerability_decision is not None
+        assert result.answerability_decision.action == "clarify"
+        assert "customer" in result.answer.lower()
+        retrieval.search.assert_not_called()

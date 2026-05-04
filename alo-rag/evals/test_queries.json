@@ -8,7 +8,7 @@
       "domain": "product",
       "difficulty": "easy",
       "expected_answer": "The 7/8 High-Waist Airlift Legging is made from Airlift fabric, composed of 78% Nylon and 22% Spandex. It is a high-compression, ultralightweight double-knit fabric with a subtle sheen and second-skin feel.",
-      "expected_chunk_ids": ["W5766R-BLK"],
+      "expected_chunk_ids": ["W5766R-BLK", "fabric-airlift"],
       "customer_id": null
     },
     {
@@ -17,7 +17,7 @@
       "domain": "product",
       "difficulty": "easy",
       "expected_answer": "Airlift is a high-compression fabric (78% Nylon, 22% Spandex) with a subtle sheen and second-skin feel, designed for high-intensity workouts. Airbrush is a medium-compression fabric (73% Nylon, 27% Spandex) with a matte, cotton-like finish, thicker and more durable than Airlift, with flatlock seaming for comfort.",
-      "expected_chunk_ids": ["W5561R-BLK", "W5604R-BLK"],
+      "expected_chunk_ids": ["fabric-airlift", "fabric-airbrush"],
       "customer_id": null
     },
     {
@@ -72,7 +72,14 @@
       "difficulty": "easy",
       "expected_answer": "Your order ALO-2025-005511 placed on 2025-01-28 is currently In Transit. It includes a High-Waist Airlift Legging in Winter Frost and an Airlift Intrigue Bra in White. The estimated delivery date is 2025-02-03.",
       "expected_chunk_ids": [],
-      "customer_id": "CUST-10421"
+      "customer_id": "CUST-10421",
+      "expected_behavior": "answer",
+      "requires_customer_context": true,
+      "expected_customer_id": "CUST-10421",
+      "expected_order_id": "ALO-2025-005511",
+      "expected_customer_facts": {
+        "order_status": "In Transit"
+      }
     },
     {
       "query_id": "TQ-009",
@@ -134,8 +141,18 @@
       "domain": "customer",
       "difficulty": "medium",
       "expected_answer": "Your return for the ALO Vapor Crewneck Short Sleeve in Black (order ALO-2024-631089) has a status of Return Requested — Pending. The return was initiated on 2024-05-30, which was within the 30-day return window. Note that Alo does not offer direct exchanges — you will need to place a new order for the replacement size.",
-      "expected_chunk_ids": ["returns-section-9"],
-      "customer_id": "CUST-10177"
+      "expected_chunk_ids": [
+        "returns-section-9"
+      ],
+      "customer_id": "CUST-10177",
+      "expected_behavior": "answer",
+      "requires_customer_context": true,
+      "expected_customer_id": "CUST-10177",
+      "expected_order_id": "ALO-2024-631089",
+      "expected_product_id": "M6801R-BLK",
+      "expected_customer_facts": {
+        "return_status": "Return Requested — Pending"
+      }
     },
     {
       "query_id": "TQ-016",
@@ -232,27 +249,32 @@
       "query": "What is the status of my order?",
       "domain": "customer",
       "difficulty": "medium",
-      "expected_answer": "I can help with that, but I need to know which customer you are. Please select a customer profile to access order-specific information.",
+      "expected_answer": "I can help with that, but I need the customer profile or order context first.",
       "expected_chunk_ids": [],
-      "customer_id": null
+      "customer_id": null,
+      "expected_behavior": "clarify",
+      "requires_customer_context": true
     },
     {
       "query_id": "TQ-027",
       "query": "Can I return the items from my last order?",
       "domain": "customer",
       "difficulty": "medium",
-      "expected_answer": "I can help with return eligibility, but I need to know which customer you are. Please select a customer profile so I can check your specific order details.",
+      "expected_answer": "I can help with return eligibility, but I need the customer profile or order context first.",
       "expected_chunk_ids": [],
-      "customer_id": null
+      "customer_id": null,
+      "expected_behavior": "clarify",
+      "requires_customer_context": true
     },
     {
       "query_id": "TQ-028",
       "query": "What is the weather like in New York today?",
-      "domain": "policy",
+      "domain": "out-of-scope",
       "difficulty": "easy",
-      "expected_answer": "I'm sorry, but that question is outside my area of expertise. I can help with ALO Yoga products, policies, shipping, returns, and loyalty program questions.",
+      "expected_answer": "I'm sorry, but that question is outside my area of expertise. I can help with ALO Yoga products, policies, shipping, returns, promotions, loyalty benefits, and customer order questions.",
       "expected_chunk_ids": [],
-      "customer_id": null
+      "customer_id": null,
+      "expected_behavior": "refuse_out_of_scope"
     }
   ]
 }

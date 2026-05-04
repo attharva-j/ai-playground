@@ -157,7 +157,7 @@ class FaithfulnessGuardrail:
         unsupported = [c for c in claims if not c.supported]
 
         if not unsupported:
-            score = 1.0 if claims else 1.0
+            score = 1.0
             logger.debug(
                 "FaithfulnessGuardrail: all %d claims supported — score=%.2f",
                 len(claims),
@@ -237,8 +237,12 @@ class FaithfulnessGuardrail:
         self,
         answer: str,
         context_text: str,
-    ) -> list[Claim]:
-        """Use the LLM to extract claims from *answer* and verify each one."""
+    ) -> list[Claim] | None:
+        """Use the LLM to extract claims and verify each one.
+
+        Returns None when verification failed technically, e.g. malformed JSON
+        or LLM exception. The caller must fail closed in that case.
+        """
         prompt = _VERIFY_USER_TEMPLATE.format(
             context=context_text,
             answer=answer,
@@ -253,7 +257,56 @@ class FaithfulnessGuardrail:
             return self._parse_claims(raw_response)
         except Exception:
             logger.exception("FaithfulnessGuardrail: claim extraction failed")
-            return None  # Signals verification error — caller must handle
+            return None
+
+
+    @staticmethod
+    def _parse_claims(raw_response: str) -> list[Claim] | None:
+        """Parse the LLM's JSON response into Claim objects.
+
+        Malformed JSON returns None, not [], because [] is interpreted as
+        'no factual claims' and can incorrectly pass faithfulness.
+        """
+        text = raw_response.strip()
+
+        if text.startswith("```"):
+            lines = [
+                line
+                for line in text.splitlines()
+                if not line.strip().startswith("```")
+            ]
+            text = "\n".join(lines).strip()
+
+        try:
+            data: dict[str, Any] = json.loads(text)
+        except json.JSONDecodeError:
+            logger.warning(
+                "FaithfulnessGuardrail: failed to parse claims JSON. Raw response: %s",
+                raw_response[:300],
+            )
+            return None
+
+        raw_claims = data.get("claims")
+        if raw_claims is None or not isinstance(raw_claims, list):
+            logger.warning(
+                "FaithfulnessGuardrail: JSON missing claims list. Raw response: %s",
+                raw_response[:300],
+            )
+            return None
+
+        claims: list[Claim] = []
+        for entry in raw_claims:
+            if not isinstance(entry, dict):
+                continue
+            claims.append(
+                Claim(
+                    text=str(entry.get("text", "")),
+                    supported=bool(entry.get("supported", False)),
+                    supporting_chunk_id=entry.get("supporting_chunk_id"),
+                )
+            )
+
+        return claims
 
     def _regenerate(
         self,
@@ -282,42 +335,6 @@ class FaithfulnessGuardrail:
                 "FaithfulnessGuardrail: regeneration failed — returning empty string"
             )
             return ""
-
-    @staticmethod
-    def _parse_claims(raw_response: str) -> list[Claim]:
-        """Parse the LLM's JSON response into a list of :class:`Claim` objects."""
-        # Strip markdown code fences if present
-        text = raw_response.strip()
-        if text.startswith("```"):
-            # Remove opening fence (with optional language tag) and closing fence
-            lines = text.split("\n")
-            lines = [
-                line
-                for line in lines
-                if not line.strip().startswith("```")
-            ]
-            text = "\n".join(lines)
-
-        try:
-            data: dict[str, Any] = json.loads(text)
-        except json.JSONDecodeError:
-            logger.warning(
-                "FaithfulnessGuardrail: failed to parse claims JSON — "
-                "returning empty list.  Raw response: %s",
-                raw_response[:200],
-            )
-            return []
-
-        claims: list[Claim] = []
-        for entry in data.get("claims", []):
-            claims.append(
-                Claim(
-                    text=entry.get("text", ""),
-                    supported=bool(entry.get("supported", False)),
-                    supporting_chunk_id=entry.get("supporting_chunk_id"),
-                )
-            )
-        return claims
 
     @staticmethod
     def _render_context(chunks: list[RetrievedChunk]) -> str:

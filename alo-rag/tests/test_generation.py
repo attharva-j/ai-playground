@@ -28,6 +28,7 @@ from src.models import (
     Order,
     OrderItem,
     RetrievedChunk,
+    FaithfulnessStatus,
 )
 
 
@@ -822,8 +823,8 @@ class TestFaithfulnessGuardrailClaimParsing:
         assert len(result.claims) == 1
         assert result.claims[0].supported is True
 
-    def test_handles_malformed_json_gracefully(self) -> None:
-        """If LLM returns invalid JSON, should return empty claims (not crash)."""
+    def test_handles_malformed_json_fails_closed(self) -> None:
+        """If LLM returns invalid JSON, verification should fail closed."""
         mock_llm = MagicMock()
         mock_llm.generate.return_value = "This is not JSON at all"
 
@@ -831,7 +832,8 @@ class TestFaithfulnessGuardrailClaimParsing:
         result = guardrail.verify("answer", [_make_rc("c1")])
 
         assert result.claims == []
-        assert result.score == 1.0  # no claims → defaults to 1.0
+        assert result.score == 0.0
+        assert result.status == FaithfulnessStatus.FAILED_VERIFICATION_ERROR
 
     def test_handles_llm_exception_gracefully(self) -> None:
         """If the LLM call raises, should fail closed (not crash)."""
