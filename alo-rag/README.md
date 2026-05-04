@@ -12,7 +12,7 @@ Key capabilities:
 
 - **Per-domain chunking** — one chunk per product; semantic section-based chunking for policies
 - **Hybrid retrieval** — dense (ChromaDB + voyage-3) and sparse (BM25) search with RRF fusion and cross-encoder reranking
-- **Query intelligence** — LLM-based intent routing, HyDE for policy queries, multi-query decomposition, scope guard
+- **Query intelligence** — LLM-based intent routing, HyDE for policy queries (GPT-4.1-nano), multi-query decomposition, scope guard
 - **Faithfulness guardrail** — second LLM call verifies claims against source context, with automatic regeneration
 - **Structured customer lookup** — customer data accessed by exact ID match, not embedded
 - **Incremental index refresh** — SHA-256 content-addressed registry re-embeds only changed chunks
@@ -34,18 +34,28 @@ Key capabilities:
 
 2. **Create a virtual environment and install dependencies:**
 
+   This project uses [uv](https://docs.astral.sh/uv/) for dependency management. From the **workspace root** (one level above `alo-rag/`):
+
+   ```bash
+   uv sync
+   ```
+
+   Or with pip:
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate   # On Windows: .venv\Scripts\activate
-   pip install -e ".[dev]"
+   pip install -e .
    ```
 
 3. **Set up environment variables:**
 
-   Copy the example file and fill in your API keys:
+   Create a `.env` file in the **workspace root** (one level above `alo-rag/`). The server loads environment variables from this location, not from inside `alo-rag/`.
+
+   Copy the example file as a reference:
 
    ```bash
-   cp .env.example .env
+   cp alo-rag/.env.example .env
    ```
 
    Edit `.env` with your keys:
@@ -150,7 +160,7 @@ pytest tests/test_pipeline.py -v
 
 ## Running the Evaluation Suite
 
-The evaluation framework runs 25 test queries (easy, medium, hard) through the pipeline and computes retrieval metrics (Recall@5, MRR, Context Precision) and generation metrics (Faithfulness, Answer Relevance, Hallucination Rate).
+The evaluation framework runs 28 test queries (easy, medium, hard) through the pipeline and computes retrieval metrics (Recall@5, MRR, Context Precision) and generation metrics (Faithfulness, Answer Relevance, Hallucination Rate).
 
 ```bash
 cd alo-rag
@@ -161,6 +171,24 @@ Test queries are defined in `evals/test_queries.json`. The harness also includes
 
 - **Failure analysis** — identifies the 3 worst-performing queries with detailed diagnostics
 - **Regression harness** — compares current results against a stored baseline to detect improvements and regressions
+
+**Options:**
+
+| Flag | Description | Default |
+|---|---|---|
+| `--data-dir` | Root data directory | `data` |
+| `--queries` | Path to test queries JSON | `evals/test_queries.json` |
+| `--mode` | `smoke` (8 representative queries) or `full` (all queries) | `full` |
+| `--save-baseline` | Save results as the regression baseline | Off |
+| `--compare-baseline` | Compare results against stored baseline | Off |
+| `--output` | Path to write JSON eval results | None |
+| `-v`, `--verbose` | Enable DEBUG-level logging | INFO |
+
+**Example — smoke test with baseline comparison:**
+
+```bash
+python -m src.eval --mode smoke --compare-baseline
+```
 
 ## Project Structure
 
@@ -178,6 +206,7 @@ alo-rag/
 │   │   └── page.tsx               #     Main chat page
 │   ├── components/
 │   │   └── assistant-ui/
+│   │       ├── markdown-text.tsx   #   Markdown rendering component
 │   │       └── thread.tsx         #   Chat thread component
 │   ├── lib/
 │   │   └── utils.ts               #   Utility functions
@@ -189,7 +218,9 @@ alo-rag/
 │   ├── failure_analysis.md        # Failure analysis for worst-performing queries
 │   └── production_readiness_memo.md  # Production readiness assessment
 ├── evals/
-│   └── test_queries.json          # 25 evaluation test queries
+│   └── test_queries.json          # 28 evaluation test queries
+├── scripts/
+│   └── expand_customers.py        # Utility to expand synthetic customer profiles
 ├── server.py                      # FastAPI backend (streaming RAG API)
 ├── src/
 │   ├── ingestion/                 # Data loading, chunking, embedding, indexing
@@ -230,7 +261,7 @@ alo-rag/
 | Component | Technology |
 |---|---|
 | Language | Python 3.12+ |
-| LLM | OpenAI GPT (GPT-4o for generation, GPT-4.1-nano for classification) |
+| LLM | OpenAI GPT (GPT-4o for generation, GPT-4.1-nano for classification/HyDE) |
 | Embeddings | Voyage AI voyage-3 (primary), sentence-transformers/all-mpnet-base-v2 (fallback) |
 | Vector Store | ChromaDB |
 | Sparse Retrieval | rank-bm25 |
@@ -250,12 +281,14 @@ alo-rag/
 - Cross-encoder reranking (BAAI/bge-reranker-base) with min_score filtering
 - Adaptive retrieval depth (final_k=3 single-domain, final_k=4 multi-domain)
 - LLM-based intent routing (GPT-4.1-nano) with scope guard
-- HyDE for policy queries (GPT-4o-mini)
+- HyDE for policy queries (GPT-4.1-nano)
 - Parallel HyDE + decomposition via ThreadPoolExecutor
 - Structured customer lookup (not embedded)
-- Pre-generation answerability gate for missing customer context and insufficient retrieved evidence- Faithfulness guardrail with regeneration (eval harness only)
+- Pre-generation answerability gate for missing customer context and insufficient retrieved evidence
+- Faithfulness guardrail with regeneration (eval harness only)
 - Multi-turn conversation context (last 3 exchanges)
-- Local registry-based change detection with safe re-upsert behavior for non-persistent Chroma startup- True token-by-token streaming from OpenAI API
+- Local registry-based change detection with safe re-upsert behavior for non-persistent Chroma startup
+- True token-by-token streaming from OpenAI API
 - Custom evaluation harness with deterministic retrieval + LLM-as-judge generation metrics
 - Smoke and full eval modes with regression comparison
 - Next.js chat UI with pipeline trace panel

@@ -77,7 +77,6 @@ def main() -> None:
 
     # --- Build the pipeline (same as server.py) ---
     from src.generation.customer_context import CustomerContextInjector
-    from src.generation.guardrails import FaithfulnessGuardrail
     from src.generation.llm_client import LLMClient
     from src.generation.prompt_builder import PromptBuilder
     from src.ingestion.chunkers import PolicyChunker, ProductChunker
@@ -117,6 +116,24 @@ def main() -> None:
     vector_store.add(all_chunks, embeddings)
     bm25_index = BM25Builder().build(all_chunks)
 
+    # Use the same no-op guardrail as the demo server so the pipeline
+    # produces identical answers.  Faithfulness is still measured as a
+    # metric via GenerationMetrics.faithfulness() — the guardrail in the
+    # pipeline would alter the answer (reject / regenerate) before the
+    # metric evaluator sees it, creating a functional divergence between
+    # the eval harness and the live demo.
+    from src.models import FaithfulnessResult as _FR
+
+    class _NoOpGuardrail:
+        def verify(self, answer: str, context_chunks: list, query: str = "") -> _FR:
+            return _FR(
+                score=1.0,
+                claims=[],
+                unsupported_claims=[],
+                regeneration_triggered=False,
+                regenerated_answer=None,
+            )
+
     pipeline = Pipeline(
         intent_router=IntentRouter(llm_client),
         hyde=HyDEModule(llm_client, embedding_service),
@@ -130,7 +147,7 @@ def main() -> None:
         ),
         prompt_builder=PromptBuilder(),
         llm_client=llm_client,
-        guardrail=FaithfulnessGuardrail(llm_client),
+        guardrail=_NoOpGuardrail(),
         customer_injector=CustomerContextInjector(data_path=customers_path),
         embedding_service=embedding_service,
     )

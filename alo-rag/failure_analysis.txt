@@ -1,78 +1,102 @@
 ======================================================================
   ALO RAG Evaluation Results
 ======================================================================
-  Queries evaluated:      25
-  Mean Recall@5:          0.727
-  Mean MRR:               0.668
-  Mean Context Precision: 0.208
-  Mean Faithfulness:      0.970
-  Mean Answer Relevance:  0.944
-  Hallucination Rate:     0.120
-  Mean Latency:           10163 ms
+  Queries evaluated:      28
+  Mean Recall@5:          0.643
+  Mean MRR:               0.625
+  Mean Context Precision: 0.374
+  Mean Faithfulness:      0.750
+  Mean Answer Relevance:  0.611
+  Hallucination Rate:     0.250
+  Mean Latency:           4687 ms
+  Behavior Success Rate: 1.000
 ----------------------------------------------------------------------
   By difficulty:
-    easy: 8
+    easy: 9
     hard: 7
-    medium: 10
+    medium: 12
   By domain:
     cross-domain: 7
-    customer: 4
+    customer: 6
+    out-of-scope: 1
     policy: 9
     product: 5
+  p50 Latency:            5189 ms
+  p95 Latency:            9159 ms
 ----------------------------------------------------------------------
   Per-query results:
-    TQ-001    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  9331ms
-    TQ-002    R@5=0.50  MRR=0.50  Faith=1.00  Rel=0.50  Halluc=N  16721ms
-    TQ-003    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  8139ms
-    TQ-004    R@5=1.00  MRR=0.50  Faith=1.00  Rel=1.00  Halluc=N  4450ms
-    TQ-005    R@5=1.00  MRR=0.33  Faith=1.00  Rel=1.00  Halluc=N  11122ms
-    TQ-006    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  7488ms
-    TQ-007    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  9709ms
-    TQ-008    R@5=0.00  MRR=0.00  Faith=1.00  Rel=0.80  Halluc=N  10368ms
-    TQ-009    R@5=0.50  MRR=0.50  Faith=1.00  Rel=1.00  Halluc=N  13895ms
-    TQ-010    R@5=1.00  MRR=1.00  Faith=0.60  Rel=1.00  Halluc=Y  14571ms
-    TQ-011    R@5=0.50  MRR=0.33  Faith=1.00  Rel=1.00  Halluc=N  7841ms
-    TQ-012    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  19389ms
-    TQ-013    R@5=1.00  MRR=0.50  Faith=1.00  Rel=1.00  Halluc=N  5672ms
-    TQ-014    R@5=0.50  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  6306ms
-    TQ-015    R@5=0.00  MRR=0.00  Faith=1.00  Rel=0.80  Halluc=N  12033ms
-    TQ-016    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  8854ms
-    TQ-017    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  6554ms
-    TQ-018    R@5=0.00  MRR=0.00  Faith=0.86  Rel=0.70  Halluc=Y  7646ms
-    TQ-019    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  8774ms
-    TQ-020    R@5=0.50  MRR=0.20  Faith=1.00  Rel=1.00  Halluc=N  7227ms
-    TQ-021    R@5=1.00  MRR=0.50  Faith=1.00  Rel=1.00  Halluc=N  7965ms
-    TQ-022    R@5=0.33  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  12048ms
-    TQ-023    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  14821ms
-    TQ-024    R@5=1.00  MRR=0.33  Faith=1.00  Rel=1.00  Halluc=N  9831ms
-    TQ-025    R@5=0.33  MRR=1.00  Faith=0.80  Rel=0.80  Halluc=Y  13310ms
+    TQ-001    R@5=0.50  MRR=1.00  Faith=0.00  Rel=1.00  Halluc=Y  9159ms
+    TQ-002    R@5=1.00  MRR=1.00  Faith=1.00  Rel=0.90  Halluc=N  6709ms
+    TQ-003    R@5=1.00  MRR=1.00  Faith=1.00  Rel=0.90  Halluc=N  4202ms
+    TQ-004    R@5=1.00  MRR=0.50  Faith=1.00  Rel=0.80  Halluc=N  4960ms
+    TQ-005    R@5=1.00  MRR=1.00  Faith=0.00  Rel=0.20  Halluc=Y  4092ms
+    TQ-006    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  5220ms
+    TQ-007    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  2423ms
+    TQ-008    R@5=0.00  MRR=0.00  Faith=0.00  Rel=0.00  Halluc=Y  2348ms
+    TQ-009    R@5=0.50  MRR=0.50  Faith=1.00  Rel=0.00  Halluc=N  5427ms
+    TQ-010    R@5=1.00  MRR=0.33  Faith=1.00  Rel=0.80  Halluc=N  5189ms
+    TQ-011    R@5=0.50  MRR=0.33  Faith=1.00  Rel=1.00  Halluc=N  3173ms
+    TQ-012    R@5=0.00  MRR=0.00  Faith=0.00  Rel=0.80  Halluc=Y  5734ms
+    TQ-013    R@5=1.00  MRR=0.33  Faith=1.00  Rel=0.80  Halluc=N  5141ms
+    TQ-014    R@5=0.50  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  6550ms
+    TQ-015    R@5=0.00  MRR=0.00  Faith=1.00  Rel=1.00  Halluc=N  6015ms
+    TQ-016    R@5=0.00  MRR=0.00  Faith=0.00  Rel=0.00  Halluc=Y  766ms
+    TQ-017    R@5=1.00  MRR=0.50  Faith=1.00  Rel=0.30  Halluc=N  9537ms
+    TQ-018    R@5=0.00  MRR=0.00  Faith=1.00  Rel=0.70  Halluc=N  4404ms
+    TQ-019    R@5=1.00  MRR=1.00  Faith=1.00  Rel=0.00  Halluc=N  5526ms
+    TQ-020    R@5=0.50  MRR=0.50  Faith=1.00  Rel=0.00  Halluc=N  6962ms
+    TQ-021    R@5=1.00  MRR=1.00  Faith=1.00  Rel=0.90  Halluc=N  4435ms
+    TQ-022    R@5=0.67  MRR=1.00  Faith=1.00  Rel=0.00  Halluc=N  8706ms
+    TQ-023    R@5=0.50  MRR=0.50  Faith=1.00  Rel=1.00  Halluc=N  6571ms
+    TQ-024    R@5=0.00  MRR=0.00  Faith=0.00  Rel=0.00  Halluc=Y  0ms
+    TQ-025    R@5=0.33  MRR=1.00  Faith=0.00  Rel=0.00  Halluc=Y  6750ms
+    TQ-026    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  1ms
+    TQ-027    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  570ms
+    TQ-028    R@5=1.00  MRR=1.00  Faith=1.00  Rel=1.00  Halluc=N  660ms
 ======================================================================
 
-2026-04-30 20:41:17,413 [INFO] src.eval.failure_analysis: FailureAnalyzer — TQ-018: combined=0.311, retrieval_issues=3, generation_issues=1
-2026-04-30 20:41:17,414 [INFO] src.eval.failure_analysis: FailureAnalyzer — TQ-008: combined=0.360, retrieval_issues=3, generation_issues=0
-2026-04-30 20:41:17,414 [INFO] src.eval.failure_analysis: FailureAnalyzer — TQ-015: combined=0.360, retrieval_issues=3, generation_issues=0
+2026-05-04 11:38:28,769 [INFO] src.eval.failure_analysis: FailureAnalyzer — TQ-008: combined=0.000, retrieval_issues=3, generation_issues=3
+2026-05-04 11:38:28,769 [INFO] src.eval.failure_analysis: FailureAnalyzer — TQ-016: combined=0.000, retrieval_issues=3, generation_issues=3
+2026-05-04 11:38:28,769 [INFO] src.eval.failure_analysis: FailureAnalyzer — TQ-024: combined=0.000, retrieval_issues=3, generation_issues=3
 Top failure analysis:
-  TQ-018: score=0.311
-    Query: Can I use my military discount during the Aloversary Sale?
-    [retrieval] Low Recall@5 (0.00): relevant chunks are not appearing in the top-5 results.
-    [retrieval] Low Context Precision (0.00): many retrieved chunks are irrelevant.
-    [retrieval] Low MRR (0.00): the first relevant chunk appears too late in the ranked list.
-    [generation] Hallucination detected: at least one unsupported claim was present in the generated answer.  
-    → Review chunking strategy for this query's domain. Consider adjusting chunk boundaries or adding metadata to improve retrieval coverage.
-    → Tighten metadata filters or adjust RRF fusion weights to reduce noise in retrieval results.
-    → Investigate cross-encoder reranking effectiveness for this query type. The reranker may not be surfacing the most relevant chunk to the top position.
-
-  TQ-008: score=0.360
+  TQ-008: score=0.000
     Query: What is the status of my order?
- to improve retrieval coverage.
-    → Tighten metadata filters or adjust RRF fusion weights to reduce noise in retrieval results.
-    → Investigate cross-encoder reranking effectiveness for this query type. The reranker may not be surfacing the most relevant chunk to the top position.
-
-  TQ-015: score=0.360
-    Query: What is the status of my return for the Vapor Crewneck?
     [retrieval] Low Recall@5 (0.00): relevant chunks are not appearing in the top-5 results.
     [retrieval] Low Context Precision (0.00): many retrieved chunks are irrelevant.
     [retrieval] Low MRR (0.00): the first relevant chunk appears too late in the ranked list.
+    [generation] Low Faithfulness (0.00): the answer contains claims not supported by the retrieved context.
+    [generation] Low Answer Relevance (0.00): the answer does not adequately address the query.
+    [generation] Hallucination detected: at least one unsupported claim was present in the generated answer.
     → Review chunking strategy for this query's domain. Consider adjusting chunk boundaries or adding metadata to improve retrieval coverage.
     → Tighten metadata filters or adjust RRF fusion weights to reduce noise in retrieval results.
     → Investigate cross-encoder reranking effectiveness for this query type. The reranker may not be surfacing the most relevant chunk to the top position.
+    → Review the faithfulness guardrail prompt. Consider strengthening the system instruction to constrain the LLM to only use provided context.
+    → Check whether the retrieved context contains the information needed to answer this query. If retrieval is adequate, adjust the generation prompt to better focus on the user's question.
+
+  TQ-016: score=0.000
+    Query: How long does it take to get my refund after I drop off my return?
+    [retrieval] Low Recall@5 (0.00): relevant chunks are not appearing in the top-5 results.
+    [retrieval] Low Context Precision (0.00): many retrieved chunks are irrelevant.
+    [retrieval] Low MRR (0.00): the first relevant chunk appears too late in the ranked list.
+    [generation] Low Faithfulness (0.00): the answer contains claims not supported by the retrieved context.
+    [generation] Low Answer Relevance (0.00): the answer does not adequately address the query.
+    [generation] Hallucination detected: at least one unsupported claim was present in the generated answer.
+    → Review chunking strategy for this query's domain. Consider adjusting chunk boundaries or adding metadata to improve retrieval coverage.
+    → Tighten metadata filters or adjust RRF fusion weights to reduce noise in retrieval results.
+    → Investigate cross-encoder reranking effectiveness for this query type. The reranker may not be surfacing the most relevant chunk to the top position.
+    → Review the faithfulness guardrail prompt. Consider strengthening the system instruction to constrain the LLM to only use provided context.
+    → Check whether the retrieved context contains the information needed to answer this query. If retrieval is adequate, adjust the generation prompt to better focus on the user's question.
+
+  TQ-024: score=0.000
+    Query: If I buy something in an Alo store and want to return it, can I do it online? And how long until I get my refund?
+    [retrieval] Low Recall@5 (0.00): relevant chunks are not appearing in the top-5 results.
+    [retrieval] Low Context Precision (0.00): many retrieved chunks are irrelevant.
+    [retrieval] Low MRR (0.00): the first relevant chunk appears too late in the ranked list.
+    [generation] Low Faithfulness (0.00): the answer contains claims not supported by the retrieved context.
+    [generation] Low Answer Relevance (0.00): the answer does not adequately address the query.
+    [generation] Hallucination detected: at least one unsupported claim was present in the generated answer.
+    → Review chunking strategy for this query's domain. Consider adjusting chunk boundaries or adding metadata to improve retrieval coverage.
+    → Tighten metadata filters or adjust RRF fusion weights to reduce noise in retrieval results.
+    → Investigate cross-encoder reranking effectiveness for this query type. The reranker may not be surfacing the most relevant chunk to the top position.
+    → Review the faithfulness guardrail prompt. Consider strengthening the system instruction to constrain the LLM to only use provided context.
+    → Check whether the retrieved context contains the information needed to answer this query. If retrieval is adequate, adjust the generation prompt to better focus on the user's question.

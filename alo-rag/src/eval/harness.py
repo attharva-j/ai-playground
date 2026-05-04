@@ -269,7 +269,8 @@ class EvalHarness:
             query=tq.query,
             customer_id=tq.customer_id,
         )
-        
+        latency_ms = (time.perf_counter() - t0) * 1000.0
+
         expected_behavior = getattr(tq, "expected_behavior", "answer")
         answer_lower = pipeline_result.answer.lower()
 
@@ -370,8 +371,6 @@ class EvalHarness:
 
             if tq.expected_product_id:
                 correct_item_identified = tq.expected_product_id.lower() in answer_lower
-        
-        latency_ms = (time.perf_counter() - t0) * 1000.0
 
         # Extract retrieved chunk IDs
         retrieved_ids = [rc.chunk.chunk_id for rc in pipeline_result.chunks]

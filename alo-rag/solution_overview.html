@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALO RAG System — Solution Overview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-bg: #faf9f7;
+      --color-surface: #ffffff;
+      --color-surface-alt: #f4f2ef;
+      --color-border: #e5e2dc;
+      --color-border-light: #eeebe6;
+      --color-text: #2c2a25;
+      --color-text-secondary: #6b6660;
+      --color-text-muted: #9b958e;
+      --color-accent: #c45d3e;
+      --color-accent-soft: #f0ddd6;
+      --color-accent-hover: #a84e33;
+      --color-link: #3d6b8e;
+      --color-link-hover: #2a4f6b;
+      --color-tag-bg: #eae6df;
+      --color-tag-text: #5c574f;
+      --color-code-bg: #f0ede8;
+      --color-table-header: #3a3733;
+      --color-table-header-text: #faf9f7;
+      --color-table-stripe: #faf8f5;
+      --color-table-hover: #f2efe9;
+      --color-nav-active: var(--color-accent);
+      --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --max-width: 860px;
+      --sidebar-width: 240px;
+      --header-height: 60px;
+      /* Diagram palette */
+      --d-user: #c45d3e;
+      --d-ui: #3d6b8e;
+      --d-pipeline: #5c574f;
+      --d-retrieval: #6a8e5c;
+      --d-generation: #8e6a3d;
+      --d-eval: #7a5c8e;
+      --d-ingestion: #4a7a6a;
+      --d-customer: #8e5c6a;
+      --d-decision-yes: #6a8e5c;
+      --d-decision-no: #c45d3e;
+    }
+    html { scroll-behavior: smooth; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { font-family: var(--font-serif); color: var(--color-text); background: var(--color-bg); line-height: 1.72; overflow-x: hidden; }
+    .scroll-progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--color-accent); z-index: 1000; width: 0%; transition: width 0.1s linear; }
+    .site-header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-border-light); z-index: 100; display: flex; align-items: center; padding: 0 2rem; transition: box-shadow 0.3s ease; }
+    .site-header.scrolled { box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+    .header-inner { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .header-brand { font-family: var(--font-sans); font-weight: 700; font-size: 1rem; letter-spacing: -0.02em; color: var(--color-text); text-decoration: none; }
+    .header-brand span { color: var(--color-accent); }
+    .header-nav { display: flex; gap: 1.5rem; list-style: none; }
+    .header-nav a { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; transition: color 0.2s; letter-spacing: 0.01em; }
+    .header-nav a:hover { color: var(--color-accent); }
+    .page-wrapper { display: flex; max-width: 1200px; margin: 0 auto; padding-top: var(--header-height); }
+    .sidebar { position: fixed; top: calc(var(--header-height) + 2rem); left: max(1rem, calc((100vw - 1200px) / 2)); width: var(--sidebar-width); max-height: calc(100vh - var(--header-height) - 4rem); overflow-y: auto; padding: 0.5rem 0; z-index: 50; }
+    .sidebar::-webkit-scrollbar { width: 3px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    .sidebar-label { font-family: var(--font-sans); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); padding: 0.5rem 1rem 0.4rem; }
+    .sidebar-list { list-style: none; }
+    .sidebar-list li { position: relative; }
+    .sidebar-list a { display: block; font-family: var(--font-sans); font-size: 0.78rem; font-weight: 400; color: var(--color-text-secondary); text-decoration: none; padding: 0.35rem 1rem; border-left: 2px solid transparent; transition: all 0.25s ease; line-height: 1.4; }
+    .sidebar-list a:hover { color: var(--color-text); background: var(--color-surface-alt); }
+    .sidebar-list a.active { color: var(--color-accent); border-left-color: var(--color-accent); font-weight: 500; background: var(--color-accent-soft); }
+    .sidebar-list .sub-item a { padding-left: 1.75rem; font-size: 0.73rem; }
+    .main-content { margin-left: calc(var(--sidebar-width) + 3rem); max-width: var(--max-width); width: 100%; padding: 3rem 2rem 6rem; }
+    .hero { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--color-border-light); margin-bottom: 3rem; }
+    .hero-eyebrow { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-accent); margin-bottom: 0.75rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .hero-eyebrow::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--color-accent); }
+    .hero h1 { font-family: var(--font-serif); font-size: 2.6rem; font-weight: 600; line-height: 1.18; letter-spacing: -0.025em; color: var(--color-text); margin-bottom: 1.25rem; }
+    .hero-intro { font-size: 1.08rem; color: var(--color-text-secondary); line-height: 1.75; max-width: 640px; }
+    .section { margin-bottom: 4rem; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .section.visible { opacity: 1; transform: translateY(0); }
+    .section-anchor { display: block; position: relative; top: calc(-1 * var(--header-height) - 1.5rem); visibility: hidden; }
+    h2 { font-family: var(--font-serif); font-size: 1.85rem; font-weight: 600; letter-spacing: -0.02em; color: var(--color-text); margin-bottom: 1rem; line-height: 1.25; }
+    h3 { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; color: var(--color-text); margin-top: 2.5rem; margin-bottom: 0.75rem; line-height: 1.3; }
+    h4 { font-family: var(--font-sans); font-size: 0.95rem; font-weight: 600; color: var(--color-text); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    p { margin-bottom: 1rem; }
+    a { color: var(--color-link); text-decoration-color: rgba(61,107,142,0.3); text-underline-offset: 2px; transition: color 0.2s, text-decoration-color 0.2s; }
+    a:hover { color: var(--color-link-hover); text-decoration-color: var(--color-link-hover); }
+    strong { font-weight: 600; }
+    code { font-family: var(--font-mono); font-size: 0.85em; background: var(--color-code-bg); padding: 0.15em 0.4em; border-radius: 4px; color: var(--color-accent-hover); }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.4rem; }
+    li::marker { color: var(--color-accent); }
+    .callout { background: var(--color-surface); border: 1px solid var(--color-border-light); border-left: 3px solid var(--color-accent); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; font-size: 0.95rem; }
+    .callout-title { font-family: var(--font-sans); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent); margin-bottom: 0.5rem; }
+    .callout p:last-child { margin-bottom: 0; }
+    .emphasis-block { background: var(--color-surface-alt); border-radius: 8px; padding: 1.5rem 2rem; margin: 2rem 0; border: 1px solid var(--color-border-light); }
+    .emphasis-block p:last-child { margin-bottom: 0; }
+    blockquote { border-left: 3px solid var(--color-accent); padding: 0.75rem 1.25rem; margin: 1.5rem 0; background: var(--color-surface); border-radius: 0 6px 6px 0; font-style: italic; color: var(--color-text-secondary); }
+    blockquote p:last-child { margin-bottom: 0; }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface); }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.82rem; line-height: 1.55; }
+    thead { background: var(--color-table-header); }
+    thead th { color: var(--color-table-header-text); font-weight: 600; text-align: left; padding: 0.75rem 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; border-bottom: 2px solid var(--color-table-header); }
+    tbody tr { border-bottom: 1px solid var(--color-border-light); transition: background 0.15s ease; }
+    tbody tr:nth-child(even) { background: var(--color-table-stripe); }
+    tbody tr:hover { background: var(--color-table-hover); }
+    tbody td { padding: 0.7rem 1rem; vertical-align: top; color: var(--color-text); }
+    tbody td:first-child { font-weight: 500; }
+    .adr-table-wrapper { overflow-x: auto; margin: 1.5rem 0; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface); }
+    .adr-table-wrapper table { min-width: 900px; }
+    .adr-table-wrapper td:nth-child(3) { max-width: 200px; }
+    .adr-table-wrapper td:nth-child(4) { max-width: 180px; color: var(--color-text-secondary); font-size: 0.78rem; }
+    .adr-table-wrapper td:nth-child(n+5) { color: var(--color-text-muted); font-size: 0.76rem; }
+    .tag { display: inline-block; font-family: var(--font-sans); font-size: 0.68rem; font-weight: 500; background: var(--color-tag-bg); color: var(--color-tag-text); padding: 0.2em 0.6em; border-radius: 4px; margin-right: 0.3rem; white-space: nowrap; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .feature-card { background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 8px; padding: 1.25rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .feature-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .feature-card-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .feature-card h4 { font-family: var(--font-sans); font-size: 0.88rem; font-weight: 600; margin: 0 0 0.4rem; color: var(--color-text); }
+    .feature-card p { font-size: 0.84rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+    .numbered-goals { counter-reset: goal; list-style: none; padding-left: 0; }
+    .numbered-goals li { counter-increment: goal; position: relative; padding-left: 3rem; margin-bottom: 1.25rem; }
+    .numbered-goals li::before { content: counter(goal); position: absolute; left: 0; top: 0.1em; width: 2rem; height: 2rem; background: var(--color-accent); color: white; font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .numbered-goals li strong { display: block; font-family: var(--font-sans); font-size: 0.92rem; margin-bottom: 0.2rem; }
+    .numbered-goals li span { font-size: 0.92rem; color: var(--color-text-secondary); }
+    .pill-list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 1rem 0; }
+    .pill-list li { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 500; background: var(--color-surface); border: 1px solid var(--color-border); padding: 0.4rem 0.9rem; border-radius: 20px; color: var(--color-text-secondary); margin: 0; transition: all 0.2s; }
+    .pill-list li:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-soft); }
+    .reviewer-table td:first-child { font-style: italic; color: var(--color-text-secondary); }
+    .reviewer-table td:last-child a { font-family: var(--font-mono); font-size: 0.78rem; }
+    hr { border: none; height: 1px; background: var(--color-border-light); margin: 3rem 0; }
+    .back-to-top { position: fixed; bottom: 2rem; right: 2rem; width: 40px; height: 40px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .back-to-top.visible { opacity: 1; transform: translateY(0); }
+    .back-to-top:hover { background: var(--color-accent); border-color: var(--color-accent); }
+    .back-to-top:hover svg { stroke: white; }
+    .back-to-top svg { width: 18px; height: 18px; stroke: var(--color-text-secondary); stroke-width: 2; fill: none; }
+    .site-footer { border-top: 1px solid var(--color-border-light); padding: 2rem; text-align: center; font-family: var(--font-sans); font-size: 0.78rem; color: var(--color-text-muted); }
+    .diagram-caption { font-family: var(--font-sans); font-size: 0.78rem; color: var(--color-text-muted); text-align: center; margin-top: 1rem; font-style: italic; }
+
+    /* ===== ARCHITECTURE DIAGRAM COMPONENT ===== */
+    .arch-diagram { position: relative; margin: 2rem 0; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 10px; padding: 2rem 1.5rem; overflow-x: auto; }
+    .arch-diagram svg { display: block; margin: 0 auto; }
+    .arch-diagram .ad-node { cursor: pointer; transition: filter 0.2s; }
+    .arch-diagram .ad-node:hover { filter: brightness(0.95); }
+    .arch-diagram .ad-node rect, .arch-diagram .ad-node path { transition: stroke-width 0.2s, filter 0.2s; }
+    .arch-diagram .ad-node:hover rect, .arch-diagram .ad-node:hover path { stroke-width: 2.5; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12)); }
+    .arch-diagram .ad-node text { font-family: var(--font-sans); pointer-events: none; }
+    .arch-diagram .ad-edge { stroke: var(--color-border); stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    .arch-diagram .ad-edge-active { stroke: var(--color-accent); stroke-width: 2; }
+    .arch-diagram .ad-group-box { fill: var(--color-surface-alt); stroke: var(--color-border); stroke-width: 1; stroke-dasharray: 6 3; rx: 8; }
+    .arch-diagram .ad-group-label { font-family: var(--font-sans); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; fill: var(--color-text-muted); }
+
+    /* Expand button */
+    .arch-expand-btn {
+      position: absolute; top: 1rem; right: 1rem; z-index: 15;
+      width: 38px; height: 38px; border-radius: 8px;
+      border: 1.5px solid var(--color-border); background: var(--color-surface);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease; box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .arch-expand-btn:hover { border-color: var(--color-accent); background: var(--color-accent-soft); }
+    .arch-expand-btn:hover svg { stroke: var(--color-accent); }
+    .arch-expand-btn svg { width: 16px; height: 16px; stroke: var(--color-text-secondary); stroke-width: 2; fill: none; }
+
+    /* ===== EXPANDED DIAGRAM OVERLAY ===== */
+    .arch-modal-backdrop {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(44,42,37,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .arch-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .arch-diagram.expanded {
+      position: fixed !important;
+      z-index: 510 !important;
+      top: 2rem; left: 2rem; right: 2rem; bottom: 2rem;
+      margin: 0 !important;
+      max-width: none !important;
+      width: auto !important;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      overflow: auto;
+      padding: 1rem 1.5rem 1rem;
+      transform: scale(1);
+      animation: modalZoomIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes modalZoomIn {
+      from { opacity: 0.8; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .arch-diagram.expanded .arch-expand-btn .icon-expand { display: none; }
+    .arch-diagram.expanded .arch-expand-btn .icon-collapse { display: block; }
+    .arch-expand-btn .icon-collapse { display: none; }
+
+    /* Tooltip */
+    .arch-tooltip { position: absolute; background: var(--color-table-header); color: var(--color-table-header-text); font-family: var(--font-sans); font-size: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; max-width: 220px; line-height: 1.4; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .arch-tooltip.show { opacity: 1; }
+
+    /* Animated data pulse on edges */
+    @keyframes flowPulse {
+      0% { stroke-dashoffset: 24; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .ad-edge-animated { stroke-dasharray: 6 6; animation: flowPulse 1.2s linear infinite; }
+
+    /* Node appear animation */
+    @keyframes nodeAppear {
+      from { opacity: 0; transform: translateY(8px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .arch-diagram .ad-node { opacity: 0; }
+    .arch-diagram.animate .ad-node { animation: nodeAppear 0.4s ease forwards; }
+
+    /* ===== FLOWCHART COMPONENT ===== */
+    .flow-diagram { position: relative; margin: 2rem 0; background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: 10px; padding: 2rem 1rem; overflow-x: auto; }
+    .flow-diagram svg { display: block; margin: 0 auto; }
+    .flow-step { cursor: default; }
+    .flow-step rect, .flow-step polygon { transition: filter 0.2s, stroke-width 0.2s; }
+    .flow-step:hover rect, .flow-step:hover polygon { filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1)); stroke-width: 2.5; }
+    .flow-step text { font-family: var(--font-sans); pointer-events: none; }
+    .flow-edge { stroke: var(--color-border); stroke-width: 1.5; fill: none; marker-end: url(#flowArrow); }
+    .flow-edge-label { font-family: var(--font-sans); font-size: 10px; font-weight: 600; }
+    @keyframes flowStepAppear {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .flow-diagram .flow-step { opacity: 0; }
+    .flow-diagram.animate .flow-step { animation: flowStepAppear 0.35s ease forwards; }
+
+    /* Playback controls */
+    .diagram-controls { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1rem; }
+    .diagram-controls button { font-family: var(--font-sans); font-size: 0.75rem; font-weight: 500; padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s; }
+    .diagram-controls button:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-soft); }
+    .diagram-controls button.active { background: var(--color-accent); color: white; border-color: var(--color-accent); }
+    .diagram-controls .step-indicator { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-muted); min-width: 60px; text-align: center; }
+
+    /* ===== PLAY BUTTON ===== */
+    .flow-play-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 15;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--color-accent);
+      background: var(--color-surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 10px rgba(196,93,62,0.15);
+    }
+    .flow-play-btn:hover { background: var(--color-accent); }
+    .flow-play-btn:hover svg { fill: white; stroke: white; }
+    .flow-play-btn svg { width: 18px; height: 18px; fill: var(--color-accent); stroke: none; transition: fill 0.2s, stroke 0.2s; }
+    .flow-play-btn.playing { background: var(--color-accent); border-color: var(--color-accent); }
+    .flow-play-btn.playing svg { fill: white; }
+    .flow-play-btn .icon-pause { display: none; }
+    .flow-play-btn.playing .icon-play { display: none; }
+    .flow-play-btn.playing .icon-pause { display: block; }
+
+    /* Active step glow pulse */
+    @keyframes stepGlow {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(196,93,62,0.3)); }
+      50% { filter: drop-shadow(0 0 14px rgba(196,93,62,0.55)); }
+    }
+    .flow-step.glow { animation: stepGlow 1.2s ease-in-out infinite; }
+
+    /* Running arrow on edges during play */
+    @keyframes edgeRun {
+      0% { stroke-dashoffset: 20; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .flow-edge.edge-active {
+      stroke: var(--color-accent) !important;
+      stroke-width: 2.5 !important;
+      stroke-dasharray: 6 4;
+      animation: edgeRun 0.6s linear infinite;
+      opacity: 1 !important;
+    }
+    .flow-edge.edge-visited {
+      stroke: var(--color-accent) !important;
+      stroke-width: 2 !important;
+      opacity: 0.45 !important;
+    }
+
+    /* Traveling dot */
+    .flow-runner {
+      fill: var(--color-accent);
+      r: 5;
+      opacity: 0;
+      filter: drop-shadow(0 0 4px rgba(196,93,62,0.6));
+      transition: opacity 0.2s;
+    }
+    .flow-runner.visible { opacity: 1; }
+
+    /* Step scale-in when it becomes active */
+    @keyframes stepPopIn {
+      0% { transform: scale(0.92); opacity: 0.6; }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .flow-step.pop-in { animation: stepPopIn 0.35s ease forwards; }
+
+    /* Decision prompt overlay */
+    .decision-prompt {
+      position: absolute;
+      z-index: 20;
+      background: var(--color-surface);
+      border: 2px solid var(--color-accent);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      display: none;
+      max-width: 280px;
+      transform: translateX(-50%);
+    }
+    .decision-prompt.show { display: block; animation: promptAppear 0.3s ease; }
+    @keyframes promptAppear {
+      from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .decision-prompt-title {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 0.6rem;
+      line-height: 1.3;
+    }
+    .decision-prompt-options { display: flex; flex-direction: column; gap: 0.4rem; }
+    .decision-prompt-btn {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.45rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .decision-prompt-btn:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+    .decision-prompt-btn.opt-end {
+      border-color: var(--d-decision-no);
+      color: var(--d-decision-no);
+      background: #fce8e4;
+    }
+    .decision-prompt-btn.opt-end:hover {
+      background: var(--d-decision-no);
+      color: white;
+    }
+    .decision-prompt-btn.opt-continue {
+      border-color: var(--d-decision-yes);
+      color: var(--d-decision-yes);
+      background: #e8f0e4;
+    }
+    .decision-prompt-btn.opt-continue:hover {
+      background: var(--d-decision-yes);
+      color: white;
+    }
+
+    /* ===== INNOVATIONS GRID ===== */
+    .innovations-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+      margin: 1.5rem 0;
+    }
+    .innovation-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .innovation-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border-color: var(--color-border);
+    }
+    .innovation-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .innovation-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .innovation-card h4 {
+      font-family: var(--font-sans);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin: 0;
+      line-height: 1.3;
+    }
+    .innovation-card p {
+      font-size: 0.82rem;
+      color: var(--color-text-secondary);
+      line-height: 1.55;
+      margin: 0 0 0.6rem;
+    }
+    .innovation-link {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--color-link);
+      text-decoration: none;
+      padding: 0.2rem 0.55rem;
+      border: 1px solid var(--color-border-light);
+      border-radius: 4px;
+      background: var(--color-surface-alt);
+      transition: all 0.2s;
+    }
+    .innovation-link:hover {
+      border-color: var(--color-link);
+      background: var(--color-surface);
+      color: var(--color-link-hover);
+    }
+
+    /* ===== EFFORT DISTRIBUTION CHART ===== */
+    .effort-chart {
+      margin: 1.5rem 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+    .effort-row {
+      display: grid;
+      grid-template-columns: 200px 1fr 52px;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .effort-row:last-of-type { border-bottom: none; }
+    .effort-label { min-width: 0; }
+    .effort-name {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+    .effort-desc {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      line-height: 1.35;
+      margin-top: 0.15rem;
+    }
+    .effort-bar-track {
+      height: 22px;
+      background: var(--color-surface-alt);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .effort-bar {
+      height: 100%;
+      width: var(--bar-pct);
+      background: var(--bar-color);
+      border-radius: 4px;
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+    }
+    .effort-bar::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 30px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2));
+      border-radius: 0 4px 4px 0;
+    }
+    .effort-hours {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .effort-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0 0;
+      margin-top: 0.5rem;
+      border-top: 2px solid var(--color-border);
+    }
+    .effort-total-label {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .effort-total-value {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--color-accent);
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; max-width: 100%; padding: 2rem 1.5rem 4rem; }
+      .hero h1 { font-size: 2rem; }
+    }
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.7rem; }
+      h2 { font-size: 1.5rem; }
+      .header-nav { display: none; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .innovations-grid { grid-template-columns: 1fr; }
+      .effort-row { grid-template-columns: 1fr 52px; gap: 0.5rem; }
+      .effort-label { grid-column: 1 / -1; }
+      .effort-bar-track { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <header class="site-header" id="siteHeader">
+    <div class="header-inner">
+      <a href="#top" class="header-brand">ALO <span>RAG</span></a>
+      <nav>
+        <ul class="header-nav">
+          <li><a href="#introduction">Use Case</a></li>
+          <li><a href="#adr">ADR</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="#evaluation-criteria">Evaluation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-label">On this page</div>
+    <ul class="sidebar-list" id="sidebarList">
+      <li><a href="#introduction" data-section="introduction">1. Introduction</a></li>
+      <li class="sub-item"><a href="#what-expected" data-section="what-expected">What was expected</a></li>
+      <li class="sub-item"><a href="#key-constraints" data-section="key-constraints">Key constraints</a></li>
+      <li class="sub-item"><a href="#my-framing" data-section="my-framing">My framing</a></li>
+      <li><a href="#adr" data-section="adr">2. ADR Summary</a></li>
+      <li><a href="#architecture" data-section="architecture">3.1 Architecture Diagram</a></li>
+      <li class="sub-item"><a href="#innovations" data-section="innovations">Key Innovations</a></li>
+      <li><a href="#query-flow" data-section="query-flow">3.2 Query Flow</a></li>
+      <li><a href="#emphasis" data-section="emphasis">What this emphasizes</a></li>
+      <li><a href="#evaluation-criteria" data-section="evaluation-criteria">4. Evaluation Criteria</a></li>
+      <li class="sub-item"><a href="#rag-impl" data-section="rag-impl">4.1 RAG Implementation</a></li>
+      <li class="sub-item"><a href="#adr-eval" data-section="adr-eval">4.2 ADR</a></li>
+      <li class="sub-item"><a href="#eval-framework" data-section="eval-framework">4.3 Evaluation Framework</a></li>
+      <li class="sub-item"><a href="#production-readiness" data-section="production-readiness">4.4 Production Readiness</a></li>
+      <li class="sub-item"><a href="#reviewer-nav" data-section="reviewer-nav">4.5 Quick Navigation</a></li>
+      <li><a href="#effort" data-section="effort">5. Effort Distribution</a></li>
+    </ul>
+  </aside>
+  <div class="page-wrapper">
+    <main class="main-content">
+      <span class="section-anchor" id="top"></span>
+      <div class="hero">
+        <div class="hero-eyebrow">Solution Introduction &amp; Architecture Overview</div>
+        <h1>ALO RAG System</h1>
+        <p class="hero-intro">
+          Thanks for the interesting problem statement. Every AI use case is different, and I genuinely enjoy finding ways to tailor solutions to each one, especially in retail. Retail systems have so much variation across products, policies, seasons, customer journeys, discounts, loyalty programs, and operational edge cases. 🛍️✨
+        </p>
+        <p class="hero-intro">
+          For this case study, I wanted to build something closer to an enterprise-ready AI product POC rather than a simple "embed, retrieve, answer" demo. The goal was not just to answer questions, but to answer them <strong>with the right evidence</strong>, <strong>from the right source</strong>, and sometimes to know when <strong>not to answer</strong> until more context is available. That's where a lot of practical AI engineering lives: designing systems that are useful, grounded, measurable, and honest about uncertainty. 🙂
+        </p>
+
+      </div>
+
+      <!-- SECTION 1 -->
+      <section class="section" id="sec-introduction">
+        <span class="section-anchor" id="introduction"></span>
+        <h2>1. Introduction to the Use Case</h2>
+        <p>ALO's case study focuses on a very real enterprise GenAI problem: multiple teams have started building RAG systems and knowledge assistants independently, but there is no shared quality bar for chunking, retrieval, evaluation, reliability, or production-readiness.</p>
+        <p>The assignment was to design, build, and evaluate a <strong>production-grade RAG system for retail</strong> across three major knowledge domains:</p>
+        <div class="feature-grid">
+          <div class="feature-card"><div class="feature-card-icon">📦</div><h4>Product Knowledge</h4><p>Product specs, materials, fabric types, sizing, care instructions, product attributes, and restocking-related information.</p></div>
+          <div class="feature-card"><div class="feature-card-icon">📋</div><h4>Policy &amp; Operations Intelligence</h4><p>Return policies, shipping SLAs, promo eligibility, loyalty-tier logic, sale restrictions, seasonal policy changes, and compliance-sensitive rules.</p></div>
+          <div class="feature-card"><div class="feature-card-icon">👤</div><h4>Customer Context Queries</h4><p>Customer-specific questions like "What did I buy last season?" or "Is my item eligible for return?" — blending retrieved knowledge with exact structured customer data.</p></div>
+        </div>
+        <span class="section-anchor" id="what-expected"></span>
+        <h3>What the assignment expected</h3>
+        <p>The deliverable was expected to cover four independently scored areas:</p>
+        <div class="table-wrapper"><table><thead><tr><th>Area</th><th>What was expected</th></tr></thead><tbody>
+          <tr><td><strong>RAG System Implementation</strong></td><td>End-to-end pipeline, multiple data types, embeddings, vector store, retrieval beyond naive top-k, generation layer, and working demo interface</td></tr>
+          <tr><td><strong>Architecture Decision Record</strong></td><td>Clear reasoning for chunking, embedding model, retrieval strategy, prompt design, and what would change with more time/data</td></tr>
+          <tr><td><strong>Evaluation Framework</strong></td><td>At least 20 test queries, retrieval metrics, generation metrics, failure analysis, and a regression harness</td></tr>
+          <tr><td><strong>Production Readiness Memo</strong></td><td>Risks and mitigations for staleness, retrieval failures, latency, guardrails, out-of-scope queries, and observability</td></tr>
+        </tbody></table></div>
+        <span class="section-anchor" id="key-constraints"></span>
+        <h3>Key constraints</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Constraint</th><th>Design implication</th></tr></thead><tbody>
+          <tr><td><strong>Open-ended stack</strong></td><td>Freedom to choose tools, but every choice needed justification</td></tr>
+          <tr><td><strong>Use any LLM provider</strong></td><td>Optimize for quality, cost, or local fallback depending on the stage</td></tr>
+          <tr><td><strong>Build synthetic data</strong></td><td>Product, policy, and customer datasets had to be representative enough for evaluation</td></tr>
+          <tr><td><strong>Time-boxed to ~20–24 hours</strong></td><td>The solution needed to be focused, not overbuilt</td></tr>
+          <tr><td><strong>Runnable repo + docs</strong></td><td>A reviewer should be able to run the demo and evals without reverse-engineering the project</td></tr>
+          <tr><td><strong>Evaluation heavily weighted</strong></td><td>The system had to expose its own failures, not hide them</td></tr>
+        </tbody></table></div>
+        <span class="section-anchor" id="my-framing"></span>
+        <h3>My framing</h3>
+        <div class="callout"><div class="callout-title">Design Philosophy</div><p>I treated this as a <strong>retail AI platform problem</strong>, not just a chatbot problem.</p></div>
+        <ul class="pill-list">
+          <li>Retail questions are not all the same</li>
+          <li>Customer data should not be semantically embedded</li>
+          <li>Retrieval should be domain-aware</li>
+          <li>Safe "I need more context" &gt; confident hallucination</li>
+          <li>Evaluation should catch real failures</li>
+        </ul>
+      </section>
+      <hr>
+
+      <!-- SECTION 2: ADR -->
+      <section class="section" id="sec-adr">
+        <span class="section-anchor" id="adr"></span>
+        <h2>2. ADR Summary</h2>
+        <p>The detailed ADR is available at <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank" rel="noopener">docs/ADR.md</a>. Below is a condensed decision summary.</p>
+        <div class="adr-table-wrapper"><table><thead><tr><th>#</th><th>Decision Area</th><th>Chosen</th><th>Reason</th><th>Alt #1</th><th>Alt #2</th><th>Alt #3</th></tr></thead><tbody>
+          <tr><td>1</td><td>Chunking strategy</td><td>Domain-aware chunking: product, fabric entity, section-based policy chunks</td><td>Domains need different boundaries</td><td>Fixed token windows — splits rules</td><td>One giant document — too noisy</td><td>Semantic-only — less deterministic</td></tr>
+          <tr><td>2</td><td>Fabric knowledge</td><td>First-class fabric glossary chunks</td><td>Fabric comparisons need entity evidence</td><td>Product-only chunks — scattered evidence</td><td>Manual FAQ — hard to scale</td><td>LLM summaries — harder to verify</td></tr>
+          <tr><td>3</td><td>Policy chunking</td><td>Section-based with tags</td><td>Preserves conditional policy logic</td><td>Small sliding windows — breaks clauses</td><td>Whole policy doc — too much noise</td><td>Rule engine — too heavy for POC</td></tr>
+          <tr><td>4</td><td>Embedding model</td><td><code>voyage-3</code> primary + <code>all-mpnet-base-v2</code> fallback</td><td>Quality first, graceful fallback</td><td>OpenAI embeddings — good but not primary</td><td>Local-only — lower ceiling</td><td>Cohere — future option</td></tr>
+          <tr><td>5</td><td>Vector store</td><td>ChromaDB for local POC</td><td>Fast local iteration, simple setup</td><td>Pinecone — external dependency</td><td>Weaviate — more infra</td><td>OpenSearch — better prod target</td></tr>
+          <tr><td>6</td><td>Sparse retrieval</td><td>BM25 in-memory index</td><td>Captures exact retail terms</td><td>Dense-only — misses SKUs</td><td>SQL LIKE — too limited</td><td>Keyword rules — brittle</td></tr>
+          <tr><td>7</td><td>Fusion strategy</td><td>Reciprocal Rank Fusion (RRF)</td><td>Combines rankings without calibration</td><td>Weighted score fusion — needs normalization</td><td>Dense priority — misses lexical</td><td>BM25 priority — weak paraphrase</td></tr>
+          <tr><td>8</td><td>Reranking</td><td>Cross-encoder reranker</td><td>Improves final context ordering</td><td>No reranker — noisy context</td><td>LLM reranking — more latency</td><td>Manual rules — hard to generalize</td></tr>
+          <tr><td>9</td><td>Metadata filtering</td><td>Hard domain filters for clear queries</td><td>Improves context precision</td><td>Soft boosting — passes noise</td><td>Always broad — hallucination risk</td><td>User-selected — worse UX</td></tr>
+          <tr><td>10</td><td>Query intelligence</td><td>Intent routing, HyDE, decomposition selectively</td><td>Better retrieval for hard queries</td><td>Always HyDE — slower, costly</td><td>No expansion — misses nuance</td><td>Multi-agent — too heavy</td></tr>
+          <tr><td>11</td><td>Customer data</td><td>Structured JSON lookup by <code>customer_id</code></td><td>Exact facts beat semantic search</td><td>Embed customer data — privacy risk</td><td>SQL database — more setup</td><td>LLM memory — not deterministic</td></tr>
+          <tr><td>12</td><td>Answerability gate</td><td>Pre-generation evidence check</td><td>Prevents unsupported answers</td><td>Prompt-only — too easy to ignore</td><td>Post-hoc correction — too late</td><td>Always answer — unsafe</td></tr>
+          <tr><td>13</td><td>Prompt architecture</td><td>Context-bound prompt with chunk IDs</td><td>Grounding and citations matter</td><td>Free-form — less controllable</td><td>Huge context stuffing — more noise</td><td>Tool-agent — more complex</td></tr>
+          <tr><td>14</td><td>LLM for generation</td><td>GPT-4o-style quality model</td><td>Strong answer quality and reasoning</td><td>Small local LLM — lower quality</td><td>GPT-4.1-nano — cheaper but weaker</td><td>Claude/Bedrock — valid future</td></tr>
+          <tr><td>15</td><td>Faithfulness guardrail</td><td>LLM-as-judge with fail-closed behavior</td><td>Safer high-risk answers</td><td>No guardrail — hallucination risk</td><td>RAGAS only — less domain-specific</td><td>Local NLI — good future optimization</td></tr>
+          <tr><td>16</td><td>Evaluation metrics</td><td>Custom retrieval + judge + behavior metrics</td><td>Domain-specific scoring needed</td><td>RAGAS defaults — less retail-specific</td><td>DeepEval — less control</td><td>Manual review — not scalable</td></tr>
+          <tr><td>17</td><td>Behavior-aware eval</td><td>Clarify/refuse scored separately</td><td>Safe behavior is success</td><td>Treat all as QA — punishes refusal</td><td>Ignore safety — incomplete</td><td>Human-only — slow loop</td></tr>
+          <tr><td>18</td><td>Staleness handling</td><td>DocumentRegistry with content hashes</td><td>Tracks changes incrementally</td><td>Full reindex — expensive</td><td>No registry — drift risk</td><td>CMS-only sync — out of scope</td></tr>
+          <tr><td>19</td><td>Demo interface</td><td>React/Next.js chat UI with assistant-ui</td><td>Better UX, minimal extra effort</td><td>Streamlit — less polished</td><td>CLI only — weak demo</td><td>Notebook — less product-like</td></tr>
+          <tr><td>20</td><td>UI effort</td><td>Next.js + assistant-ui + backend API</td><td>Chat UI in ~40–45 mins</td><td>Build from scratch — unnecessary</td><td>Heavy design system — overkill</td><td>No trace panel — less explainable</td></tr>
+          <tr><td>21</td><td>Observability</td><td>Trace logs with decisions and latency</td><td>Debuggable and evaluator-friendly</td><td>Print-only — hard to inspect</td><td>External APM — too much setup</td><td>No trace — black-box demo</td></tr>
+          <tr><td>22</td><td>Production path</td><td>Local POC, AWS-friendly design</td><td>Practical now, scalable later</td><td>Full cloud now — too much for timebox</td><td>Local-only thinking — weak prod story</td><td>Serverless-only — may constrain retrieval</td></tr>
+        </tbody></table></div>
+        <div class="emphasis-block"><p>The biggest design decision was to <strong>avoid treating this as one generic RAG pipeline</strong>. Instead, the solution uses domain-specific retrieval and safety logic: product questions use product/fabric evidence, policy questions use tagged policy sections, customer questions use exact structured lookup, missing context triggers clarification, out-of-scope questions are refused deterministically, and evaluation separates answerable QA from expected safe behavior.</p></div>
+      </section>
+      <hr>
+
+      <!-- SECTION 3.1: ARCHITECTURE DIAGRAM — INTERACTIVE SVG COMPONENT -->
+      <section class="section" id="sec-architecture">
+        <span class="section-anchor" id="architecture"></span>
+        <h2>3.1 Architecture Diagram</h2>
+        <p>The diagram below gives a high-level view of how the current system is wired. Hover over any node to see details, or use the controls to highlight data flow paths.</p>
+
+        <div class="arch-diagram" id="archDiagram">
+          <div class="arch-tooltip" id="archTooltip"></div>
+          <!-- Expand button -->
+          <button class="arch-expand-btn" id="archExpandBtn" title="Expand diagram">
+            <svg class="icon-expand" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <svg class="icon-collapse" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </button>
+          <svg viewBox="0 0 1060 620" width="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#9b958e"/></marker>
+              <marker id="arrowActive" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#c45d3e"/></marker>
+              <filter id="nodeShadow"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/></filter>
+            </defs>
+
+            <!-- Ingestion group box -->
+            <rect class="ad-group-box" x="16" y="310" width="310" height="280" />
+            <text class="ad-group-label" x="32" y="330">Ingestion + Indexing</text>
+
+            <!-- ===== NODES ===== -->
+            <!-- User layer -->
+            <g class="ad-node" data-id="user" data-tip="End user asking questions via the chat interface" style="animation-delay:0s">
+              <rect x="20" y="120" width="80" height="40" rx="20" fill="var(--d-user)" stroke="var(--d-user)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="60" y="145" text-anchor="middle" fill="white" font-size="12" font-weight="600">User</text>
+            </g>
+            <g class="ad-node" data-id="ui" data-tip="React / Next.js chat UI built with assistant-ui components" style="animation-delay:0.06s">
+              <rect x="130" y="110" width="130" height="44" rx="6" fill="#dce8f0" stroke="var(--d-ui)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="195" y="128" text-anchor="middle" fill="var(--d-ui)" font-size="10" font-weight="600">React / Next.js</text>
+              <text x="195" y="142" text-anchor="middle" fill="var(--d-ui)" font-size="9">Chat UI</text>
+            </g>
+            <g class="ad-node" data-id="api" data-tip="FastAPI server exposing /api/chat endpoint" style="animation-delay:0.12s">
+              <rect x="290" y="110" width="120" height="44" rx="6" fill="#e8e5df" stroke="var(--d-pipeline)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="350" y="128" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="600">FastAPI Server</text>
+              <text x="350" y="142" text-anchor="middle" fill="var(--d-pipeline)" font-size="9">/api/chat</text>
+            </g>
+
+            <!-- Pipeline core -->
+            <g class="ad-node" data-id="pipe" data-tip="Central pipeline orchestrator coordinating all stages" style="animation-delay:0.18s">
+              <rect x="440" y="110" width="130" height="44" rx="6" fill="#e8e5df" stroke="var(--d-pipeline)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="505" y="128" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="600">Pipeline</text>
+              <text x="505" y="142" text-anchor="middle" fill="var(--d-pipeline)" font-size="9">Orchestrator</text>
+            </g>
+            <g class="ad-node" data-id="ir" data-tip="Intent Router: rule fast-path + LLM fallback for classifying query type" style="animation-delay:0.24s">
+              <rect x="440" y="180" width="120" height="38" rx="6" fill="#f0ede8" stroke="var(--d-pipeline)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="500" y="203" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="500">Intent Router</text>
+            </g>
+            <g class="ad-node" data-id="sg" data-tip="Scope Guard: deterministic out-of-scope detection" style="animation-delay:0.3s">
+              <rect x="440" y="240" width="120" height="38" rx="6" fill="#f0ede8" stroke="var(--d-pipeline)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="500" y="263" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="500">Scope Guard</text>
+            </g>
+            <g class="ad-node" data-id="aq" data-tip="Answerability Gate: checks if required evidence exists before generation" style="animation-delay:0.36s">
+              <rect x="590" y="240" width="130" height="38" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="655" y="263" text-anchor="middle" fill="var(--d-generation)" font-size="10" font-weight="500">Answerability Gate</text>
+            </g>
+
+            <!-- Query Intelligence -->
+            <g class="ad-node" data-id="qi" data-tip="Query Intelligence: selectively applies HyDE and query decomposition for complex queries" style="animation-delay:0.42s">
+              <rect x="590" y="180" width="140" height="38" rx="6" fill="#f0ede8" stroke="var(--d-pipeline)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="660" y="196" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="600">Query Intelligence</text>
+              <text x="660" y="209" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">HyDE + Decomposition</text>
+            </g>
+
+            <!-- Retrieval -->
+            <g class="ad-node" data-id="emb" data-tip="Embedding Service: voyage-3 primary with all-mpnet-base-v2 local fallback" style="animation-delay:0.48s">
+              <rect x="770" y="160" width="130" height="44" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="835" y="178" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="600">Embedding Service</text>
+              <text x="835" y="192" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">voyage-3 + fallback</text>
+            </g>
+            <g class="ad-node" data-id="dense" data-tip="ChromaDB: local vector store for dense semantic search" style="animation-delay:0.54s">
+              <rect x="930" y="160" width="110" height="44" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="985" y="178" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="600">ChromaDB</text>
+              <text x="985" y="192" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">Dense Search</text>
+            </g>
+            <g class="ad-node" data-id="bm25" data-tip="BM25 in-memory index for sparse keyword search — captures SKUs and exact policy terms" style="animation-delay:0.54s">
+              <rect x="930" y="220" width="110" height="38" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="985" y="243" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">BM25 Sparse</text>
+            </g>
+            <g class="ad-node" data-id="fusion" data-tip="Reciprocal Rank Fusion: combines dense and sparse rankings without score calibration" style="animation-delay:0.6s">
+              <rect x="930" y="280" width="110" height="38" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="985" y="303" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">RRF Fusion</text>
+            </g>
+            <g class="ad-node" data-id="filter" data-tip="Hard domain filters: product, policy, or cross-domain based on intent" style="animation-delay:0.66s">
+              <rect x="930" y="340" width="110" height="38" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="985" y="363" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Domain Filters</text>
+            </g>
+            <g class="ad-node" data-id="boost" data-tip="Entity + Policy Boosts: promotes fabric glossary chunks and companion policy sections" style="animation-delay:0.72s">
+              <rect x="930" y="400" width="110" height="38" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="985" y="416" text-anchor="middle" fill="var(--d-retrieval)" font-size="9" font-weight="500">Entity + Policy</text>
+              <text x="985" y="428" text-anchor="middle" fill="var(--d-retrieval)" font-size="9" font-weight="500">Boosts</text>
+            </g>
+            <g class="ad-node" data-id="rerank" data-tip="Cross-encoder reranker: improves final context ordering for generation" style="animation-delay:0.78s">
+              <rect x="930" y="460" width="110" height="38" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="985" y="483" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Reranker</text>
+            </g>
+            <g class="ad-node" data-id="ctx" data-tip="Grounded Context Pack: final set of evidence chunks ready for prompt building" style="animation-delay:0.84s">
+              <rect x="780" y="460" width="120" height="38" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="840" y="483" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Context Pack</text>
+            </g>
+
+            <!-- Ingestion nodes -->
+            <g class="ad-node" data-id="prod" data-tip="Product Catalog JSON: product specs, materials, sizing, care instructions" style="animation-delay:0.3s">
+              <rect x="30" y="350" width="130" height="38" rx="6" fill="#d8ebe3" stroke="var(--d-ingestion)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="95" y="373" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">Product Catalog JSON</text>
+            </g>
+            <g class="ad-node" data-id="pol" data-tip="Policy Markdown Docs: returns, shipping, promos, loyalty program" style="animation-delay:0.36s">
+              <rect x="30" y="400" width="130" height="38" rx="6" fill="#d8ebe3" stroke="var(--d-ingestion)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="95" y="423" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">Policy Markdown</text>
+            </g>
+            <g class="ad-node" data-id="load" data-tip="Loaders + Chunkers: domain-aware chunking for product, fabric, and policy content" style="animation-delay:0.42s">
+              <rect x="30" y="460" width="130" height="38" rx="6" fill="#d8ebe3" stroke="var(--d-ingestion)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="95" y="483" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">Loaders + Chunkers</text>
+            </g>
+            <g class="ad-node" data-id="chunks" data-tip="Chunks: product chunks, fabric entity chunks, section-based policy chunks" style="animation-delay:0.48s">
+              <rect x="30" y="520" width="130" height="38" rx="6" fill="#d8ebe3" stroke="var(--d-ingestion)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="95" y="543" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">Chunks</text>
+            </g>
+            <g class="ad-node" data-id="reg" data-tip="DocumentRegistry: tracks content hashes and tombstones for incremental updates" style="animation-delay:0.54s">
+              <rect x="190" y="520" width="120" height="38" rx="6" fill="#d8ebe3" stroke="var(--d-ingestion)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="250" y="543" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">DocumentRegistry</text>
+            </g>
+            <g class="ad-node" data-id="embidx" data-tip="Embedding + Index Build: creates vector embeddings and builds search indices" style="animation-delay:0.54s">
+              <rect x="190" y="460" width="120" height="38" rx="6" fill="#d8ebe3" stroke="var(--d-ingestion)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="250" y="476" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">Embedding +</text>
+              <text x="250" y="488" text-anchor="middle" fill="var(--d-ingestion)" font-size="9" font-weight="500">Index Build</text>
+            </g>
+
+            <!-- Customer data -->
+            <g class="ad-node" data-id="cust" data-tip="Customer Order JSON: structured lookup only — never semantically embedded" style="animation-delay:0.3s">
+              <rect x="360" y="310" width="130" height="44" rx="6" fill="#ecdce2" stroke="var(--d-customer)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="425" y="328" text-anchor="middle" fill="var(--d-customer)" font-size="10" font-weight="600">Customer Orders</text>
+              <text x="425" y="342" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">Structured JSON</text>
+            </g>
+            <g class="ad-node" data-id="cctx" data-tip="Customer Context Injector: loads customer profile by customer_id for exact fact lookup" style="animation-delay:0.36s">
+              <rect x="520" y="310" width="140" height="38" rx="6" fill="#ecdce2" stroke="var(--d-customer)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="590" y="333" text-anchor="middle" fill="var(--d-customer)" font-size="9" font-weight="500">Customer Context Injector</text>
+            </g>
+
+            <!-- Generation -->
+            <g class="ad-node" data-id="pb" data-tip="Prompt Builder: injects retrieved chunks, customer context, chat history, source IDs, and safety instructions" style="animation-delay:0.9s">
+              <rect x="620" y="460" width="130" height="38" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="685" y="483" text-anchor="middle" fill="var(--d-generation)" font-size="10" font-weight="500">Prompt Builder</text>
+            </g>
+            <g class="ad-node" data-id="llm" data-tip="Generation LLM: GPT-4o-style model for strong answer quality and reasoning" style="animation-delay:0.96s">
+              <rect x="620" y="520" width="130" height="38" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="685" y="543" text-anchor="middle" fill="var(--d-generation)" font-size="10" font-weight="600">Generation LLM</text>
+            </g>
+            <g class="ad-node" data-id="fg" data-tip="Faithfulness Guardrail: LLM-as-judge with fail-closed behavior for high-risk answers" style="animation-delay:1.02s">
+              <rect x="470" y="520" width="130" height="38" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="535" y="536" text-anchor="middle" fill="var(--d-generation)" font-size="9" font-weight="500">Faithfulness</text>
+              <text x="535" y="548" text-anchor="middle" fill="var(--d-generation)" font-size="9" font-weight="500">Guardrail</text>
+            </g>
+            <g class="ad-node" data-id="ec" data-tip="Evidence Contract: maps each claim in the answer to its source chunk" style="animation-delay:1.08s">
+              <rect x="340" y="520" width="110" height="38" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="395" y="543" text-anchor="middle" fill="var(--d-generation)" font-size="9" font-weight="500">Evidence Contract</text>
+            </g>
+            <g class="ad-node" data-id="resp" data-tip="Final response: answer text, source citations, and full trace log" style="animation-delay:1.14s">
+              <rect x="340" y="460" width="130" height="38" rx="6" fill="#dce8f0" stroke="var(--d-ui)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="405" y="476" text-anchor="middle" fill="var(--d-ui)" font-size="9" font-weight="500">Answer + Citations</text>
+              <text x="405" y="488" text-anchor="middle" fill="var(--d-ui)" font-size="9" font-weight="500">+ Trace</text>
+            </g>
+
+            <!-- Eval -->
+            <g class="ad-node" data-id="trace" data-tip="Trace Log: records intent, chunks, reranking scores, answerability, guardrail status, latency" style="animation-delay:0.6s">
+              <rect x="770" y="110" width="100" height="38" rx="6" fill="#e4dce8" stroke="var(--d-eval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="820" y="133" text-anchor="middle" fill="var(--d-eval)" font-size="10" font-weight="500">Trace Log</text>
+            </g>
+            <g class="ad-node" data-id="eval" data-tip="Eval Harness: Recall@5, MRR, Precision, Faithfulness, Relevance, Behavior Success" style="animation-delay:0.66s">
+              <rect x="900" y="110" width="120" height="38" rx="6" fill="#e4dce8" stroke="var(--d-eval)" stroke-width="1.5" filter="url(#nodeShadow)"/>
+              <text x="960" y="126" text-anchor="middle" fill="var(--d-eval)" font-size="10" font-weight="600">Eval Harness</text>
+              <text x="960" y="139" text-anchor="middle" fill="var(--color-text-muted)" font-size="7">Recall, MRR, Faithfulness</text>
+            </g>
+
+            <!-- ===== EDGES ===== -->
+            <!-- User → UI → API → Pipeline -->
+            <line class="ad-edge" data-path="main" x1="100" y1="140" x2="128" y2="135"/>
+            <line class="ad-edge" data-path="main" x1="260" y1="132" x2="288" y2="132"/>
+            <line class="ad-edge" data-path="main" x1="410" y1="132" x2="438" y2="132"/>
+            <!-- Pipeline → IR → SG → AQ -->
+            <line class="ad-edge" data-path="main" x1="505" y1="154" x2="500" y2="178"/>
+            <line class="ad-edge" data-path="main" x1="500" y1="218" x2="500" y2="238"/>
+            <line class="ad-edge" data-path="main" x1="560" y1="259" x2="588" y2="259"/>
+            <!-- AQ → QI (up) -->
+            <line class="ad-edge" data-path="query" x1="655" y1="240" x2="660" y2="218"/>
+            <!-- QI → Embedding → Dense -->
+            <line class="ad-edge" data-path="retrieval" x1="730" y1="199" x2="768" y2="185"/>
+            <line class="ad-edge" data-path="retrieval" x1="900" y1="182" x2="928" y2="182"/>
+            <!-- QI → BM25 -->
+            <line class="ad-edge" data-path="retrieval" x1="730" y1="199" x2="928" y2="239"/>
+            <!-- Dense → Fusion, BM25 → Fusion -->
+            <line class="ad-edge" data-path="retrieval" x1="985" y1="204" x2="985" y2="278"/>
+            <line class="ad-edge" data-path="retrieval" x1="985" y1="258" x2="985" y2="278"/>
+            <!-- Fusion → Filter → Boost → Rerank → CTX -->
+            <line class="ad-edge" data-path="retrieval" x1="985" y1="318" x2="985" y2="338"/>
+            <line class="ad-edge" data-path="retrieval" x1="985" y1="378" x2="985" y2="398"/>
+            <line class="ad-edge" data-path="retrieval" x1="985" y1="438" x2="985" y2="458"/>
+            <line class="ad-edge" data-path="retrieval" x1="930" y1="479" x2="902" y2="479"/>
+
+            <!-- Ingestion edges -->
+            <line class="ad-edge" data-path="ingestion" x1="95" y1="388" x2="95" y2="398"/>
+            <line class="ad-edge" data-path="ingestion" x1="95" y1="438" x2="95" y2="458"/>
+            <line class="ad-edge" data-path="ingestion" x1="95" y1="498" x2="95" y2="518"/>
+            <line class="ad-edge" data-path="ingestion" x1="160" y1="539" x2="188" y2="539"/>
+            <line class="ad-edge" data-path="ingestion" x1="160" y1="530" x2="188" y2="479"/>
+
+            <!-- Customer edges -->
+            <line class="ad-edge" data-path="customer" x1="490" y1="329" x2="518" y2="329"/>
+            <line class="ad-edge" data-path="customer" x1="590" y1="310" x2="620" y2="278"/>
+            <line class="ad-edge" data-path="customer" x1="620" y1="348" x2="650" y2="458"/>
+
+            <!-- Generation edges: CTX → PB, AQ → PB, PB → LLM → FG → EC → RESP → UI -->
+            <line class="ad-edge" data-path="generation" x1="780" y1="479" x2="752" y2="479"/>
+            <line class="ad-edge" data-path="generation" x1="685" y1="278" x2="685" y2="458"/>
+            <line class="ad-edge" data-path="generation" x1="685" y1="498" x2="685" y2="518"/>
+            <line class="ad-edge" data-path="generation" x1="620" y1="539" x2="602" y2="539"/>
+            <line class="ad-edge" data-path="generation" x1="470" y1="539" x2="452" y2="539"/>
+            <line class="ad-edge" data-path="generation" x1="395" y1="520" x2="395" y2="500"/>
+            <!-- RESP → UI (back up) -->
+            <polyline class="ad-edge" data-path="generation" points="340,479 195,479 195,156" fill="none"/>
+
+            <!-- Pipeline → Trace → Eval -->
+            <line class="ad-edge" data-path="eval" x1="570" y1="129" x2="768" y2="129"/>
+            <line class="ad-edge" data-path="eval" x1="870" y1="129" x2="898" y2="129"/>
+          </svg>
+          <div class="diagram-caption">Figure 1 — End-to-end system architecture. Hover nodes for details. Use buttons to trace data flow paths.</div>
+          <div class="diagram-controls">
+            <button data-highlight="main" title="User → Pipeline path">Request Path</button>
+            <button data-highlight="retrieval" title="Query → Retrieval → Context">Retrieval</button>
+            <button data-highlight="generation" title="Context → Generation → Response">Generation</button>
+            <button data-highlight="ingestion" title="Data → Chunks → Index">Ingestion</button>
+            <button data-highlight="customer" title="Customer data flow">Customer</button>
+            <button data-highlight="eval" title="Pipeline → Trace → Eval">Eval</button>
+          </div>
+        </div>
+
+        <h3>What this architecture achieves</h3>
+        <ol class="numbered-goals">
+          <li><strong>Understand the query</strong><span>Is this product, policy, customer, cross-domain, or out-of-scope?</span></li>
+          <li><strong>Check if answering is allowed</strong><span>Does the system actually have the required evidence?</span></li>
+          <li><strong>Retrieve the right evidence</strong><span>Dense search, keyword search, metadata filtering, reranking, fabric chunks, and companion policy chunks.</span></li>
+          <li><strong>Generate only from context</strong><span>Build a controlled prompt with source-aware context.</span></li>
+          <li><strong>Verify and trace the response</strong><span>Check faithfulness, expose evidence, and log decisions for debugging/evaluation.</span></li>
+        </ol>
+
+        <!-- Key Innovations -->
+        <span class="section-anchor" id="innovations"></span>
+        <h3>Key innovations beyond baseline RAG</h3>
+        <p>Several components in this system go beyond a standard embed-retrieve-generate pipeline. Each one addresses a specific failure mode observed in retail QA.</p>
+
+        <div class="innovations-grid">
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">🔀</span>
+              <h4>Reciprocal Rank Fusion (RRF)</h4>
+            </div>
+            <p>Merges dense and sparse retrieval rankings without needing score calibration, so BM25 exact-match results and semantic results contribute equally.</p>
+            <a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf" target="_blank" rel="noopener" class="innovation-link">Cormack et al., SIGIR 2009 — Original RRF paper ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">🔍</span>
+              <h4>HyDE (Hypothetical Document Embeddings)</h4>
+            </div>
+            <p>Generates a hypothetical answer first, then embeds it for retrieval, closing the vocabulary gap between short user queries and long policy documents.</p>
+            <a href="https://arxiv.org/abs/2212.10496" target="_blank" rel="noopener" class="innovation-link">Gao et al., 2022 — HyDE paper on arXiv ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">⚖️</span>
+              <h4>Cross-Encoder Reranking</h4>
+            </div>
+            <p>A second-stage BAAI/bge-reranker-base model jointly scores query-chunk pairs, dramatically improving precision over first-stage bi-encoder retrieval alone.</p>
+            <a href="https://huggingface.co/BAAI/bge-reranker-base" target="_blank" rel="noopener" class="innovation-link">BAAI/bge-reranker-base on HuggingFace ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">🧭</span>
+              <h4>Intent-Aware Routing</h4>
+            </div>
+            <p>A lightweight LLM classifier (GPT-4.1-nano) routes queries to domain-specific retrieval paths before search begins, reducing irrelevant context by filtering at the intent level.</p>
+            <a href="https://platform.openai.com/docs/guides/text-generation" target="_blank" rel="noopener" class="innovation-link">OpenAI Text Generation docs ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">🛡️</span>
+              <h4>Faithfulness Guardrail (LLM-as-Judge)</h4>
+            </div>
+            <p>A second LLM call verifies that every claim in the generated answer is supported by retrieved evidence, with fail-closed behavior for high-risk policy and customer responses.</p>
+            <a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener" class="innovation-link">Zheng et al., 2023 — LLM-as-Judge paper ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">🚦</span>
+              <h4>Answerability Gate</h4>
+            </div>
+            <p>A pre-generation evidence check that refuses to answer when required context is missing, turning "I don't know" into a first-class system behavior instead of a hallucination risk.</p>
+            <a href="https://arxiv.org/abs/2401.15391" target="_blank" rel="noopener" class="innovation-link">Asai et al., 2024 — Self-RAG: adaptive retrieval ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">🧬</span>
+              <h4>Domain-Aware Chunking</h4>
+            </div>
+            <p>Products, fabrics, and policies each get purpose-built chunking strategies that preserve business-meaningful boundaries instead of splitting on arbitrary token windows.</p>
+            <a href="https://www.pinecone.io/learn/chunking-strategies/" target="_blank" rel="noopener" class="innovation-link">Pinecone — Chunking strategies guide ↗</a>
+          </div>
+
+          <div class="innovation-card">
+            <div class="innovation-header">
+              <span class="innovation-icon">📊</span>
+              <h4>Behavior-Aware Evaluation</h4>
+            </div>
+            <p>Clarification and refusal responses are scored as behavior success rather than retrieval failure, preventing the eval harness from penalizing the system for being safely cautious.</p>
+            <a href="https://docs.ragas.io/en/stable/" target="_blank" rel="noopener" class="innovation-link">RAGAS — RAG evaluation framework docs ↗</a>
+          </div>
+        </div>
+
+      </section>
+      <hr>
+
+      <!-- SECTION 3.2: QUERY FLOW — INTERACTIVE STEP-BY-STEP COMPONENT -->
+      <section class="section" id="sec-query-flow">
+        <span class="section-anchor" id="query-flow"></span>
+        <h2>3.2 Query Flow</h2>
+        <p>This flowchart shows how a user query travels through the system. Use the step-through controls to walk the path, or hover any node.</p>
+
+        <div class="flow-diagram" id="flowDiagram">
+          <div class="arch-tooltip" id="flowTooltip"></div>
+          <!-- Play button -->
+          <button class="flow-play-btn" id="flowPlayBtn" title="Play animated walkthrough">
+            <svg class="icon-play" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
+          </button>
+          <!-- Decision prompt overlay -->
+          <div class="decision-prompt" id="decisionPrompt">
+            <div class="decision-prompt-title" id="decisionTitle"></div>
+            <div class="decision-prompt-options" id="decisionOptions"></div>
+          </div>
+          <svg viewBox="0 0 820 1340" width="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="flowArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#9b958e"/></marker>
+              <marker id="flowArrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#6a8e5c"/></marker>
+              <marker id="flowArrowRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#c45d3e"/></marker>
+            </defs>
+
+            <!-- Step 1: User asks -->
+            <g class="flow-step" data-step="1" data-tip="The user types a natural-language question in the chat interface" style="animation-delay:0s">
+              <rect x="300" y="10" width="220" height="40" rx="20" fill="var(--d-user)" stroke="var(--d-user)" stroke-width="1.5"/>
+              <text x="410" y="35" text-anchor="middle" fill="white" font-size="11" font-weight="600">User asks a question</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="50" x2="410" y2="70"/>
+
+            <!-- Step 2: Chat UI -->
+            <g class="flow-step" data-step="2" data-tip="Next.js chat UI captures the message and sends it to the backend" style="animation-delay:0.08s">
+              <rect x="310" y="70" width="200" height="36" rx="6" fill="#dce8f0" stroke="var(--d-ui)" stroke-width="1.5"/>
+              <text x="410" y="93" text-anchor="middle" fill="var(--d-ui)" font-size="10" font-weight="500">Next.js Chat UI</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="106" x2="410" y2="126"/>
+
+            <!-- Step 3: FastAPI -->
+            <g class="flow-step" data-step="3" data-tip="FastAPI /api/chat endpoint receives the query" style="animation-delay:0.16s">
+              <rect x="310" y="126" width="200" height="36" rx="6" fill="#e8e5df" stroke="var(--d-pipeline)" stroke-width="1.5"/>
+              <text x="410" y="149" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="500">FastAPI chat endpoint</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="162" x2="410" y2="182"/>
+
+            <!-- Step 4: Pipeline -->
+            <g class="flow-step" data-step="4" data-tip="Pipeline receives query + optional customer_id and begins orchestration" style="animation-delay:0.24s">
+              <rect x="280" y="182" width="260" height="36" rx="6" fill="#e8e5df" stroke="var(--d-pipeline)" stroke-width="1.5"/>
+              <text x="410" y="205" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="500">Pipeline receives query + customer_id</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="218" x2="410" y2="238"/>
+
+            <!-- Step 5: Intent routing -->
+            <g class="flow-step" data-step="5" data-tip="Intent Router classifies the query type: product, policy, customer, cross-domain, or out-of-scope" style="animation-delay:0.32s">
+              <rect x="320" y="238" width="180" height="36" rx="6" fill="#f0ede8" stroke="var(--d-pipeline)" stroke-width="1.5"/>
+              <text x="410" y="261" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="500">Intent routing</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="274" x2="410" y2="300"/>
+
+            <!-- Decision 1: Out of scope? -->
+            <g class="flow-step" data-step="6" data-tip="Decision gate: is this query clearly outside ALO's knowledge domain?" style="animation-delay:0.4s">
+              <polygon points="410,300 510,335 410,370 310,335" fill="#fff8f0" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="332" text-anchor="middle" fill="var(--d-generation)" font-size="9" font-weight="600">Out of scope?</text>
+            </g>
+            <!-- Yes branch -->
+            <line class="flow-edge" x1="510" y1="335" x2="590" y2="335" style="marker-end:url(#flowArrowRed)"/>
+            <text class="flow-edge-label" x="545" y="328" fill="var(--d-decision-no)" text-anchor="middle">Yes</text>
+            <g class="flow-step" data-step="6a" data-tip="Return a scoped refusal — no retrieval or generation needed" style="animation-delay:0.44s">
+              <rect x="590" y="317" width="170" height="36" rx="6" fill="#fce8e4" stroke="var(--d-decision-no)" stroke-width="1.5"/>
+              <text x="675" y="340" text-anchor="middle" fill="var(--d-decision-no)" font-size="9" font-weight="500">Return scoped refusal</text>
+            </g>
+            <!-- No branch -->
+            <line class="flow-edge" x1="410" y1="370" x2="410" y2="400" style="marker-end:url(#flowArrowGreen)"/>
+            <text class="flow-edge-label" x="422" y="390" fill="var(--d-decision-yes)">No</text>
+
+            <!-- Decision 2: Customer context? -->
+            <g class="flow-step" data-step="7" data-tip="Does this query require customer/order context to answer?" style="animation-delay:0.48s">
+              <polygon points="410,400 530,440 410,480 290,440" fill="#fff8f0" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="436" text-anchor="middle" fill="var(--d-generation)" font-size="8" font-weight="600">Customer context</text>
+              <text x="410" y="448" text-anchor="middle" fill="var(--d-generation)" font-size="8" font-weight="600">required?</text>
+            </g>
+            <!-- Yes, no customer_id -->
+            <line class="flow-edge" x1="530" y1="440" x2="590" y2="410" style="marker-end:url(#flowArrowRed)"/>
+            <text class="flow-edge-label" x="570" y="416" fill="var(--d-decision-no)" font-size="8">Yes, no ID</text>
+            <g class="flow-step" data-step="7a" data-tip="Ask the user for customer/order context — safe clarification instead of guessing" style="animation-delay:0.52s">
+              <rect x="590" y="392" width="170" height="36" rx="6" fill="#fce8e4" stroke="var(--d-decision-no)" stroke-width="1.5"/>
+              <text x="675" y="415" text-anchor="middle" fill="var(--d-decision-no)" font-size="9" font-weight="500">Ask for customer context</text>
+            </g>
+            <!-- Yes, has customer_id -->
+            <line class="flow-edge" x1="290" y1="440" x2="200" y2="440" style="marker-end:url(#flowArrowGreen)"/>
+            <text class="flow-edge-label" x="240" y="433" fill="var(--d-decision-yes)" font-size="8">Yes, has ID</text>
+            <g class="flow-step" data-step="7b" data-tip="Load the structured customer profile by customer_id for exact fact lookup" style="animation-delay:0.52s">
+              <rect x="40" y="422" width="160" height="36" rx="6" fill="#ecdce2" stroke="var(--d-customer)" stroke-width="1.5"/>
+              <text x="120" y="445" text-anchor="middle" fill="var(--d-customer)" font-size="9" font-weight="500">Load customer profile</text>
+            </g>
+            <!-- No customer context needed -->
+            <line class="flow-edge" x1="410" y1="480" x2="410" y2="510" style="marker-end:url(#flowArrowGreen)"/>
+            <text class="flow-edge-label" x="422" y="500" fill="var(--d-decision-yes)" font-size="9">No</text>
+            <!-- Merge lines -->
+            <line class="flow-edge" x1="120" y1="458" x2="120" y2="530" />
+            <line class="flow-edge" x1="120" y1="530" x2="308" y2="530"/>
+
+            <!-- Step 8: Query intelligence -->
+            <g class="flow-step" data-step="8" data-tip="Query Intelligence stage: decides whether to apply HyDE or decomposition" style="animation-delay:0.56s">
+              <rect x="310" y="510" width="200" height="36" rx="6" fill="#f0ede8" stroke="var(--d-pipeline)" stroke-width="1.5"/>
+              <text x="410" y="533" text-anchor="middle" fill="var(--d-pipeline)" font-size="10" font-weight="500">Query intelligence</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="546" x2="410" y2="572"/>
+
+            <!-- Decision 3: Complex? -->
+            <g class="flow-step" data-step="9" data-tip="Is this a complex or policy-heavy query that benefits from expansion?" style="animation-delay:0.64s">
+              <polygon points="410,572 510,602 410,632 310,602" fill="#fff8f0" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="600" text-anchor="middle" fill="var(--d-generation)" font-size="8" font-weight="600">Complex query?</text>
+            </g>
+            <line class="flow-edge" x1="310" y1="602" x2="220" y2="602"/>
+            <text class="flow-edge-label" x="260" y="595" fill="var(--d-decision-yes)" font-size="9">Yes</text>
+            <g class="flow-step" data-step="9a" data-tip="Apply HyDE (hypothetical document embeddings) or query decomposition" style="animation-delay:0.68s">
+              <rect x="40" y="584" width="180" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="130" y="607" text-anchor="middle" fill="var(--d-retrieval)" font-size="9" font-weight="500">HyDE / decomposition</text>
+            </g>
+            <line class="flow-edge" x1="510" y1="602" x2="590" y2="602"/>
+            <text class="flow-edge-label" x="545" y="595" fill="var(--color-text-muted)" font-size="9">No</text>
+            <g class="flow-step" data-step="9b" data-tip="Use the original query as-is for retrieval" style="animation-delay:0.68s">
+              <rect x="590" y="584" width="160" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="670" y="607" text-anchor="middle" fill="var(--d-retrieval)" font-size="9" font-weight="500">Use original query</text>
+            </g>
+            <!-- Merge to embedding -->
+            <line class="flow-edge" x1="130" y1="620" x2="130" y2="660"/>
+            <line class="flow-edge" x1="130" y1="660" x2="308" y2="660"/>
+            <line class="flow-edge" x1="670" y1="620" x2="670" y2="660"/>
+            <line class="flow-edge" x1="670" y1="660" x2="512" y2="660"/>
+
+            <!-- Step 10: Embedding -->
+            <g class="flow-step" data-step="10" data-tip="Create query embedding using voyage-3 (or fallback)" style="animation-delay:0.72s">
+              <rect x="310" y="642" width="200" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="410" y="665" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Create query embedding</text>
+            </g>
+            <!-- Split to dense + sparse -->
+            <line class="flow-edge" x1="350" y1="678" x2="200" y2="710"/>
+            <line class="flow-edge" x1="470" y1="678" x2="620" y2="710"/>
+
+            <!-- Dense + Sparse -->
+            <g class="flow-step" data-step="11" data-tip="Dense retrieval from ChromaDB vector store" style="animation-delay:0.76s">
+              <rect x="100" y="710" width="200" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="200" y="733" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Dense retrieval (ChromaDB)</text>
+            </g>
+            <g class="flow-step" data-step="11" data-tip="BM25 sparse keyword retrieval" style="animation-delay:0.76s">
+              <rect x="520" y="710" width="200" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="620" y="733" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">BM25 sparse retrieval</text>
+            </g>
+            <!-- Merge to fusion -->
+            <line class="flow-edge" x1="200" y1="746" x2="350" y2="776"/>
+            <line class="flow-edge" x1="620" y1="746" x2="470" y2="776"/>
+
+            <!-- Steps 12-16: Retrieval pipeline -->
+            <g class="flow-step" data-step="12" data-tip="Reciprocal Rank Fusion combines dense and sparse rankings" style="animation-delay:0.8s">
+              <rect x="310" y="776" width="200" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="410" y="799" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">RRF fusion</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="812" x2="410" y2="832"/>
+            <g class="flow-step" data-step="13" data-tip="Apply hard domain filters based on detected intent" style="animation-delay:0.84s">
+              <rect x="310" y="832" width="200" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="410" y="855" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Apply domain filters</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="868" x2="410" y2="888"/>
+            <g class="flow-step" data-step="14" data-tip="Boost fabric entity chunks and companion policy sections" style="animation-delay:0.88s">
+              <rect x="290" y="888" width="240" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="410" y="911" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Boost fabric / policy companions</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="924" x2="410" y2="944"/>
+            <g class="flow-step" data-step="15" data-tip="Cross-encoder reranker improves final ordering of evidence chunks" style="animation-delay:0.92s">
+              <rect x="310" y="944" width="200" height="36" rx="6" fill="#e0ebd8" stroke="var(--d-retrieval)" stroke-width="1.5"/>
+              <text x="410" y="967" text-anchor="middle" fill="var(--d-retrieval)" font-size="10" font-weight="500">Cross-encoder reranking</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="980" x2="410" y2="1006"/>
+
+            <!-- Decision 4: Enough evidence? -->
+            <g class="flow-step" data-step="16" data-tip="Does the system have enough relevant evidence to generate a trustworthy answer?" style="animation-delay:0.96s">
+              <polygon points="410,1006 520,1041 410,1076 300,1041" fill="#fff8f0" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="1038" text-anchor="middle" fill="var(--d-generation)" font-size="8" font-weight="600">Enough evidence?</text>
+            </g>
+            <line class="flow-edge" x1="520" y1="1041" x2="590" y2="1041" style="marker-end:url(#flowArrowRed)"/>
+            <text class="flow-edge-label" x="550" y="1034" fill="var(--d-decision-no)">No</text>
+            <g class="flow-step" data-step="16a" data-tip="Return an insufficient-context response instead of hallucinating" style="animation-delay:1s">
+              <rect x="590" y="1023" width="190" height="36" rx="6" fill="#fce8e4" stroke="var(--d-decision-no)" stroke-width="1.5"/>
+              <text x="685" y="1046" text-anchor="middle" fill="var(--d-decision-no)" font-size="9" font-weight="500">Insufficient-context response</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="1076" x2="410" y2="1100" style="marker-end:url(#flowArrowGreen)"/>
+            <text class="flow-edge-label" x="422" y="1092" fill="var(--d-decision-yes)">Yes</text>
+
+            <!-- Generation steps -->
+            <g class="flow-step" data-step="17" data-tip="Build a grounded prompt with retrieved chunks, customer context, and safety instructions" style="animation-delay:1.04s">
+              <rect x="310" y="1100" width="200" height="36" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="1123" text-anchor="middle" fill="var(--d-generation)" font-size="10" font-weight="500">Build grounded prompt</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="1136" x2="410" y2="1156"/>
+            <g class="flow-step" data-step="18" data-tip="LLM generates the answer from the grounded prompt" style="animation-delay:1.08s">
+              <rect x="310" y="1156" width="200" height="36" rx="6" fill="#fdf0e8" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="1179" text-anchor="middle" fill="var(--d-generation)" font-size="10" font-weight="600">LLM generates answer</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="1192" x2="410" y2="1218"/>
+
+            <!-- Decision 5: Faithfulness -->
+            <g class="flow-step" data-step="19" data-tip="Faithfulness guardrail: is this a high-risk answer that can be verified against evidence?" style="animation-delay:1.12s">
+              <polygon points="410,1218 520,1248 410,1278 300,1248" fill="#fff8f0" stroke="var(--d-generation)" stroke-width="1.5"/>
+              <text x="410" y="1244" text-anchor="middle" fill="var(--d-generation)" font-size="8" font-weight="600">Verified faithful?</text>
+            </g>
+            <line class="flow-edge" x1="300" y1="1248" x2="200" y2="1248" style="marker-end:url(#flowArrowRed)"/>
+            <text class="flow-edge-label" x="245" y="1241" fill="var(--d-decision-no)">No</text>
+            <g class="flow-step" data-step="19a" data-tip="Fail closed: return a safer answer or refuse rather than risk hallucination" style="animation-delay:1.16s">
+              <rect x="40" y="1230" width="160" height="36" rx="6" fill="#fce8e4" stroke="var(--d-decision-no)" stroke-width="1.5"/>
+              <text x="120" y="1253" text-anchor="middle" fill="var(--d-decision-no)" font-size="9" font-weight="500">Fail closed / safer answer</text>
+            </g>
+            <line class="flow-edge" x1="410" y1="1278" x2="410" y2="1300" style="marker-end:url(#flowArrowGreen)"/>
+            <text class="flow-edge-label" x="422" y="1293" fill="var(--d-decision-yes)">Yes</text>
+
+            <!-- Final -->
+            <g class="flow-step" data-step="20" data-tip="Build evidence contract mapping claims to sources, return answer with citations and full trace" style="animation-delay:1.2s">
+              <rect x="280" y="1300" width="260" height="36" rx="20" fill="var(--d-ui)" stroke="var(--d-ui)" stroke-width="1.5"/>
+              <text x="410" y="1323" text-anchor="middle" fill="white" font-size="10" font-weight="600">Answer + Citations + Trace → User</text>
+            </g>
+            <!-- Runner dot for animated play -->
+            <circle class="flow-runner" id="flowRunner" cx="0" cy="0" r="5"/>
+          </svg>
+          <div class="diagram-caption">Figure 2 — Query flow from user question to final answer, showing all decision gates</div>
+          <div class="diagram-controls">
+            <button id="flowPrev" title="Previous step">← Prev</button>
+            <span class="step-indicator" id="flowStepIndicator">All steps</span>
+            <button id="flowNext" title="Next step">Next →</button>
+            <button id="flowReset" title="Show all steps">Reset</button>
+          </div>
+        </div>
+
+        <blockquote>
+          <p>"What kind of question is this, what evidence is required, do I have that evidence, and only then — what should I answer?"</p>
+          <p style="font-style: normal; font-size: 0.88rem; color: var(--color-text-muted);">— The design philosophy in one sentence</p>
+        </blockquote>
+      </section>
+      <hr>
+
+      <!-- WHAT THIS EMPHASIZES -->
+      <section class="section" id="sec-emphasis">
+        <span class="section-anchor" id="emphasis"></span>
+        <h2>What this solution emphasizes</h2>
+        <ul class="pill-list">
+          <li>Grounded answers over fluent guesses</li>
+          <li>Structured customer lookup over semantic search</li>
+          <li>Retail-specific retrieval over generic top-k</li>
+          <li>Evaluation that catches real failures</li>
+          <li>Safe clarification/refusal as a valid outcome</li>
+          <li>Traceability for reviewers and production monitoring</li>
+        </ul>
+        <div class="callout"><div class="callout-title">POC with production DNA</div><p>This is still a POC, but the architecture is intentionally shaped like something that can grow into a production-grade AI capability.</p></div>
+      </section>
+      <hr>
+
+      <!-- SECTION 4: EVALUATION CRITERIA -->
+      <section class="section" id="sec-evaluation-criteria">
+        <span class="section-anchor" id="evaluation-criteria"></span>
+        <h2>4. How the Solution Maps to Evaluation Criteria</h2>
+        <p>Each requirement has a short explanation and a direct pointer to where it is implemented or documented.</p>
+
+        <span class="section-anchor" id="rag-impl"></span>
+        <h3>4.1 RAG System Implementation</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Requirement</th><th>How addressed</th><th>Where to look</th></tr></thead><tbody>
+          <tr><td><strong>Functional end-to-end RAG pipeline</strong></td><td>Accepts query, routes by intent, retrieves evidence, checks answerability, generates answer, records trace data</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>src/pipeline.py</code></a></td></tr>
+          <tr><td><strong>Multiple data/document types</strong></td><td>Product catalog JSON, policy documents, structured customer order JSON — each handled differently</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/loaders.py" target="_blank"><code>loaders.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/chunkers.py" target="_blank"><code>chunkers.py</code></a></td></tr>
+          <tr><td><strong>Embedding and vector store</strong></td><td><code>voyage-3</code> primary with <code>all-mpnet-base-v2</code> fallback, ChromaDB for dense retrieval</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/embedders.py" target="_blank"><code>embedders.py</code></a></td></tr>
+          <tr><td><strong>Retrieval beyond naive top-k</strong></td><td>Dense + BM25, RRF fusion, metadata filtering, fabric/entity boosting, companion policy expansion, cross-encoder reranking</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/retrieval/hybrid_search.py" target="_blank"><code>hybrid_search.py</code></a></td></tr>
+          <tr><td><strong>Prompt architecture</strong></td><td>Injects retrieved chunks, customer context, chat history, source IDs, and safety instructions</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/prompt_builder.py" target="_blank"><code>prompt_builder.py</code></a></td></tr>
+          <tr><td><strong>Guardrails</strong></td><td>Faithfulness verification with fail-closed behavior for high-risk policy/customer scenarios</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/guardrails.py" target="_blank"><code>guardrails.py</code></a></td></tr>
+          <tr><td><strong>Customer-context queries</strong></td><td>Exact structured lookup by <code>customer_id</code>, not semantic embedding. Missing context triggers clarification.</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/customer_context.py" target="_blank"><code>customer_context.py</code></a></td></tr>
+          <tr><td><strong>Working demo interface</strong></td><td>React/Next.js chat UI with trace information for debugging</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/demo/app/page.tsx" target="_blank"><code>demo/app/page.tsx</code></a></td></tr>
+          <tr><td><strong>Runnable setup instructions</strong></td><td>README covers install, ingestion, backend, demo UI, and evaluations</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/README.md" target="_blank"><code>README.md</code></a></td></tr>
+        </tbody></table></div>
+
+        <span class="section-anchor" id="adr-eval"></span>
+        <h3>4.2 Architecture Decision Record</h3>
+        <div class="table-wrapper"><table><thead><tr><th>ADR Requirement</th><th>How addressed</th><th>Where to look</th></tr></thead><tbody>
+          <tr><td><strong>Chunking strategy</strong></td><td>Product, fabric, policy, and customer data handled differently. Product/fabric is entity-aware; policies are section-based and tag-aware.</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/chunkers.py" target="_blank"><code>chunkers.py</code></a></td></tr>
+          <tr><td><strong>Chunk size and overlap tradeoffs</strong></td><td>Avoids generic fixed-size chunking where it would split product attributes or policy rules</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a></td></tr>
+          <tr><td><strong>Embedding model selection</strong></td><td><code>voyage-3</code> choice, <code>all-mpnet-base-v2</code> fallback, and rationale documented</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/embedders.py" target="_blank"><code>embedders.py</code></a></td></tr>
+          <tr><td><strong>Retrieval approach</strong></td><td>Hybrid retrieval, RRF fusion, metadata filtering, reranking, fabric boosts, and policy companion chunks</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/retrieval/hybrid_search.py" target="_blank"><code>hybrid_search.py</code></a></td></tr>
+          <tr><td><strong>Failure modes addressed</strong></td><td>Dense for paraphrase, BM25 for SKUs/policy terms, reranking for ordering, metadata filters for noise</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a></td></tr>
+          <tr><td><strong>Prompt architecture</strong></td><td>Context injection, source ID exposure, missing/low-confidence evidence handling</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/prompt_builder.py" target="_blank"><code>prompt_builder.py</code></a></td></tr>
+          <tr><td><strong>What would change with two more weeks</strong></td><td>Larger datasets, production vector infra, stronger NLI verification, deeper monitoring</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a></td></tr>
+        </tbody></table></div>
+
+        <span class="section-anchor" id="eval-framework"></span>
+        <h3>4.3 Evaluation Framework</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Evaluation Requirement</th><th>How addressed</th><th>Where to look</th></tr></thead><tbody>
+          <tr><td><strong>At least 20 test queries</strong></td><td>Product, policy, customer, and cross-domain questions across easy, medium, and hard difficulty</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/evals/test_queries.json" target="_blank"><code>test_queries.json</code></a></td></tr>
+          <tr><td><strong>Multiple domains represented</strong></td><td>Product knowledge, policy operations, customer context, and cross-domain combinations</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/evals/test_queries.json" target="_blank"><code>test_queries.json</code></a></td></tr>
+          <tr><td><strong>Recall@K</strong></td><td>Recall@5 against expected chunk IDs for answerable RAG queries</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/metrics.py" target="_blank"><code>metrics.py</code></a></td></tr>
+          <tr><td><strong>MRR</strong></td><td>Mean Reciprocal Rank — measures whether relevant chunks appear early</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/metrics.py" target="_blank"><code>metrics.py</code></a></td></tr>
+          <tr><td><strong>Context Precision</strong></td><td>Measures how much retrieved context is actually relevant</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/metrics.py" target="_blank"><code>metrics.py</code></a></td></tr>
+          <tr><td><strong>Faithfulness</strong></td><td>Judge checks whether answer claims are supported by retrieved evidence</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/metrics.py" target="_blank"><code>metrics.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/guardrails.py" target="_blank"><code>guardrails.py</code></a></td></tr>
+          <tr><td><strong>Answer Relevance</strong></td><td>Judge checks whether the response directly addresses the user query</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/metrics.py" target="_blank"><code>metrics.py</code></a></td></tr>
+          <tr><td><strong>Hallucination Rate</strong></td><td>Unsupported claims tracked and surfaced in aggregate results</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/metrics.py" target="_blank"><code>metrics.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/harness.py" target="_blank"><code>harness.py</code></a></td></tr>
+          <tr><td><strong>Behavior-aware eval</strong></td><td>Clarification and refusal cases scored as behavior success, not failed retrieval</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/harness.py" target="_blank"><code>harness.py</code></a></td></tr>
+          <tr><td><strong>Failure analysis</strong></td><td>Identifies worst-performing queries and categorizes retrieval/generation issues</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/failure_analysis.py" target="_blank"><code>failure_analysis.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/failure_analysis.md" target="_blank"><code>failure_analysis.md</code></a></td></tr>
+          <tr><td><strong>Regression harness under 5 min</strong></td><td>Smoke mode runs smaller representative subset; full mode runs the full suite</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/__main__.py" target="_blank"><code>__main__.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/regression.py" target="_blank"><code>regression.py</code></a></td></tr>
+          <tr><td><strong>Cost-efficient evaluation</strong></td><td>Smoke/full modes, baseline save/compare, optional output files</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/__main__.py" target="_blank"><code>__main__.py</code></a></td></tr>
+          <tr><td><strong>Tooling explanation</strong></td><td>ADR explains why custom metrics and LLM-as-judge were used instead of framework defaults</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a></td></tr>
+        </tbody></table></div>
+
+        <span class="section-anchor" id="production-readiness"></span>
+        <h3>4.4 Reliability &amp; Production Readiness Memo</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Requirement</th><th>How addressed</th><th>Where to look</th></tr></thead><tbody>
+          <tr><td><strong>Staleness and index drift</strong></td><td>Registry tracks chunk content hashes and tombstones removed content</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/registry.py" target="_blank"><code>registry.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/production_readiness_memo.md" target="_blank"><code>production_readiness_memo.md</code></a></td></tr>
+          <tr><td><strong>Incremental updates</strong></td><td>Registry identifies new, modified, unchanged, and deleted chunks for incremental refresh</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/registry.py" target="_blank"><code>registry.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/ingestion/run_ingestion.py" target="_blank"><code>run_ingestion.py</code></a></td></tr>
+          <tr><td><strong>Retrieval failure modes</strong></td><td>Answerability gate detects missing evidence and returns insufficient-context response</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>pipeline.py</code></a></td></tr>
+          <tr><td><strong>Nothing relevant retrieved</strong></td><td>Pipeline checks evidence before generation; can refuse or ask for clarification</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>pipeline.py</code></a></td></tr>
+          <tr><td><strong>Latency budget</strong></td><td>Eval harness reports mean, p50, p95 latency; production memo discusses optimization paths</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/harness.py" target="_blank"><code>harness.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/production_readiness_memo.md" target="_blank"><code>production_readiness_memo.md</code></a></td></tr>
+          <tr><td><strong>Guardrails</strong></td><td>Faithfulness guardrail verifies answer support and fails closed for high-risk responses</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/guardrails.py" target="_blank"><code>guardrails.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>pipeline.py</code></a></td></tr>
+          <tr><td><strong>Out-of-scope queries</strong></td><td>Scope guard and deterministic checks prevent unrelated questions from being answered</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/query/scope_guard.py" target="_blank"><code>scope_guard.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>pipeline.py</code></a></td></tr>
+          <tr><td><strong>Observability</strong></td><td>Pipeline emits trace with intent, chunks, reranking scores, answerability, guardrail status, latency</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/models.py" target="_blank"><code>models.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>pipeline.py</code></a></td></tr>
+          <tr><td><strong>Demo traceability</strong></td><td>UI exposes trace data so reviewers can inspect how a response was produced</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/demo/app/page.tsx" target="_blank"><code>demo/app/page.tsx</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/server.py" target="_blank"><code>server.py</code></a></td></tr>
+          <tr><td><strong>Top production risks</strong></td><td>Stale content, provider outages, embedding fallback, latency, hallucination, privacy, monitoring</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/production_readiness_memo.md" target="_blank"><code>production_readiness_memo.md</code></a></td></tr>
+        </tbody></table></div>
+
+        <span class="section-anchor" id="reviewer-nav"></span>
+        <h3>4.5 Quick Reviewer Navigation</h3>
+        <p>If you only have a few minutes, these are the most useful files to open first:</p>
+        <div class="table-wrapper reviewer-table"><table><thead><tr><th>Reviewer question</th><th>Start here</th></tr></thead><tbody>
+          <tr><td>"How does the RAG pipeline work end-to-end?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>src/pipeline.py</code></a></td></tr>
+          <tr><td>"Why did you choose this architecture?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/ADR.md" target="_blank"><code>docs/ADR.md</code></a></td></tr>
+          <tr><td>"How do you retrieve evidence?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/retrieval/hybrid_search.py" target="_blank"><code>hybrid_search.py</code></a></td></tr>
+          <tr><td>"How do you prevent unsupported answers?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/pipeline.py" target="_blank"><code>pipeline.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/generation/guardrails.py" target="_blank"><code>guardrails.py</code></a></td></tr>
+          <tr><td>"How do you evaluate it?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/src/eval/harness.py" target="_blank"><code>harness.py</code></a>, <a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/evals/test_queries.json" target="_blank"><code>test_queries.json</code></a></td></tr>
+          <tr><td>"How production-ready is this?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/docs/production_readiness_memo.md" target="_blank"><code>production_readiness_memo.md</code></a></td></tr>
+          <tr><td>"How do I run it?"</td><td><a href="https://github.com/attharva-j/ai-playground/blob/main/alo-rag/README.md" target="_blank"><code>README.md</code></a></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <hr>
+
+      <!-- SECTION 5: EFFORT DISTRIBUTION -->
+      <section class="section" id="sec-effort">
+        <span class="section-anchor" id="effort"></span>
+        <h2>5. Effort Investment Distribution</h2>
+        <p>Below is a rough breakdown of how the ~23 hours were spent across the major workstreams. The bars are proportional to time invested.</p>
+
+        <div class="effort-chart" id="effortChart">
+          <div class="effort-row" data-hours="6.5">
+            <div class="effort-label">
+              <span class="effort-name">Retrieval Engine</span>
+              <span class="effort-desc">Hybrid search, RRF fusion, BM25, reranker, metadata filters, fabric/policy boosts</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #6a8e5c; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">6.5 h</span>
+          </div>
+
+          <div class="effort-row" data-hours="4">
+            <div class="effort-label">
+              <span class="effort-name">Ingestion &amp; Chunking</span>
+              <span class="effort-desc">Domain-aware chunkers, loaders, fabric glossary, document registry, embedders</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #4a7a6a; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">4 h</span>
+          </div>
+
+          <div class="effort-row" data-hours="4">
+            <div class="effort-label">
+              <span class="effort-name">Evaluation Framework</span>
+              <span class="effort-desc">28 test queries, retrieval + generation metrics, failure analysis, regression harness</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #7a5c8e; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">4 h</span>
+          </div>
+
+          <div class="effort-row" data-hours="4">
+            <div class="effort-label">
+              <span class="effort-name">Query Intelligence</span>
+              <span class="effort-desc">Intent router, scope guard, HyDE, query decomposition, answerability gate</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #5c574f; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">4 h</span>
+          </div>
+
+          <div class="effort-row" data-hours="2.5">
+            <div class="effort-label">
+              <span class="effort-name">Generation &amp; Guardrails</span>
+              <span class="effort-desc">Prompt builder, LLM client, faithfulness guardrail, customer context injection</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #8e6a3d; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">2.5 h</span>
+          </div>
+
+          <div class="effort-row" data-hours="1">
+            <div class="effort-label">
+              <span class="effort-name">Documentation</span>
+              <span class="effort-desc">ADR, production readiness memo, failure analysis, changelog, README</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #8e5c6a; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">1 h</span>
+          </div>
+
+          <div class="effort-row" data-hours="0.67">
+            <div class="effort-label">
+              <span class="effort-name">Demo UI</span>
+              <span class="effort-desc">Next.js chat frontend, assistant-ui integration, trace panel, streaming</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #3d6b8e; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">~40 min</span>
+          </div>
+
+          <div class="effort-row" data-hours="0.5">
+            <div class="effort-label">
+              <span class="effort-name">Synthetic Data</span>
+              <span class="effort-desc">Product catalog, policy documents, 25 customer profiles with order histories</span>
+            </div>
+            <div class="effort-bar-track">
+              <div class="effort-bar" style="--bar-color: #c45d3e; --bar-pct: 0%"></div>
+            </div>
+            <span class="effort-hours">~30 min</span>
+          </div>
+
+          <div class="effort-total">
+            <span class="effort-total-label">Total</span>
+            <span class="effort-total-value">~23 hours</span>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top: 1.5rem;">
+          <div class="callout-title">Where the time went</div>
+          <p>Retrieval and ingestion together account for roughly 45% of the effort. That's intentional: getting the right evidence to the LLM is the hardest part of a production RAG system. Evaluation and query intelligence each took 4 hours because the assignment weighted evaluation heavily, and because building behavior-aware eval (scoring clarification and refusal as success) required custom metric design. The demo UI took under an hour thanks to assistant-ui doing the heavy lifting.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+  </button>
+  <!-- Expanded Architecture Diagram Backdrop -->
+  <div class="arch-modal-backdrop" id="archModalBackdrop"></div>
+
+  <footer class="site-footer">ALO RAG System — Solution Overview &middot; Built with care for retail AI</footer>
+
+  <script>
+    // ===== SCROLL UTILITIES =====
+    function throttle(fn, wait) {
+      let last = 0;
+      return function(...args) { const now = Date.now(); if (now - last >= wait) { last = now; fn.apply(this, args); } };
+    }
+
+    function updateScrollProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      document.getElementById('scrollProgress').style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
+    }
+
+    function updateHeader() {
+      document.getElementById('siteHeader').classList.toggle('scrolled', window.scrollY > 10);
+    }
+
+    function updateBackToTop() {
+      document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 400);
+    }
+
+    function updateScrollSpy() {
+      const anchors = document.querySelectorAll('.section-anchor');
+      const links = document.querySelectorAll('.sidebar-list a');
+      let current = '';
+      anchors.forEach(a => { if (a.getBoundingClientRect().top <= 120) current = a.id; });
+      links.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#' + current); });
+    }
+
+    const onScroll = throttle(() => { updateScrollProgress(); updateHeader(); updateBackToTop(); updateScrollSpy(); }, 16);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    updateScrollProgress(); updateHeader(); updateBackToTop(); updateScrollSpy();
+
+    // Section reveal
+    const sectionObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.section').forEach(s => sectionObs.observe(s));
+
+    // ===== EFFORT CHART BAR ANIMATION =====
+    (function() {
+      const chart = document.getElementById('effortChart');
+      if (!chart) return;
+      const maxHours = 6.5;
+      const rows = chart.querySelectorAll('.effort-row');
+
+      const effortObs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            rows.forEach((row, i) => {
+              const hours = parseFloat(row.getAttribute('data-hours'));
+              const pct = (hours / maxHours) * 100;
+              const bar = row.querySelector('.effort-bar');
+              setTimeout(() => {
+                bar.style.setProperty('--bar-pct', pct + '%');
+              }, i * 100);
+            });
+            effortObs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      effortObs.observe(chart);
+    })();
+
+    // ===== ARCHITECTURE DIAGRAM INTERACTIVITY =====
+    (function() {
+      const diagram = document.getElementById('archDiagram');
+      const tooltip = document.getElementById('archTooltip');
+      const nodes = diagram.querySelectorAll('.ad-node');
+      const edges = diagram.querySelectorAll('.ad-edge');
+      const buttons = diagram.querySelectorAll('.diagram-controls button');
+      let activeHighlight = null;
+
+      // Trigger node appear animation when visible
+      const archObs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { diagram.classList.add('animate'); archObs.unobserve(e.target); } });
+      }, { threshold: 0.2 });
+      archObs.observe(diagram);
+
+      // Tooltip on hover
+      nodes.forEach(node => {
+        node.addEventListener('mouseenter', e => {
+          const tip = node.getAttribute('data-tip');
+          if (!tip) return;
+          tooltip.textContent = tip;
+          tooltip.classList.add('show');
+          const rect = diagram.getBoundingClientRect();
+          const nr = node.getBoundingClientRect();
+          tooltip.style.left = (nr.left - rect.left + nr.width / 2 - 100) + 'px';
+          tooltip.style.top = (nr.top - rect.top - 44) + 'px';
+        });
+        node.addEventListener('mouseleave', () => { tooltip.classList.remove('show'); });
+      });
+
+      // Path highlighting
+      function highlightPath(pathName) {
+        edges.forEach(edge => {
+          const ep = edge.getAttribute('data-path');
+          if (pathName && ep === pathName) {
+            edge.classList.add('ad-edge-active', 'ad-edge-animated');
+            edge.style.markerEnd = 'url(#arrowActive)';
+          } else if (pathName) {
+            edge.style.opacity = '0.2';
+            edge.classList.remove('ad-edge-active', 'ad-edge-animated');
+            edge.style.markerEnd = 'url(#arrowhead)';
+          } else {
+            edge.style.opacity = '1';
+            edge.classList.remove('ad-edge-active', 'ad-edge-animated');
+            edge.style.markerEnd = 'url(#arrowhead)';
+          }
+        });
+      }
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const path = btn.getAttribute('data-highlight');
+          if (activeHighlight === path) {
+            activeHighlight = null;
+            highlightPath(null);
+            btn.classList.remove('active');
+          } else {
+            activeHighlight = path;
+            highlightPath(path);
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+          }
+        });
+      });
+    })();
+
+    // ===== EXPANDED ARCHITECTURE DIAGRAM =====
+    (function() {
+      const diagram = document.getElementById('archDiagram');
+      const expandBtn = document.getElementById('archExpandBtn');
+      const backdrop = document.getElementById('archModalBackdrop');
+      let isExpanded = false;
+      let placeholder = null; // keeps the diagram's place in the DOM
+
+      function expand() {
+        isExpanded = true;
+        // Insert a placeholder so we know where to put the diagram back
+        placeholder = document.createComment('arch-diagram-placeholder');
+        diagram.parentNode.insertBefore(placeholder, diagram);
+        // Move diagram to body so position:fixed escapes all stacking contexts
+        document.body.appendChild(diagram);
+        backdrop.classList.add('open');
+        diagram.classList.add('expanded');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function collapse() {
+        isExpanded = false;
+        backdrop.classList.remove('open');
+        diagram.classList.remove('expanded');
+        document.body.style.overflow = '';
+        // Move diagram back to its original position
+        if (placeholder && placeholder.parentNode) {
+          placeholder.parentNode.insertBefore(diagram, placeholder);
+          placeholder.remove();
+          placeholder = null;
+        }
+      }
+
+      expandBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isExpanded) collapse(); else expand();
+      });
+      backdrop.addEventListener('click', collapse);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && isExpanded) collapse(); });
+    })();
+
+    // ===== FLOWCHART STEP-THROUGH + ANIMATED PLAY =====
+    (function() {
+      const diagram = document.getElementById('flowDiagram');
+      const tooltip = document.getElementById('flowTooltip');
+      const steps = diagram.querySelectorAll('.flow-step');
+      const allEdges = diagram.querySelectorAll('.flow-edge');
+      const indicator = document.getElementById('flowStepIndicator');
+      const prevBtn = document.getElementById('flowPrev');
+      const nextBtn = document.getElementById('flowNext');
+      const resetBtn = document.getElementById('flowReset');
+      const playBtn = document.getElementById('flowPlayBtn');
+      const decisionPrompt = document.getElementById('decisionPrompt');
+      const decisionTitle = document.getElementById('decisionTitle');
+      const decisionOptions = document.getElementById('decisionOptions');
+      const svgEl = diagram.querySelector('svg');
+      const runner = document.getElementById('flowRunner');
+
+      // ---- Edge-to-step spatial mapping ----
+      function getStepCenter(stepEl) {
+        const shape = stepEl.querySelector('rect, polygon');
+        if (!shape) return null;
+        if (shape.tagName === 'rect') {
+          const x = +shape.getAttribute('x'), y = +shape.getAttribute('y');
+          const w = +shape.getAttribute('width'), h = +shape.getAttribute('height');
+          return { x: x + w/2, y: y + h/2, top: y, bottom: y + h };
+        }
+        const pts = shape.getAttribute('points').split(/[\s,]+/).map(Number);
+        let minY = Infinity, maxY = -Infinity, sumX = 0, sumY = 0, n = 0;
+        for (let i = 0; i < pts.length; i += 2) {
+          sumX += pts[i]; sumY += pts[i+1]; n++;
+          if (pts[i+1] < minY) minY = pts[i+1];
+          if (pts[i+1] > maxY) maxY = pts[i+1];
+        }
+        return { x: sumX/n, y: sumY/n, top: minY, bottom: maxY };
+      }
+
+      const stepCenters = new Map();
+      steps.forEach(s => { const c = getStepCenter(s); if (c) stepCenters.set(s, c); });
+
+      function findNearestStep(px, py) {
+        let best = null, bestDist = 60;
+        steps.forEach(s => {
+          const c = stepCenters.get(s);
+          if (!c) return;
+          const dx = Math.abs(px - c.x);
+          const dy = Math.min(Math.abs(py - c.top), Math.abs(py - c.bottom), Math.abs(py - c.y));
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < bestDist) { bestDist = dist; best = s; }
+        });
+        return best;
+      }
+
+      const edgeMap = new Map();
+      allEdges.forEach(edge => {
+        const x1 = +edge.getAttribute('x1'), y1 = +edge.getAttribute('y1');
+        const x2 = +edge.getAttribute('x2'), y2 = +edge.getAttribute('y2');
+        const fromStep = findNearestStep(x1, y1);
+        const toStep = findNearestStep(x2, y2);
+        edgeMap.set(edge, {
+          from: fromStep ? fromStep.getAttribute('data-step') : null,
+          to: toStep ? toStep.getAttribute('data-step') : null
+        });
+      });
+
+      // Walkthrough definition
+      const walkthrough = [
+        { step: '1' }, { step: '2' }, { step: '3' }, { step: '4' }, { step: '5' },
+        { step: '6', decision: true, title: 'Is this query out of scope?', options: [
+          { label: 'Yes \u2192 Return scoped refusal', step: '6a', terminal: true },
+          { label: 'No \u2192 Continue processing', step: null, cssClass: 'opt-continue' }
+        ]},
+        { step: '7', decision: true, title: 'Does this query need customer context?', options: [
+          { label: 'Yes, but no customer ID \u2192 Ask user', step: '7a', terminal: true, cssClass: 'opt-end' },
+          { label: 'Yes, has customer ID \u2192 Load profile', step: '7b', cssClass: 'opt-continue' },
+          { label: 'No \u2192 Proceed without', step: null, cssClass: 'opt-continue' }
+        ]},
+        { step: '8' },
+        { step: '9', decision: true, title: 'Is this a complex or policy-heavy query?', options: [
+          { label: 'Yes \u2192 Apply HyDE / decomposition', step: '9a', cssClass: 'opt-continue' },
+          { label: 'No \u2192 Use original query', step: '9b', cssClass: 'opt-continue' }
+        ]},
+        { step: '10' }, { step: '11' }, { step: '12' }, { step: '13' }, { step: '14' }, { step: '15' },
+        { step: '16', decision: true, title: 'Is there enough evidence to answer?', options: [
+          { label: 'No \u2192 Return insufficient-context response', step: '16a', terminal: true, cssClass: 'opt-end' },
+          { label: 'Yes \u2192 Build grounded prompt', step: null, cssClass: 'opt-continue' }
+        ]},
+        { step: '17' }, { step: '18' },
+        { step: '19', decision: true, title: 'Is the answer verified as faithful?', options: [
+          { label: 'No \u2192 Fail closed / safer answer', step: '19a', terminal: true, cssClass: 'opt-end' },
+          { label: 'Yes \u2192 Return answer with citations', step: null, cssClass: 'opt-continue' }
+        ]},
+        { step: '20' }
+      ];
+
+      const stepNums = [...new Set([...steps].map(s => s.getAttribute('data-step')))];
+      let currentStep = -1;
+      let isPlaying = false;
+      let playIndex = 0;
+      let playTimer = null;
+      let runnerAnim = null;
+      const visitedSteps = new Set();
+
+      const flowObs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { diagram.classList.add('animate'); flowObs.unobserve(e.target); } });
+      }, { threshold: 0.15 });
+      flowObs.observe(diagram);
+
+      // Tooltip (disabled during play)
+      steps.forEach(step => {
+        step.addEventListener('mouseenter', e => {
+          if (isPlaying) return;
+          const tip = step.getAttribute('data-tip');
+          if (!tip) return;
+          tooltip.textContent = tip;
+          tooltip.classList.add('show');
+          const rect = diagram.getBoundingClientRect();
+          const sr = step.getBoundingClientRect();
+          tooltip.style.left = (sr.left - rect.left + sr.width / 2 - 100) + 'px';
+          tooltip.style.top = (sr.top - rect.top - 44) + 'px';
+        });
+        step.addEventListener('mouseleave', () => { tooltip.classList.remove('show'); });
+      });
+
+      function getStepEls(stepId) { return [...steps].filter(s => s.getAttribute('data-step') === stepId); }
+
+      function scrollStepIntoView(stepId) {
+        const els = getStepEls(stepId);
+        if (!els.length) return;
+        const elRect = els[0].getBoundingClientRect();
+        const scrollTarget = window.scrollY + (elRect.top + elRect.height / 2) - window.innerHeight / 2;
+        window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+      }
+
+      // Animate runner dot between steps
+      function animateRunner(fromStepId, toStepId, duration) {
+        if (runnerAnim) cancelAnimationFrame(runnerAnim);
+        const fromEls = getStepEls(fromStepId);
+        const toEls = getStepEls(toStepId);
+        if (!fromEls.length || !toEls.length) { runner.classList.remove('visible'); return; }
+        const fc = stepCenters.get(fromEls[0]);
+        const tc = stepCenters.get(toEls[0]);
+        if (!fc || !tc) { runner.classList.remove('visible'); return; }
+        const startX = fc.x, startY = fc.bottom, endX = tc.x, endY = tc.top;
+        const startTime = performance.now();
+        const dur = duration || 450;
+        runner.classList.add('visible');
+        function tick(now) {
+          const t = Math.min((now - startTime) / dur, 1);
+          const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+          runner.setAttribute('cx', startX + (endX - startX) * ease);
+          runner.setAttribute('cy', startY + (endY - startY) * ease);
+          if (t < 1 && isPlaying) { runnerAnim = requestAnimationFrame(tick); }
+          else { runner.classList.remove('visible'); }
+        }
+        runnerAnim = requestAnimationFrame(tick);
+      }
+
+      function clearEdgeHighlights() {
+        allEdges.forEach(e => { e.classList.remove('edge-active', 'edge-visited'); e.style.opacity = ''; });
+      }
+
+      // Core highlight function with edge animation
+      function highlightPlayStep(stepId, extraStepIds) {
+        const allActive = new Set([stepId, ...(extraStepIds || [])]);
+        visitedSteps.add(stepId);
+        if (extraStepIds) extraStepIds.forEach(id => visitedSteps.add(id));
+
+        steps.forEach(s => {
+          const sid = s.getAttribute('data-step');
+          s.classList.remove('glow', 'pop-in');
+          if (allActive.has(sid)) {
+            s.style.opacity = '1'; s.style.filter = '';
+            s.classList.add('glow', 'pop-in');
+          } else if (visitedSteps.has(sid)) {
+            s.style.opacity = '0.55'; s.style.filter = 'none';
+          } else {
+            s.style.opacity = '0.1'; s.style.filter = 'none';
+          }
+        });
+
+        // Edge highlighting
+        const prevStepId = playIndex > 0 ? walkthrough[playIndex - 1].step : null;
+        allEdges.forEach(edge => {
+          const m = edgeMap.get(edge);
+          edge.classList.remove('edge-active', 'edge-visited');
+          if (!m) { edge.style.opacity = '0.12'; return; }
+          const isActive = (m.from === prevStepId && m.to === stepId) ||
+                           (extraStepIds && extraStepIds.some(eid => (m.from === stepId && m.to === eid) || (m.from === prevStepId && m.to === eid)));
+          const bothVisited = m.from && m.to && visitedSteps.has(m.from) && visitedSteps.has(m.to);
+          if (isActive) {
+            edge.classList.add('edge-active'); edge.style.opacity = '1';
+          } else if (bothVisited) {
+            edge.classList.add('edge-visited'); edge.style.opacity = '';
+          } else {
+            edge.style.opacity = '0.12';
+          }
+        });
+        indicator.textContent = 'Playing...';
+      }
+
+      function showDecisionPrompt(entry) {
+        const els = getStepEls(entry.step);
+        if (!els.length) return;
+        const dRect = diagram.getBoundingClientRect();
+        const eRect = els[0].getBoundingClientRect();
+        decisionTitle.textContent = entry.title;
+        decisionOptions.innerHTML = '';
+        entry.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'decision-prompt-btn ' + (opt.cssClass || '');
+          btn.textContent = opt.label;
+          btn.addEventListener('click', () => {
+            decisionPrompt.classList.remove('show');
+            if (opt.step) {
+              animateRunner(entry.step, opt.step, 400);
+              setTimeout(() => { highlightPlayStep(opt.step, [entry.step]); scrollStepIntoView(opt.step); }, 200);
+            }
+            if (opt.terminal) {
+              setTimeout(() => {
+                stopPlay();
+                steps.forEach(s => s.classList.remove('glow', 'pop-in'));
+                getStepEls(opt.step).forEach(s => { s.classList.add('glow'); s.style.opacity = '1'; });
+                indicator.textContent = 'Path ended';
+              }, 1200);
+            } else {
+              setTimeout(() => { playIndex++; playNextStep(); }, 800);
+            }
+          });
+          decisionOptions.appendChild(btn);
+        });
+        decisionPrompt.style.left = (eRect.left - dRect.left + eRect.width / 2) + 'px';
+        decisionPrompt.style.top = (eRect.bottom - dRect.top + 12) + 'px';
+        decisionPrompt.classList.add('show');
+      }
+
+      function playNextStep() {
+        if (!isPlaying || playIndex >= walkthrough.length) { stopPlay(); return; }
+        const entry = walkthrough[playIndex];
+        const prevEntry = playIndex > 0 ? walkthrough[playIndex - 1] : null;
+        if (prevEntry) animateRunner(prevEntry.step, entry.step, 450);
+        setTimeout(() => {
+          if (!isPlaying) return;
+          highlightPlayStep(entry.step);
+          scrollStepIntoView(entry.step);
+          if (entry.decision) {
+            setTimeout(() => { if (isPlaying) showDecisionPrompt(entry); }, 500);
+          } else {
+            playTimer = setTimeout(() => { if (!isPlaying) return; playIndex++; playNextStep(); }, 1100);
+          }
+        }, prevEntry ? 350 : 0);
+      }
+
+      function startPlay() {
+        isPlaying = true; playIndex = 0;
+        visitedSteps.clear(); clearEdgeHighlights();
+        playBtn.classList.add('playing');
+        decisionPrompt.classList.remove('show');
+        prevBtn.disabled = true; nextBtn.disabled = true;
+        playNextStep();
+      }
+
+      function stopPlay() {
+        isPlaying = false; clearTimeout(playTimer);
+        if (runnerAnim) cancelAnimationFrame(runnerAnim);
+        runner.classList.remove('visible');
+        playBtn.classList.remove('playing');
+        decisionPrompt.classList.remove('show');
+        steps.forEach(s => s.classList.remove('glow', 'pop-in'));
+        clearEdgeHighlights();
+        prevBtn.disabled = false; nextBtn.disabled = false;
+        if (indicator.textContent !== 'Path ended') { currentStep = -1; updateStepView(); }
+      }
+
+      playBtn.addEventListener('click', () => { if (isPlaying) stopPlay(); else startPlay(); });
+
+      // Manual step-through
+      function updateStepView() {
+        if (currentStep === -1) {
+          steps.forEach(s => { s.style.opacity = ''; s.style.filter = ''; });
+          allEdges.forEach(e => { e.style.opacity = ''; e.classList.remove('edge-active', 'edge-visited'); });
+          indicator.textContent = 'All steps';
+        } else {
+          steps.forEach(s => {
+            const sn = s.getAttribute('data-step');
+            const si = stepNums.indexOf(sn);
+            s.style.opacity = si <= currentStep ? (si === currentStep ? '1' : '0.5') : '0.12';
+            s.style.filter = si === currentStep ? 'drop-shadow(0 2px 8px rgba(196,93,62,0.25))' : 'none';
+          });
+          allEdges.forEach(e => { e.style.opacity = '0.25'; e.classList.remove('edge-active', 'edge-visited'); });
+          indicator.textContent = 'Step ' + (currentStep + 1) + ' / ' + stepNums.length;
+        }
+      }
+
+      nextBtn.addEventListener('click', () => { if (!isPlaying && currentStep < stepNums.length - 1) { currentStep++; updateStepView(); } });
+      prevBtn.addEventListener('click', () => { if (isPlaying) return; if (currentStep > 0) { currentStep--; updateStepView(); } else if (currentStep === 0) { currentStep = -1; updateStepView(); } });
+      resetBtn.addEventListener('click', () => { stopPlay(); currentStep = -1; updateStepView(); });
+    })();
+  </script>
+</body>
+</html>
