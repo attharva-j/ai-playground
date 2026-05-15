@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 import logging
@@ -83,6 +84,27 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Module-level reranker singleton
+#
+# The CrossEncoderReranker loads a ~550MB model from disk on first use.
+# If instantiated inside startup_event() as a local variable, the async
+# event loop can garbage-collect it between startup and the first request,
+# causing an ~8,000ms cold-load penalty on the first query.
+#
+# Declaring it at module scope makes it a process-lifetime singleton that
+# survives for as long as the server process runs. _get_model() is called
+# immediately at import time so the load happens once, at server start,
+# and is logged clearly in the startup output.
+# ---------------------------------------------------------------------------
+_reranker = CrossEncoderReranker()
+_reranker._get_model()  # Blocks for ~8s at first start; cached thereafter
+# Run a dummy predict() call to trigger PyTorch JIT compilation now.
+# Without this, the first real query pays a ~10,000ms JIT penalty even
+# though the model weights are already in memory. The result is discarded.
+_reranker._get_model().predict([["warmup query", "warmup document"]], show_progress_bar=False)
+
+
+# ---------------------------------------------------------------------------
 # Fast no-op guardrail for interactive chat (skips the second LLM call)
 # ---------------------------------------------------------------------------
 class _NoOpGuardrail:
@@ -144,6 +166,9 @@ async def startup_event() -> None:
 
     # -- Core services ----------------------------------------------------
     embedding_service = EmbeddingService()
+    # Pre-warm the local fallback embedding model so the first user query
+    # does not pay the 2–4 second SentenceTransformer load penalty.
+    embedding_service.embed_single("warmup")
     llm_client = LLMClient()
 
     # -- Load and chunk documents -----------------------------------------
@@ -214,8 +239,7 @@ async def startup_event() -> None:
 
     # -- Assemble pipeline components -------------------------------------
     rrf_fuser = RRFFuser(k=60)
-    reranker = CrossEncoderReranker()
-    reranker._get_model()  # Eagerly load model into memory at startup
+    reranker = _reranker  # Use the module-level singleton; already loaded
     hybrid_search = HybridSearch(
         vector_store=vector_store,
         bm25_index=bm25_index,
@@ -259,9 +283,11 @@ def _generate_id() -> str:
 async def generate_stream_from_llm(llm_client, prompt: str, system: str):
     """Stream tokens directly from the OpenAI API via SSE.
 
-    This produces real token-by-token streaming — each token is sent to
-    the frontend as it arrives from OpenAI, giving a ChatGPT-style
-    rendering experience with no artificial delays.
+    Uses ``LLMClient.generate_stream_async()`` (AsyncOpenAI) so each token
+    is flushed to the browser the instant it arrives from OpenAI.  This
+    is the fix for the previous behaviour where the synchronous
+    ``generate_stream()`` blocked the event loop and caused the full
+    response to appear all at once only after generation completed.
     """
     msg_id = _generate_id()
     text_id = _generate_id()
@@ -271,9 +297,10 @@ async def generate_stream_from_llm(llm_client, prompt: str, system: str):
     yield f'data: {json.dumps({"type": "start-step"})}\n\n'
     yield f'data: {json.dumps({"type": "text-start", "id": text_id})}\n\n'
 
-    # Stream tokens directly from OpenAI
+    # Stream tokens via AsyncOpenAI — each token is yielded to the event
+    # loop immediately, enabling true real-time rendering in the browser.
     try:
-        for token in llm_client.generate_stream(prompt=prompt, system=system):
+        async for token in llm_client.generate_stream_async(prompt=prompt, system=system):
             yield f'data: {json.dumps({"type": "text-delta", "id": text_id, "delta": token})}\n\n'
     except Exception as exc:
         logger.exception("Streaming generation failed")
@@ -443,9 +470,16 @@ async def chat(request: Request):
     logger.info("Chat request — user_message=%r, customer_id=%r", user_message, customer_id)
 
     try:
-        # Run stages 1-7 synchronously (no generation call)
-        pre = pipeline.run_without_generation(
-            query=user_message, customer_id=customer_id
+        # Offload the synchronous pipeline to a thread pool so the async
+        # event loop is not blocked during the ~1,000-1,500ms pre-generation
+        # phase (intent classification, embedding, retrieval, reranking).
+        # Without run_in_threadpool, every blocking network call inside
+        # run_without_generation() stalls the event loop and prevents SSE
+        # frames from being flushed to the browser.
+        pre = await run_in_threadpool(
+            pipeline.run_without_generation,
+            user_message,
+            customer_id,
         )
 
         # Build trace for the UI

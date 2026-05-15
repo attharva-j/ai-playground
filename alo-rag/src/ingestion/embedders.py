@@ -44,7 +44,7 @@ class EmbeddingService:
         # import-time failures don't prevent the class from loading.
         self._voyage_client: Any | None = None
         self._st_model: Any | None = None
-        self._using_fallback: bool = False
+        self._using_fallback: bool = True
 
     # ------------------------------------------------------------------
     # Public API

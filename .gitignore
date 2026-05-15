@@ -159,6 +159,9 @@ terraform.rc
 # Kiro Specific
 .kiro
 
+# Pycharm Specific
+.idea
+
 # Next.js / React / Typescript UI components specific
 .next
 node_modules

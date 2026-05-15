@@ -597,7 +597,7 @@ class TestRegressionHarness:
         report_tight = harness_tight.run_and_compare(current)
         assert "TQ-001" in report_tight.regressed
     
-    def test_load_test_queries_parses_expected_behavior(tmp_path: Path) -> None:
+    def test_load_test_queries_parses_expected_behavior(self, tmp_path: Path) -> None:
         path = tmp_path / "queries.json"
         path.write_text(
             json.dumps(

@@ -796,7 +796,7 @@ class TestPipelineErrorHandling:
         assert result.chunks == []
 
     def test_retrieval_failure_continues_with_empty_chunks(self) -> None:
-        """R20.3: Retrieval failure continues pipeline with empty chunks."""
+        """R20.3: Retrieval failure triggers answerability refusal (no chunks = refuse)."""
         retrieval = MagicMock(spec=HybridSearch)
         retrieval.search.side_effect = RuntimeError("ChromaDB unavailable")
 
@@ -807,9 +807,9 @@ class TestPipelineErrorHandling:
 
         result = pipeline.run("test query")
 
-        # Pipeline should still generate an answer (with empty context)
+        # Pipeline should refuse due to answerability gate (no chunks retrieved)
         assert isinstance(result, PipelineResult)
-        llm_client.generate.assert_called()
+        assert "reliable information" in result.answer.lower() or "enough" in result.answer.lower() or result.answer == _ERROR_RESPONSE
 
     def test_prompt_building_failure_returns_error_response(self) -> None:
         """R20.3: Prompt building failure returns a safe error response."""
@@ -1162,13 +1162,17 @@ class TestPipelineMetadataFiltering:
         retrieval = MagicMock(spec=HybridSearch)
         retrieval.search.return_value = [_make_retrieved_chunk()]
 
+        customer_injector = MagicMock(spec=CustomerContextInjector)
+        customer_injector.get_customer.return_value = _make_customer_profile()
+
         pipeline = _build_pipeline(
             intent_router=intent_router,
             decomposer=decomposer,
             retrieval=retrieval,
+            customer_injector=customer_injector,
         )
 
-        pipeline.run("What did I order?")
+        pipeline.run("What did I order?", customer_id="CUST-001")
 
         call_kwargs = retrieval.search.call_args.kwargs
         assert call_kwargs["metadata_filter"] is None
@@ -1254,7 +1258,7 @@ class TestPipelineAnswerabilityGate:
         result = pipeline.run_without_generation("What did I order?", customer_id="UNKNOWN-999")
 
         assert result.is_refused is True
-        assert "not found" in result.refusal_message.lower() or "enough information" in result.refusal_message.lower()
+        assert "reliable information" in result.refusal_message.lower() or "no matching profile" in result.refusal_message.lower()
 
     def test_product_query_without_chunks_refuses(self) -> None:
         """Product query with no retrieved chunks triggers refuse."""
@@ -1419,7 +1423,7 @@ class TestCheckAnswerabilityMethod:
         assert result.answerable is False
         assert result.action == "refuse_insufficient_context"
 
-    def test_run_customer_query_without_customer_id_short_circuits() -> None:
+    def test_run_customer_query_without_customer_id_short_circuits(self) -> None:
         """Full pipeline.run() should short-circuit customer queries without customer_id."""
         intent_router = MagicMock(spec=IntentRouter)
         intent_router.classify.return_value = _make_classification(

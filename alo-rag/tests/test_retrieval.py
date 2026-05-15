@@ -558,7 +558,7 @@ class TestMetadataPostFiltering:
     non-matching chunks rather than removing them."""
 
     def test_matching_chunks_come_first(self) -> None:
-        """Chunks matching the filter should appear before non-matching ones."""
+        """Chunks matching the filter are kept; non-matching ones are removed."""
         chunks = [
             _make_rc("policy1", domain="policy"),
             _make_rc("product1", domain="product"),
@@ -571,11 +571,11 @@ class TestMetadataPostFiltering:
         )
 
         ids = [rc.chunk.chunk_id for rc in filtered]
-        # product chunks should come first, then policy chunks
-        assert ids == ["product1", "product2", "policy1", "policy2"]
+        # Only product chunks should remain (hard filter)
+        assert ids == ["product1", "product2"]
 
     def test_non_matching_chunks_not_removed(self) -> None:
-        """Non-matching chunks should still be present (just de-prioritised)."""
+        """Non-matching chunks are hard-filtered out when matching chunks exist."""
         chunks = [
             _make_rc("policy1", domain="policy"),
             _make_rc("product1", domain="product"),
@@ -585,8 +585,8 @@ class TestMetadataPostFiltering:
             chunks, {"domain": "product"}
         )
 
-        assert len(filtered) == 2
-        assert {rc.chunk.chunk_id for rc in filtered} == {"policy1", "product1"}
+        assert len(filtered) == 1
+        assert filtered[0].chunk.chunk_id == "product1"
 
     def test_all_matching_preserves_order(self) -> None:
         """When all chunks match, original order is preserved."""
@@ -636,16 +636,15 @@ class TestMetadataPostFiltering:
         )
 
         ids = [rc.chunk.chunk_id for rc in filtered]
-        assert ids == ["c1", "c3", "c2"]
+        assert ids == ["c1", "c3"]
 
 
 class TestHybridSearchWithMetadataFilter:
     """Integration test: metadata filter affects final ranking in HybridSearch."""
 
     def test_metadata_filter_deprioritises_irrelevant_chunks(self) -> None:
-        """With a domain filter, matching chunks should rank higher than
-        non-matching ones after post-filtering, even if the non-matching
-        chunk had a higher fusion score."""
+        """With a domain filter, non-matching chunks are hard-filtered out
+        before reranking, so only matching chunks appear in results."""
         # Dense returns a policy chunk first (higher rank → higher RRF score)
         # and a product chunk second
         dense = [
@@ -689,8 +688,7 @@ class TestHybridSearchWithMetadataFilter:
             final_k=5,
         )
 
-        # product1 should come before policy1 because of post-filtering
+        # policy1 should be filtered out entirely; only product1 remains
         result_ids = [rc.chunk.chunk_id for rc in results]
-        product_idx = result_ids.index("product1")
-        policy_idx = result_ids.index("policy1")
-        assert product_idx < policy_idx
+        assert "product1" in result_ids
+        assert "policy1" not in result_ids

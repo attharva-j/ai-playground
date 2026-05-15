@@ -15,6 +15,10 @@ export async function POST(req: Request) {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
+    // Disable Next.js App Router and upstream proxy buffering.
+    // Without this header, new Response(readableStream) is buffered by
+    // the runtime before reaching the browser, negating SSE streaming.
+    "X-Accel-Buffering": "no",
   });
 
   // Forward the x-vercel-ai-ui-message-stream header from the Python backend
