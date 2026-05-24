@@ -1,6 +1,6 @@
-# ALO Yoga RAG System
+# RAG System For A Retail Fitness Apparel Company 
 
-A production-grade Retrieval-Augmented Generation system for ALO Yoga, enabling natural language querying across three knowledge domains: **product knowledge**, **policy & operations intelligence**, and **customer context**.
+A production-grade Retrieval-Augmented Generation system for a retail fitness apparel company, enabling natural language querying across three knowledge domains: **product knowledge**, **policy & operations intelligence**, and **customer context**.
 
 ## Architecture
 
